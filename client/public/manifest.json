@@ -1,0 +1,22 @@
+{
+  "name": "Sovg'a AI",
+  "short_name": "SovgaAI",
+  "description": "O'zbekistondagi 1-raqamli AI Xarid va Taqqoslash tizimi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08090d",
+  "theme_color": "#08090d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b86a16'><path d='M20 12v9H4v-9H2v-2h20v2h-2zm-2 2H6v5h12v-5zM9 4.5A2.5 2.5 0 0 1 11.5 7H7A2.5 2.5 0 0 1 9 4.5zm6 0A2.5 2.5 0 0 1 17.5 7H13a2.5 2.5 0 0 1 2-2.5z'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b86a16'><path d='M20 12v9H4v-9H2v-2h20v2h-2zm-2 2H6v5h12v-5zM9 4.5A2.5 2.5 0 0 1 11.5 7H7A2.5 2.5 0 0 1 9 4.5zm6 0A2.5 2.5 0 0 1 17.5 7H13a2.5 2.5 0 0 1 2-2.5z'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}

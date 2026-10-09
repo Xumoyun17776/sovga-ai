@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Sovg'a AI - Smart Shopping Assistant",
+  "version": "1.0",
+  "description": "Eng arzon narxlarni O'zbekiston do'konlaridan avtomatik izlab beradi.",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://uzum.uz/*",
+        "*://texnomart.uz/*",
+        "*://olcha.uz/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    }
+  ]
+}
