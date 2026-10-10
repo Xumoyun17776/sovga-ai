@@ -335,7 +335,7 @@ export default function PromoCodesHub() {
   const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
   const remainingSeconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
 
-  // Admin test bypass (only for owner xumoyunravshanov166@gmail.com)
+  // Admin test bypass (only for owner oriftilavkulov@gmail.com)
   const handleAdminResetSpin = () => {
     try {
       localStorage.removeItem(WHEEL_LAST_SPIN_KEY);
@@ -635,7 +635,7 @@ export default function PromoCodesHub() {
                     : "The wheel unlocks once every 7 days. Your won vouchers remain safely in 'My Prizes'."}
                 </p>
 
-                {user?.email === "xumoyunravshanov166@gmail.com" && (
+                {user?.email === "oriftilavkulov@gmail.com" && (
                   <div className="mt-3 pt-2.5 border-t border-amber-200 dark:border-slate-800/80 text-center relative z-10">
                     <button
                       onClick={handleAdminResetSpin}

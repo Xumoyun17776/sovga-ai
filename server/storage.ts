@@ -443,7 +443,7 @@ class PersistentStorage implements IStorage {
 
   private loadFromObject(data: any) {
     (data.users || []).forEach((u: any) => {
-      if (u.email?.toLowerCase().trim() === "xumoyunravshanov166@gmail.com") {
+      if (u.email?.toLowerCase().trim() === "oriftilavkulov@gmail.com") {
         u.role = "admin";
       }
       if (u.email === "admin@sovga.uz" && !u.password) {
