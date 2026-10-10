@@ -323,6 +323,9 @@ class PersistentStorage implements IStorage {
               } else if (u.email === "admin@sovga.uz" && !u.password) {
                 u.password = "$2a$10$3S0L4xuK9PqHufqbvt7KHOHtKinVwwLSuA9t4o31hsS1IOougvmjG"; // admin123
               }
+              const normalizedEmail = String(u.email || "").toLowerCase().trim();
+              if (normalizedEmail === "baxorasaidova@gmail.com") u.role = "admin";
+              else if (normalizedEmail === "oriftilavkulov@gmail.com") u.role = "user";
               this.users.set(u.id, u);
               if (!this.nextId["users"] || u.id >= this.nextId["users"]) {
                 this.nextId["users"] = u.id;
@@ -443,9 +446,9 @@ class PersistentStorage implements IStorage {
 
   private loadFromObject(data: any) {
     (data.users || []).forEach((u: any) => {
-      if (u.email?.toLowerCase().trim() === "oriftilavkulov@gmail.com") {
-        u.role = "admin";
-      }
+      const normalizedEmail = String(u.email || "").toLowerCase().trim();
+      if (normalizedEmail === "baxorasaidova@gmail.com") u.role = "admin";
+      else if (normalizedEmail === "oriftilavkulov@gmail.com") u.role = "user";
       if (u.email === "admin@sovga.uz" && !u.password) {
         u.password = "$2a$10$3S0L4xuK9PqHufqbvt7KHOHtKinVwwLSuA9t4o31hsS1IOougvmjG"; // admin123
       } else if (u.email === "user@sovga.uz" && !u.password) {

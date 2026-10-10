@@ -521,7 +521,7 @@ export default function Navbar() {
                       <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
                       <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
                       <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-800 border border-slate-200">
-                        {user.email?.toLowerCase().trim() === "oriftilavkulov@gmail.com"
+                        {user.email?.toLowerCase().trim() === "baxorasaidova@gmail.com"
                           ? "Super Admin"
                           : user.role === "pro"
                           ? "VIP Pro"
@@ -583,7 +583,7 @@ export default function Navbar() {
                         <span>{language === "uz" ? "Narx Monitoringi" : language === "ru" ? "Мониторинг цен" : "Price Alerts"}</span>
                       </Link>
 
-                      {user.email?.toLowerCase().trim() === "oriftilavkulov@gmail.com" && (
+                      {user.email?.toLowerCase().trim() === "baxorasaidova@gmail.com" && (
                         <Link
                           href="/admin"
                           onClick={() => setProfileDropdownOpen(false)}

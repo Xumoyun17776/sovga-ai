@@ -34,7 +34,7 @@ function requireAuth(req: Request, res: Response, next: Function) {
   next();
 }
 
-const SUPER_ADMIN_EMAIL = "oriftilavkulov@gmail.com";
+const SUPER_ADMIN_EMAIL = "baxorasaidova@gmail.com";
 
 async function requireAdmin(req: Request, res: Response, next: Function) {
   if (!req.session.userId) return res.status(401).json({ success: false, error: "Authentication required" });

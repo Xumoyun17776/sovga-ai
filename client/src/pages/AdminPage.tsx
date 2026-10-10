@@ -69,7 +69,7 @@ export default function AdminPage() {
 
   const { data: user } = useQuery({ queryKey: ["me"], queryFn: auth.me });
 
-  const SUPER_ADMIN_EMAIL = "oriftilavkulov@gmail.com";
+  const SUPER_ADMIN_EMAIL = "baxorasaidova@gmail.com";
   const isAdmin = user && user.email?.toLowerCase().trim() === SUPER_ADMIN_EMAIL;
 
   const {
@@ -237,7 +237,7 @@ export default function AdminPage() {
     );
   };
 
-  // Gatekeeper: only permit oriftilavkulov@gmail.com
+  // Gatekeeper: only permit baxorasaidova@gmail.com
   if (!user || user.email?.toLowerCase().trim() !== SUPER_ADMIN_EMAIL) {
     return (
       <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#07080c] relative overflow-hidden flex items-center justify-center p-4">
@@ -261,7 +261,7 @@ export default function AdminPage() {
             </p>
             <div className="py-2">
               <span className="font-mono text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-amber-400 border border-slate-700 shadow-sm inline-block">
-                oriftilavkulov@gmail.com
+                baxorasaidova@gmail.com
               </span>
             </div>
           </div>
@@ -280,24 +280,24 @@ export default function AdminPage() {
                 }}
                 className="w-full py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs border border-slate-200 dark:border-slate-700 transition cursor-pointer active:scale-95"
               >
-                {language === "uz" ? "Chiqish va oriftilavkulov@gmail.com bilan kirish" : language === "ru" ? "Сменить аккаунт на oriftilavkulov@gmail.com" : "Sign Out & Switch to oriftilavkulov@gmail.com"}
+                {language === "uz" ? "Chiqish va baxorasaidova@gmail.com bilan kirish" : language === "ru" ? "Сменить аккаунт на baxorasaidova@gmail.com" : "Sign Out & Switch to baxorasaidova@gmail.com"}
               </button>
             </div>
           ) : (
             <div className="p-4 bg-slate-50 dark:bg-[#111422] border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3 shadow-sm">
               <p className="text-xs text-slate-600 dark:text-slate-400">
                 {language === "uz"
-                  ? "Davom etish uchun oriftilavkulov@gmail.com hisobingizga kiring:"
+                  ? "Davom etish uchun baxorasaidova@gmail.com hisobingizga kiring:"
                   : language === "ru"
-                  ? "Пожалуйста, авторизуйтесь под oriftilavkulov@gmail.com:"
-                  : "Please sign in with oriftilavkulov@gmail.com to proceed:"}
+                  ? "Пожалуйста, авторизуйтесь под baxorasaidova@gmail.com:"
+                  : "Please sign in with baxorasaidova@gmail.com to proceed:"}
               </p>
               <a
                 href="/auth?redirect=/admin"
                 className="w-full py-3 bg-slate-900 dark:bg-amber-500 hover:bg-slate-800 dark:hover:bg-amber-600 text-white dark:text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md shadow-slate-900/10 active:scale-95 block"
               >
                 <Shield className="w-4 h-4 text-amber-400 dark:text-slate-950 stroke-[2.2]" />
-                <span>{language === "uz" ? "oriftilavkulov@gmail.com bilan Kirish" : language === "ru" ? "Войти как oriftilavkulov@gmail.com" : "Sign In with oriftilavkulov@gmail.com"}</span>
+                <span>{language === "uz" ? "baxorasaidova@gmail.com bilan Kirish" : language === "ru" ? "Войти как baxorasaidova@gmail.com" : "Sign In with baxorasaidova@gmail.com"}</span>
               </a>
             </div>
           )}
