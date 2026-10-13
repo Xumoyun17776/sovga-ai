@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Store, ShoppingBag, Cpu, Smartphone, BookOpen, Tag, ArrowUpRight, Zap, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
+import { Store, ShoppingBag, Cpu, Smartphone, BookOpen, Tag, ArrowUpRight, Zap, CheckCircle2, Clock, ShieldCheck } from "../lib/icons";
 import { useTranslation } from "../lib/i18n";
 
 interface RetailerData {
@@ -192,7 +192,7 @@ const retailers: RetailerData[] = [
     taglineRu: "Ноутбуки и бытовая техника по всей республике",
     taglineEn: "Laptops and smart appliances nationwide",
     icon: Store,
-    accentColor: "from-amber-500 to-yellow-600",
+    accentColor: "from-amber-500 to-amber-600",
     badgeUz: "Rasmiy Kafolat",
     badgeRu: "Официальная Гарантия",
     badgeEn: "Official Warranty",
@@ -236,17 +236,7 @@ export default function LiveStoreRadar() {
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-6 border-b border-slate-100">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-bold uppercase tracking-wider mb-2">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>
-                {language === "uz"
-                  ? "Jonli Bozor Radari & Do'konlar Skaneri"
-                  : language === "ru"
-                  ? "Радар Цен и Сканер Магазинов"
-                  : "Live Marketplace Radar & Store Scanner"}
-              </span>
-            </div>
-            <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">
+            <h2 className="font-display font-semibold text-2xl sm:text-3xl text-slate-900">
               {language === "uz"
                 ? "O'zbekiston Retail Gigantlari Bilan To'g'ridan-To'g'ri Aloqa"
                 : language === "ru"
@@ -300,11 +290,11 @@ export default function LiveStoreRadar() {
         </div>
 
         {/* Selected Retailer Deep-Dive Panel */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/60 border border-slate-200/80 space-y-6">
+        <div className="bg-white dark:bg-[#0b1224] p-6 rounded-2xl border border-slate-200/80 space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-display font-black text-xl text-slate-900">{current.name}</h3>
+                <h3 className="font-display font-bold text-xl text-slate-900">{current.name}</h3>
                 <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
                   {currentBadge}
                 </span>

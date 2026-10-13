@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Crown, ArrowUpRight, ShieldCheck, Truck, Star, Eye, ShoppingBag } from "lucide-react";
+import { Sparkles, Crown, ArrowUpRight, ShieldCheck, Truck, Star, Eye, ShoppingBag } from "../lib/icons";
 import { useTranslation } from "../lib/i18n";
 import { useCurrency } from "../lib/currency";
 import { cyberSound } from "../lib/cyberSound";
@@ -45,7 +45,7 @@ const luxuryCollections: Record<string, LuxuryCollection> = {
   wedding: {
     labelUz: "To'y & Qalin (Elita To'plam)",
     labelRu: "Свадьба & Калым (Элитная Серия)",
-    labelEn: "Wedding & Dowry (Elite Selection)",
+    labelEn: "Wedding & home",
     icon: "💍",
     items: [
       {
@@ -134,7 +134,7 @@ const luxuryCollections: Record<string, LuxuryCollection> = {
   flagship_tech: {
     labelUz: "Flagman Gadjetlar & Audio",
     labelRu: "Флагманы & Аудио",
-    labelEn: "Flagship Gadgets & Audio",
+    labelEn: "Gadgets & audio",
     icon: "⚡",
     items: [
       {
@@ -223,7 +223,7 @@ const luxuryCollections: Record<string, LuxuryCollection> = {
   heritage: {
     labelUz: "Milliy Qadriyat & Zardo'zi",
     labelRu: "Традиции & Ремесла",
-    labelEn: "Heritage Crafts & Silk",
+    labelEn: "Crafts & silk",
     icon: "✨",
     items: [
       {
@@ -312,7 +312,7 @@ const luxuryCollections: Record<string, LuxuryCollection> = {
   gourmet: {
     labelUz: "Gourmet Oshxona & Qulaylik",
     labelRu: "Гурме Кухня & Уют",
-    labelEn: "Gourmet Kitchen & Comfort",
+    labelEn: "Kitchen & home comfort",
     icon: "🍳",
     items: [
       {
@@ -436,34 +436,17 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
       {/* Section Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
         <div>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/90 dark:bg-amber-500/10 border border-amber-300/80 dark:border-amber-500/20 text-amber-900 dark:text-amber-400 text-xs font-bold uppercase tracking-wider mb-2 shadow-xs">
-            <Crown className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            <span>
-              {language === "uz"
-                ? "Oltin Standart · Eksklyuziv Sovg'alar"
-                : language === "ru"
-                ? "Золотой Стандарт · Эксклюзивные Подарки"
-                : "The Gold Standard • Curated Luxury"}
-            </span>
-          </div>
-          <h2 className="font-display font-extrabold text-2xl sm:text-4xl text-slate-900 dark:text-white tracking-tight">
-            {language === "uz"
-              ? "Eng Munosib Shoxona Tanlovlar"
-              : language === "ru"
-              ? "Лучшие Флагманские Подарки"
-              : "Handpicked Premier Flagships"}
+          <span className="eyebrow mb-3">{language === "uz" ? "Tanlov" : language === "ru" ? "Подборка" : "Curated"}</span>
+          <h2 className="font-display font-semibold text-[1.75rem] leading-tight sm:text-4xl tracking-[-0.035em] text-slate-900 dark:text-white">
+            {language === "uz" ? <>Tanlangan <span className="text-gold-gradient">sovg'alar</span></> : language === "ru" ? <>Подборка <span className="text-gold-gradient">подарков</span></> : <>Gift picks <span className="text-gold-gradient">by category</span></>}
           </h2>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-xl font-normal leading-relaxed">
-            {language === "uz"
-              ? "Har bir toifadagi eng yuqori baholangan, rasmiy kafolatli va to'g'ridan-to'g'ri buyurtma berish mumkin bo'lgan tanlangan durdonalar."
-              : language === "ru"
-              ? "Тщательно отобранные флагманские товары с официальной гарантией и мгновенным оформлением заказа."
-              : "Highest-rated flagship items across Uzbekistan with verified retailer warranties and direct 1-click in-app delivery."}
+            {language === "uz" ? "Har bir toifada yaxshi baholangan va rasmiy kafolatli mahsulotlar." : language === "ru" ? "Товары с хорошими отзывами и официальной гарантией в каждой категории." : "Well-reviewed products with an official warranty, grouped by category."}
           </p>
         </div>
 
         {/* Tab Switchers */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-amber-100/70 dark:bg-slate-900/90 rounded-2xl border border-amber-200/80 dark:border-slate-800 overflow-x-auto scrollbar-none shadow-2xs">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none">
           {Object.entries(luxuryCollections).map(([key, col]) => (
             <button
               key={key}
@@ -471,13 +454,12 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
                 cyberSound.playClick();
                 setActiveTab(key);
               }}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-1.5 h-9 px-3.5 rounded-full text-sm font-medium transition whitespace-nowrap cursor-pointer border ${
                 activeTab === key
-                  ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white shadow-md font-extrabold scale-102"
-                  : "text-amber-950/80 dark:text-slate-400 hover:text-amber-950 dark:hover:text-white hover:bg-white/70 dark:hover:bg-slate-800/60 font-semibold"
+                  ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white"
+                  : "bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]"
               }`}
             >
-              <span>{col.icon}</span>
               <span>{getCollectionLabel(col)}</span>
             </button>
           ))}
@@ -489,7 +471,7 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
         {collection.items.map((item) => (
           <div
             key={item.id}
-            className="card-luxury-elevated flex flex-col justify-between overflow-hidden group rounded-3xl border-2 border-amber-200/80 dark:border-slate-800 bg-gradient-to-b from-white via-[#fdfbf7] to-[#f8f4ea] dark:from-[#10121d] dark:to-[#080a11] shadow-luxury hover:shadow-2xl hover:border-amber-400 dark:hover:border-amber-500/60 transition-all duration-300"
+            className="bg-white dark:bg-[#0b1224] card-luxury-elevated flex flex-col justify-between overflow-hidden group rounded-2xl border border-[var(--line)] dark:border-slate-800 shadow-sm hover:shadow-md hover:border-[var(--line-strong)] dark:hover:border-amber-500/60 transition-all duration-300"
           >
             <div>
               {/* Product Visual */}
@@ -505,13 +487,13 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
                   alt={item.name}
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  className="w-full h-full object-cover transition-transform duration-200 ease-out"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/10 to-transparent" />
 
                 {/* Top Badge */}
                 <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                  <span className="px-3 py-1 rounded-full bg-slate-900/90 text-amber-300 text-[10px] font-black uppercase tracking-wider backdrop-blur-md border border-amber-400/30 flex items-center gap-1 shadow-sm">
+                  <span className="px-3 py-1 rounded-full bg-slate-900/90 text-amber-300 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border border-amber-400/30 flex items-center gap-1 shadow-sm">
                     <Sparkles className="w-3 h-3 text-amber-400" />
                     <span>{getItemBadge(item)}</span>
                   </span>
@@ -532,11 +514,11 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
                       cyberSound.playClick();
                       if (onQuickView) onQuickView(item);
                     }}
-                    className="px-4 py-2 rounded-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-lg flex items-center gap-1.5 hover:scale-105 transition cursor-pointer"
+                    className="px-4 py-2 rounded-full bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 text-xs font-bold shadow-sm flex items-center gap-1.5 transition cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5 text-amber-500" />
                     <span>
-                      {language === "uz" ? "Tezkor Ko'rish" : language === "ru" ? "Быстрый Просмотр" : "Quick View"}
+                      {language === "uz" ? "Batafsil" : language === "ru" ? "Подробнее" : "Details"}
                     </span>
                   </button>
                 </div>
@@ -548,7 +530,7 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
                       {getItemCategory(item)}
                     </span>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-xl font-black text-white drop-shadow-sm">
+                      <span className="text-xl font-bold text-white drop-shadow-sm">
                         {formatPrice(item.price)}
                       </span>
                       <span className="text-xs text-slate-300/80 line-through">
@@ -556,7 +538,7 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
                       </span>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[10px] font-extrabold shadow-sm">
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[10px] font-semibold shadow-sm">
                     {item.discount}
                   </span>
                 </div>
@@ -575,8 +557,8 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
                 </h3>
 
                 {/* Curator Note */}
-                <p className="text-xs text-amber-950 dark:text-amber-200/90 font-medium leading-relaxed bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 p-3 rounded-xl italic">
-                  “{getItemCuratorNote(item)}”
+                <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {getItemCuratorNote(item)}
                 </p>
 
                 {/* Features & Logistics */}
@@ -594,17 +576,17 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
             </div>
 
             {/* Action Bar */}
-            <div className="p-5 pt-0 border-t border-amber-100 dark:border-slate-800/80 flex items-center gap-2">
+            <div className="p-5 pt-0 border-t border-[var(--line)] dark:border-slate-800/80 flex items-center gap-2">
               <button
                 onClick={() => {
                   cyberSound.playConfirm();
                   setOrderProduct(item);
                 }}
-                className="flex-1 btn-luxury-gold py-2.5 px-4 rounded-xl text-xs font-bold text-center flex items-center justify-center gap-2 shadow-sm cursor-pointer active:scale-95"
+                className="flex-1 btn-luxury-gold py-2.5 px-4 rounded-xl text-xs font-bold text-center flex items-center justify-center gap-2 shadow-sm cursor-pointer"
               >
                 <ShoppingBag className="w-3.5 h-3.5 stroke-[2.2]" />
                 <span>
-                  {language === "uz" ? "Sotib olish" : language === "ru" ? "Купить" : "Buy Now"}
+                  {language === "uz" ? "Sotib olish" : language === "ru" ? "Купить" : "Buy"}
                 </span>
               </button>
               <a
@@ -613,7 +595,7 @@ export default function LuxuryCuratedShowcase({ onQuickView }: { onQuickView?: (
                 rel="noopener noreferrer"
                 onClick={() => cyberSound.playClick()}
                 title={`Open in ${item.store}`}
-                className="p-2.5 rounded-xl border border-amber-200/80 dark:border-slate-800 hover:border-amber-300 dark:hover:border-slate-700 hover:bg-amber-50/70 dark:hover:bg-slate-800 text-amber-950 dark:text-slate-300 transition flex items-center justify-center shrink-0 shadow-2xs active:scale-95"
+                className="p-2.5 rounded-xl border border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)] dark:hover:border-slate-700 hover:bg-amber-50/70 dark:hover:bg-slate-800 text-amber-950 dark:text-slate-300 transition flex items-center justify-center shrink-0 shadow-2xs"
               >
                 <ArrowUpRight className="w-3.5 h-3.5 opacity-80 stroke-[2.2]" />
               </a>

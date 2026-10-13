@@ -16,12 +16,13 @@ import {
   Share2,
   Copy,
   Flame,
-} from "lucide-react";
+} from "../lib/icons";
 import { formatPrice } from "../lib/api";
 import { cyberSound } from "../lib/cyberSound";
 import { useToast } from "../components/Toast";
 import { useTranslation } from "../lib/i18n";
 import confetti from "canvas-confetti";
+import { copyText } from "../lib/clipboard";
 
 interface QuizQuestion {
   id: number;
@@ -75,14 +76,14 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
 ];
 
 const WHEEL_ITEMS = [
-  { label: "De'Longhi Kofe Mashinasi", color: "#b86a16", store: "Texnomart", price: 980000, url: "https://texnomart.uz/katalog/delonghi-mini-me/" },
-  { label: "Keychron K2 Pro Klaviatura", color: "#4f46e5", store: "Uzum", price: 1120000, url: "https://uzum.uz/uz/product/mexanik-klaviatura-keychron-k2-pro-839210" },
+  { label: "De'Longhi Kofe Mashinasi", color: "#b53518", store: "Texnomart", price: 980000, url: "https://texnomart.uz/katalog/delonghi-mini-me/" },
+  { label: "Keychron K2 Pro Klaviatura", color: "#b53518", store: "Uzum", price: 1120000, url: "https://uzum.uz/uz/product/mexanik-klaviatura-keychron-k2-pro-839210" },
   { label: "Rishton Kulol Choy Dasti", color: "#0891b2", store: "Uzum", price: 360000, url: "https://uzum.uz/uz/product/rishton-kulolchilik-choy-servizi-12-bolakli-593821" },
-  { label: "Xiaomi Air Fryer 3.5L", color: "#ea580c", store: "Texnomart", price: 790000, url: "https://texnomart.uz/katalog/xiaomi-mi-smart-air-fryer-3-5l/" },
+  { label: "Xiaomi Air Fryer 3.5L", color: "#6d28d9", store: "Texnomart", price: 790000, url: "https://texnomart.uz/katalog/xiaomi-mi-smart-air-fryer-3-5l/" },
   { label: "JBL Charge 5 Spiker", color: "#7c3aed", store: "MediaPark", price: 940000, url: "https://mediapark.uz/products/view/jbl-charge-5" },
   { label: "Dior Sauvage Parfyum", color: "#0f766e", store: "MediaPark", price: 520000, url: "https://mediapark.uz/products/view/dior-sauvage-edp" },
   { label: "Luminarc 46-talik Serviz", color: "#be185d", store: "Uzum", price: 490000, url: "https://uzum.uz/uz/product/idishlar-toplami-luminarc-essence-46-839210" },
-  { label: "Buxoro Zardo'zi Sandiqcha", color: "#d97706", store: "Uzum", price: 240000, url: "https://uzum.uz/uz/product/samarqand-sadafli-sandiqcha-749210" },
+  { label: "Buxoro Zardo'zi Sandiqcha", color: "#b53518", store: "Uzum", price: 240000, url: "https://uzum.uz/uz/product/samarqand-sadafli-sandiqcha-749210" },
 ];
 
 export default function GiftQuizPage() {
@@ -123,15 +124,13 @@ export default function GiftQuizPage() {
 
   const handleToggleWishlist = (name: string) => {
     cyberSound.playConfirm();
-    setSavedWishlist((prev) => {
-      const next = !prev[name];
-      if (next) {
-        toast.success(`"${name}" istaklar ro'yxatiga saqlandi!`, "Saqlandi");
-      } else {
-        toast.info(`"${name}" ro'yxatdan olib tashlandi.`);
-      }
-      return { ...prev, [name]: next };
-    });
+    const next = !savedWishlist[name];
+    setSavedWishlist((prev) => ({ ...prev, [name]: next }));
+    if (next) {
+      toast.success(`"${name}" istaklar ro'yxatiga saqlandi!`, "Saqlandi");
+    } else {
+      toast.info(`"${name}" ro'yxatdan olib tashlandi.`);
+    }
   };
 
   const handleShareQuiz = (title: string) => {
@@ -151,7 +150,7 @@ export default function GiftQuizPage() {
     } else {
       setQuizFinished(true);
       cyberSound.playChime();
-      toast.success("AI sizning javoblaringiz asosida mukammal sovg'a profilini tuzdi!", "Tahlil Yakunlandi 🎉");
+      toast.success("AI sizning javoblaringiz asosida mukammal sovg'a profilini tuzdi!", "Tahlil Yakunlandi");
     }
   };
 
@@ -362,31 +361,30 @@ export default function GiftQuizPage() {
           particleCount: 80,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ["#F59E0B", "#10B981", "#6366F1", "#EC4899"],
+          colors: ["#d9431f", "#10B981", "#d9431f", "#EC4899"],
         });
       } catch {}
-      toast.success(`Ruletka tanlovi: ${WHEEL_ITEMS[randomSegmentIndex].label}!`, "Omadli Sovg'a 🎁");
+      toast.success(`Ruletka tanlovi: ${WHEEL_ITEMS[randomSegmentIndex].label}!`, "Omadli Sovg'a");
     }, 4000);
   };
 
   return (
-    <div className="min-h-screen py-8 sm:py-12 transition-colors relative overflow-hidden bg-[#fcfbf9] dark:bg-[#07080c]">
+    <div className="min-h-screen py-8 sm:py-12 transition-colors relative overflow-hidden">
       {/* Ambient luxury vignette glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(1000px,100vw)] h-[380px] bg-gradient-to-b from-amber-500/10 via-amber-400/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
         {/* Top Header & Tab Switcher */}
         <div className="text-center max-w-2xl mx-auto mb-8 space-y-3">
-          <div className="inline-flex items-center gap-1.5 p-1.5 bg-gradient-to-r from-amber-100/90 via-amber-200/50 to-amber-100/90 dark:from-slate-800 dark:to-slate-900 rounded-2xl border-2 border-amber-300/80 dark:border-amber-500/30 shadow-xs">
+          <div className="inline-flex items-center gap-1.5 p-1.5 rounded-2xl border border-[var(--line)] dark:border-amber-500/30 shadow-xs bg-amber-100/90 dark:bg-slate-800">
             <button
               onClick={() => {
                 cyberSound.playClick();
                 setActiveTab("quiz");
               }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer active:scale-95 ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
                 activeTab === "quiz"
-                  ? "bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
-                  : "text-amber-950 dark:text-slate-300 hover:text-amber-700"
+                  ? "text-white font-bold shadow-md bg-amber-500"
+                  : "text-slate-700 dark:text-slate-300 hover:text-amber-700"
               }`}
             >
               <HelpCircle className="w-4 h-4 stroke-[2.2]" />
@@ -399,10 +397,10 @@ export default function GiftQuizPage() {
                 cyberSound.playClick();
                 setActiveTab("wheel");
               }}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer active:scale-95 ${
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
                 activeTab === "wheel"
-                  ? "bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 text-slate-950 font-black shadow-md shadow-amber-500/20"
-                  : "text-amber-950 dark:text-slate-300 hover:text-amber-700"
+                  ? "text-white font-bold shadow-md bg-amber-500"
+                  : "text-slate-700 dark:text-slate-300 hover:text-amber-700"
               }`}
             >
               <Sparkles className="w-4 h-4 stroke-[2.2]" />
@@ -412,13 +410,11 @@ export default function GiftQuizPage() {
             </button>
           </div>
 
-          <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 dark:text-white tracking-tight">
-            {activeTab === "quiz" ? "Smart Sovg'a Testi" : "Sovg'a Fortune Ruletkasi"}
+          <h1 className="lux-title text-[2.4rem] sm:text-6xl text-slate-900 dark:text-white leading-[1.05]">
+            {activeTab === "quiz" ? (language === "uz" ? "Sovg'a testi" : language === "ru" ? "Тест подарка" : "Gift quiz") : (language === "uz" ? "Sovg'a barabani" : language === "ru" ? "Колесо подарков" : "Gift wheel")}
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-            {activeTab === "quiz"
-              ? "4 ta tezkor savol orqali qabul qiluvchining qiziqishlari, byudjeti va didiga 98% mos keladigan eng sara sovg'alarni aniqlang."
-              : "Qaror qabul qila olmayapsizmi? Omad g'ildiragini aylantiring (Haftada 1 marta bepul imkoniyat) va AI eng sara sovg'ani tanlab bersin!"}
+            {activeTab === "quiz" ? (language === "uz" ? "To'rtta savolga javob bering — qiziqishi, byudjeti va didiga mos sovg'alarni ko'rsatamiz." : language === "ru" ? "Ответьте на четыре вопроса — покажем подарки под интересы, бюджет и вкус." : "Answer four questions and we'll show gifts that fit their interests, your budget and their taste.") : (language === "uz" ? "Qaror qila olmayapsizmi? Barabanni aylantiring — haftada bir marta bepul." : language === "ru" ? "Не можете решить? Крутите колесо — раз в неделю бесплатно." : "Can't decide? Spin the wheel — free once a week.")}
           </p>
         </div>
 
@@ -426,10 +422,10 @@ export default function GiftQuizPage() {
         {activeTab === "quiz" && (
           <div className="max-w-2xl mx-auto">
             {!quizFinished ? (
-              <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-6 sm:p-8 border-2 border-amber-200/80 dark:border-amber-500/25 shadow-luxury">
+              <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-8 border border-[var(--line)] dark:border-amber-500/25 shadow-sm">
                 {/* Progress Indicator */}
-                <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-amber-100 dark:border-slate-800">
-                  <span className="text-xs font-extrabold uppercase text-amber-800 dark:text-amber-400 tracking-wider">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-[var(--line)] dark:border-slate-800">
+                  <span className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-400 tracking-wider">
                     Savol {currentStep + 1} / {QUIZ_QUESTIONS.length}
                   </span>
                   <div className="flex gap-1.5">
@@ -438,7 +434,7 @@ export default function GiftQuizPage() {
                         key={idx}
                         className={`h-2.5 rounded-full transition-all ${
                           idx === currentStep
-                            ? "w-8 bg-gradient-to-r from-amber-500 to-yellow-600 shadow-xs"
+                            ? "w-8 shadow-xs bg-amber-500"
                             : idx < currentStep
                             ? "w-3 bg-emerald-500"
                             : "w-3 bg-amber-200/80 dark:bg-slate-700"
@@ -449,7 +445,7 @@ export default function GiftQuizPage() {
                 </div>
 
                 {/* Question Title */}
-                <h2 className="font-display font-black text-xl sm:text-2xl text-slate-900 dark:text-white mb-6">
+                <h2 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mb-6">
                   {QUIZ_QUESTIONS[currentStep].question}
                 </h2>
 
@@ -459,9 +455,9 @@ export default function GiftQuizPage() {
                     <button
                       key={opt.id}
                       onClick={() => handleSelectAnswer(opt.id)}
-                      className="p-4 rounded-2xl bg-white/90 dark:bg-slate-900/60 border-2 border-amber-200/70 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-slate-800/80 text-left transition flex items-center gap-3 cursor-pointer group active:scale-95 shadow-2xs"
+                      className="p-4 rounded-2xl bg-white/90 dark:bg-slate-900/60 border border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)] dark:hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-slate-800/80 text-left transition flex items-center gap-3 cursor-pointer group shadow-2xs"
                     >
-                      <span className="text-2xl group-hover:scale-110 transition">{opt.icon}</span>
+                      <span className="text-2xl transition">{opt.icon}</span>
                       <span className="font-bold text-slate-800 dark:text-slate-200 text-sm group-hover:text-amber-800 dark:group-hover:text-amber-300 transition">
                         {opt.text}
                       </span>
@@ -473,7 +469,7 @@ export default function GiftQuizPage() {
                 {currentStep > 0 && (
                   <button
                     onClick={() => setCurrentStep(currentStep - 1)}
-                    className="text-xs font-bold text-amber-700 dark:text-slate-400 hover:text-amber-900 dark:hover:text-white transition flex items-center gap-1 cursor-pointer active:scale-95"
+                    className="text-xs font-bold text-amber-700 dark:text-slate-400 hover:text-amber-900 dark:hover:text-white transition flex items-center gap-1 cursor-pointer"
                   >
                     ← Oldingi savolga qaytish
                   </button>
@@ -485,9 +481,9 @@ export default function GiftQuizPage() {
                 return (
                   <div className="space-y-6 animate-slide-up">
                     {/* Persona Match Card */}
-                    <div className="bg-gradient-to-br from-[#121624] via-[#0d101a] to-[#080a11] rounded-3xl p-6 sm:p-8 text-white border-2 border-amber-400/40 shadow-luxury">
+                    <div className="from-[#121624] via-[#0d101a] to-[#080a11] rounded-2xl p-6 sm:p-8 text-white border border-amber-400/40 shadow-sm bg-[#121624]">
                       <div className="flex items-center justify-between mb-4">
-                        <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/20 via-amber-400/30 to-amber-500/20 text-amber-300 border border-amber-400/40 shadow-xs">
+                        <span className="px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-amber-300 border border-amber-400/40 shadow-xs bg-amber-500/20">
                           AI Sovg'a Profili • 98% Moslik
                         </span>
                         <button
@@ -499,7 +495,7 @@ export default function GiftQuizPage() {
                         </button>
                       </div>
 
-                      <h3 className="font-display font-black text-2xl sm:text-3xl text-amber-200 mb-2">
+                      <h3 className="font-display font-bold text-2xl sm:text-3xl text-amber-200 mb-2">
                         "{personaTitle}"
                       </h3>
                       <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-6 font-normal">
@@ -509,15 +505,15 @@ export default function GiftQuizPage() {
                       <div className="grid grid-cols-3 gap-2 p-3 bg-slate-900/80 rounded-2xl border border-amber-400/20 text-center text-xs">
                         <div>
                           <span className="text-[10px] text-slate-400 block uppercase font-bold">Asosiy Fokus</span>
-                          <span className="font-black text-amber-300">{mainFocus}</span>
+                          <span className="font-bold text-amber-300">{mainFocus}</span>
                         </div>
                         <div>
                           <span className="text-[10px] text-slate-400 block uppercase font-bold">Tavsiya Darajasi</span>
-                          <span className="font-black text-emerald-400">98% Aniq</span>
+                          <span className="font-bold text-emerald-400">98% Aniq</span>
                         </div>
                         <div>
                           <span className="text-[10px] text-slate-400 block uppercase font-bold">Yetkazish</span>
-                          <span className="font-black text-yellow-300">1 ish kuni</span>
+                          <span className="font-bold text-yellow-300">1 ish kuni</span>
                         </div>
                       </div>
 
@@ -525,7 +521,7 @@ export default function GiftQuizPage() {
                         <button
                           type="button"
                           onClick={() => handleShareQuiz(personaTitle)}
-                          className="flex-1 py-2.5 px-3 bg-[#2AABEE] hover:bg-[#229ED9] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md active:scale-95"
+                          className="flex-1 py-2.5 px-3 bg-[#2AABEE] hover:bg-[#229ED9] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
                         >
                           <Share2 className="w-3.5 h-3.5 stroke-[2.2]" />
                           <span>Natijani Telegramga yuborish</span>
@@ -533,10 +529,10 @@ export default function GiftQuizPage() {
                         <button
                           type="button"
                           onClick={() => {
-                            navigator.clipboard.writeText(window.location.href);
+                            copyText(window.location.href);
                             toast.info("Havola nusxalandi!");
                           }}
-                          className="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-pointer active:scale-95"
+                          className="py-2.5 px-3.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700 cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5 stroke-[2.2]" />
                           <span>Nusxalash</span>
@@ -546,7 +542,7 @@ export default function GiftQuizPage() {
 
                     {/* Recommended Top 3 Products */}
                     <div className="space-y-3">
-                      <h4 className="font-display font-black text-slate-900 dark:text-white text-base flex items-center gap-2">
+                      <h4 className="font-display font-bold text-slate-900 dark:text-white text-base flex items-center gap-2">
                         <Trophy className="w-4.5 h-4.5 text-amber-500 stroke-[2.2]" />
                         <span>Siz Uchun Eng Mos Kelgan 3 Ta Sovg'a:</span>
                       </h4>
@@ -554,11 +550,11 @@ export default function GiftQuizPage() {
                       {items.map((item, idx) => (
                         <div
                           key={idx}
-                          className="p-4 bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-2xl border-2 border-amber-200/80 dark:border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-luxury hover:border-amber-400 transition"
+                          className="bg-white dark:bg-[#0b1224] p-4 rounded-2xl border border-[var(--line)] dark:border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm hover:border-[var(--line-strong)] transition"
                         >
                           <div>
                             <div className="flex items-center gap-2.5">
-                              <span className="w-6 h-6 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 text-xs font-black flex items-center justify-center shadow-xs">
+                              <span className="w-6 h-6 rounded-full text-white text-xs font-bold flex items-center justify-center shadow-xs bg-amber-500">
                                 {idx + 1}
                               </span>
                               <h5 className="font-bold text-slate-900 dark:text-white text-sm">{item.name}</h5>
@@ -566,9 +562,9 @@ export default function GiftQuizPage() {
                             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 pl-8">💡 {item.reason}</p>
                           </div>
 
-                          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end pl-8 sm:pl-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-amber-100 dark:border-slate-800">
+                          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end pl-8 sm:pl-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--line)] dark:border-slate-800">
                             <div className="text-right">
-                              <span className="text-sm font-black text-amber-900 dark:text-amber-300 block">
+                              <span className="text-sm font-bold text-amber-900 dark:text-amber-300 block">
                                 {formatPrice(item.price)}
                               </span>
                               <span className="text-[10px] text-slate-400 font-bold">{item.store}</span>
@@ -576,10 +572,10 @@ export default function GiftQuizPage() {
                             <button
                               type="button"
                               onClick={() => handleToggleWishlist(item.name)}
-                              className={`w-9 h-9 rounded-xl transition border-2 flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 ${
+                              className={`w-9 h-9 rounded-xl transition border flex items-center justify-center cursor-pointer shadow-2xs ${
                                 savedWishlist[item.name]
                                     ? "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-600 text-rose-600"
-                                  : "bg-white dark:bg-slate-900 border-amber-200/80 dark:border-slate-700 text-slate-400 hover:text-rose-500"
+                                  : "bg-white dark:bg-slate-900 border-[var(--line)] dark:border-slate-700 text-slate-400 hover:text-rose-500"
                               }`}
                               title={
                                 savedWishlist[item.name]
@@ -593,7 +589,7 @@ export default function GiftQuizPage() {
                               href={item.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black text-xs flex items-center gap-1.5 transition shadow-sm active:scale-95"
+                              className="px-4 py-2 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 transition shadow-sm bg-amber-500 hover:bg-amber-400"
                             >
                               <span>{language === "uz" ? "Xarid qilish" : language === "ru" ? "Купить" : "Buy Now"}</span>
                               <ExternalLink className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -613,12 +609,12 @@ export default function GiftQuizPage() {
         {activeTab === "wheel" && (
           <div className="max-w-xl mx-auto text-center">
             {/* Weekly Cooldown Alert Card */}
-            <div className={`p-4 rounded-2xl border-2 mb-6 text-xs transition-all ${
+            <div className={`p-4 rounded-2xl border mb-6 text-xs transition-all ${
               isCooldownActive
-                ? "bg-amber-50/90 dark:bg-amber-950/40 border-amber-300 dark:border-amber-600/50 text-amber-950 dark:text-amber-200"
+                ? "bg-amber-50/90 dark:bg-amber-950/40 border-[var(--line)] dark:border-amber-600/50 text-amber-950 dark:text-amber-200"
                 : "bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-600/50 text-emerald-950 dark:text-emerald-200"
             }`}>
-              <div className="flex items-center justify-center gap-2 font-black uppercase tracking-wider text-[11px] mb-1">
+              <div className="flex items-center justify-center gap-2 font-bold uppercase tracking-wider text-[11px] mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Haftada 1 Marta Bepul Aylantirish Qoidasi</span>
               </div>
@@ -637,17 +633,17 @@ export default function GiftQuizPage() {
                 </div>
               ) : (
                 <p className="font-semibold">
-                  ✨ Sizda hozir 1 ta bepul aylantirish imkoniyati mavjud! Omad g'ildiragini ishga tushiring.
-                </p>
+ Sizda hozir 1 ta bepul aylantirish imkoniyati mavjud! Omad g'ildiragini ishga tushiring.
+ </p>
               )}
             </div>
 
-            <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-4 sm:p-8 border-2 border-amber-200/80 dark:border-amber-500/25 shadow-luxury relative overflow-hidden mb-6">
+            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-4 sm:p-8 border border-[var(--line)] dark:border-amber-500/25 shadow-sm relative overflow-hidden mb-6">
               {/* Wheel Pointer */}
               <div className="w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-amber-500 mx-auto -mb-3 relative z-20 drop-shadow-md" />
 
               {/* Simulated Wheel Canvas with Gold Metallic Bezel */}
-              <div className="relative w-[min(18rem,calc(100vw-5rem))] h-[min(18rem,calc(100vw-5rem))] sm:w-80 sm:h-80 aspect-square mx-auto my-4 rounded-full border-6 sm:border-8 border-amber-400 dark:border-amber-500 shadow-[0_0_35px_rgba(245,158,11,0.25)] overflow-hidden shrink-0">
+              <div className="relative w-[min(18rem,calc(100vw-5rem))] h-[min(18rem,calc(100vw-5rem))] sm:w-80 sm:h-80 aspect-square mx-auto my-4 rounded-full border-6 sm:border-8 border-amber-400 dark:border-amber-500 overflow-hidden shrink-0">
                 <div
                   style={{
                     transform: `rotate(${rotation}deg)`,
@@ -666,7 +662,7 @@ export default function GiftQuizPage() {
                           backgroundColor: item.color,
                           clipPath: "polygon(50% 50%, 100% 0, 100% 100%)",
                         }}
-                        className="absolute inset-0 flex items-center justify-end pr-4 text-white text-[10px] font-black"
+                        className="absolute inset-0 flex items-center justify-end pr-4 text-white text-[10px] font-bold"
                       >
                         <span
                           style={{ transform: "rotate(90deg)" }}
@@ -680,7 +676,7 @@ export default function GiftQuizPage() {
                 </div>
 
                 {/* Center Hub */}
-                <div className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-600 border-4 border-white shadow-xl flex items-center justify-center text-slate-950 z-10 pointer-events-none">
+                <div className="absolute inset-0 m-auto w-16 h-16 rounded-full border-4 border-white shadow-xl flex items-center justify-center text-white z-10 pointer-events-none bg-amber-400">
                   <Gift className="w-6 h-6 text-slate-950" />
                 </div>
               </div>
@@ -689,28 +685,28 @@ export default function GiftQuizPage() {
               <button
                 onClick={handleSpinWheel}
                 disabled={spinning || isCooldownActive}
-                className={`py-3.5 px-8 rounded-2xl font-black text-sm transition shadow-lg shadow-amber-500/25 active:scale-95 cursor-pointer ${
+                className={`py-3.5 px-8 rounded-2xl font-bold text-sm transition shadow-sm cursor-pointer ${
                   isCooldownActive
-                    ? "bg-slate-200 dark:bg-slate-800 text-slate-400 border-2 border-slate-300 dark:border-slate-700 cursor-not-allowed shadow-none"
-                    : "bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950"
+                    ? "bg-slate-200 dark:bg-slate-800 text-slate-400 border border-slate-300 dark:border-slate-700 cursor-not-allowed shadow-none"
+                    : "text-white bg-amber-500 hover:bg-amber-400"
                 } disabled:opacity-75`}
               >
                 {spinning
                   ? "G'ildirak Aylanmoqda..."
                   : isCooldownActive
                   ? `Keyingi imkoniyat: ${remainingDays} kun ${remainingHours} soatdan so'ng ⏳`
-                  : "G'ildirakni Aylantirish 🎯"}
+                  : "G'ildirakni Aylantirish"}
               </button>
             </div>
 
             {/* Winner Showcase */}
             {wheelWinner && (
-              <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-6 border-2 border-amber-300/80 dark:border-amber-500/30 shadow-luxury text-left animate-slide-up flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 border border-[var(--line)] dark:border-amber-500/30 shadow-sm text-left animate-slide-up flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                  <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-gradient-to-r from-amber-500/15 via-amber-400/25 to-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-300/80 dark:border-amber-500/30">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold border border-[var(--line)] bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                     Omadli Ruletka Natijasi
                   </span>
-                  <h4 className="font-display font-extrabold text-lg text-slate-900 dark:text-white mt-2">
+                  <h4 className="font-display font-semibold text-lg text-slate-900 dark:text-white mt-2">
                     {wheelWinner.label}
                   </h4>
                   <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">
@@ -723,10 +719,10 @@ export default function GiftQuizPage() {
                   <button
                     type="button"
                     onClick={() => handleToggleWishlist(wheelWinner.label)}
-                    className={`w-9 h-9 rounded-xl border-2 transition flex items-center justify-center cursor-pointer shadow-2xs active:scale-95 ${
+                    className={`w-9 h-9 rounded-xl border transition flex items-center justify-center cursor-pointer shadow-2xs ${
                       savedWishlist[wheelWinner.label]
                         ? "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-600 text-rose-600"
-                        : "bg-white/90 dark:bg-slate-900/90 border-amber-200/80 dark:border-slate-700 text-slate-400 hover:text-rose-500"
+                        : "bg-white/90 dark:bg-slate-900/90 border-[var(--line)] dark:border-slate-700 text-slate-400 hover:text-rose-500"
                     }`}
                     title={savedWishlist[wheelWinner.label] ? "Saqlangan" : "Wishlistga qo'shish"}
                   >
@@ -739,7 +735,7 @@ export default function GiftQuizPage() {
                       const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
                       window.open(url, "_blank");
                     }}
-                    className="w-9 h-9 rounded-xl bg-[#2AABEE] hover:bg-[#229ED9] text-white flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-95"
+                    className="w-9 h-9 rounded-xl bg-[#2AABEE] hover:bg-[#229ED9] text-white flex items-center justify-center transition cursor-pointer shadow-2xs"
                     title={language === "uz" ? "Telegramga ulashish" : language === "ru" ? "Поделиться в Telegram" : "Share on Telegram"}
                   >
                     <Share2 className="w-4 h-4 stroke-[2.2]" />
@@ -748,7 +744,7 @@ export default function GiftQuizPage() {
                     href={wheelWinner.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black text-xs flex items-center gap-1.5 transition whitespace-nowrap shadow-md active:scale-95"
+                    className="px-5 py-2.5 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 transition whitespace-nowrap shadow-md bg-amber-500 hover:bg-amber-400"
                   >
                     <span>{language === "uz" ? "Xarid qilish" : language === "ru" ? "Купить" : "Buy Now"}</span>
                     <ExternalLink className="w-3.5 h-3.5 stroke-[2.2]" />

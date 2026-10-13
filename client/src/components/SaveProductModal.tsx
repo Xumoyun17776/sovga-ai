@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { wishlists, registries, auth } from "../lib/api";
-import { X, Heart, Star, Check, Plus } from "lucide-react";
+import { X, Heart, Star, Check, Plus } from "../lib/icons";
 import { useToast } from "./Toast";
 import { useTranslation } from "../lib/i18n";
 import AuthModal from "./AuthModal";
@@ -127,13 +127,12 @@ export default function SaveProductModal({ product, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] text-slate-900 dark:text-white rounded-3xl max-w-md w-full max-h-[92dvh] overflow-y-auto p-5 sm:p-7 shadow-luxury relative border-2 border-amber-300/80 dark:border-amber-500/25 animate-scale-in">
+      <div className="bg-white dark:bg-[#0b1224] text-slate-900 dark:text-white rounded-2xl max-w-md w-full max-h-[92dvh] overflow-y-auto p-5 sm:p-7 shadow-sm relative border border-[var(--line)] dark:border-amber-500/25 animate-scale-in">
         {/* Ambient Top Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-12 bg-amber-400/15 dark:bg-amber-400/10 blur-2xl pointer-events-none rounded-full" />
 
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-amber-200/60 dark:border-slate-700/80 flex items-center justify-center transition cursor-pointer active:scale-95 shadow-2xs"
+          className="absolute top-5 right-5 w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-[var(--line)] dark:border-slate-700/80 flex items-center justify-center transition cursor-pointer shadow-2xs"
           aria-label="Yopish"
         >
           <X className="w-4 h-4 stroke-[2.2]" />
@@ -173,7 +172,7 @@ export default function SaveProductModal({ product, onClose }: Props) {
             <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl text-xs font-semibold border border-slate-200/80 dark:border-white/5">
               <button
                 onClick={() => setDestination("wishlist")}
-                className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95 ${
+                className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer ${
                   destination === "wishlist"
                     ? "bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm font-bold"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -183,7 +182,7 @@ export default function SaveProductModal({ product, onClose }: Props) {
               </button>
               <button
                 onClick={() => setDestination("registry")}
-                className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer active:scale-95 ${
+                className={`py-2 rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer ${
                   destination === "registry"
                     ? "bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm font-bold"
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
@@ -234,7 +233,7 @@ export default function SaveProductModal({ product, onClose }: Props) {
                 <button
                   onClick={() => saveToWishlistMut.mutate()}
                   disabled={saveToWishlistMut.isPending}
-                  className="w-full btn-luxury-gold py-3 rounded-xl text-xs font-bold shadow-md cursor-pointer active:scale-95 disabled:opacity-40"
+                  className="w-full btn-luxury-gold py-3 rounded-xl text-xs font-bold shadow-md cursor-pointer disabled:opacity-40"
                 >
                   {saveToWishlistMut.isPending
                     ? language === "uz" ? "Saqlanmoqda..." : language === "ru" ? "Сохранение..." : "Saving..."
@@ -286,7 +285,7 @@ export default function SaveProductModal({ product, onClose }: Props) {
                     <button
                       onClick={() => saveToRegistryMut.mutate()}
                       disabled={saveToRegistryMut.isPending}
-                      className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white font-bold rounded-xl shadow-md text-xs transition cursor-pointer active:scale-95 disabled:opacity-40"
+                      className="w-full py-3 text-white font-bold rounded-xl shadow-md text-xs transition cursor-pointer disabled:opacity-40 bg-rose-500 hover:bg-rose-600"
                     >
                       {saveToRegistryMut.isPending
                         ? language === "uz" ? "Saqlanmoqda..." : language === "ru" ? "Сохранение..." : "Saving..."

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Swords, Trophy, Zap, ArrowUpRight, ShieldCheck, Flame, Star, CheckCircle2, ArrowRight } from "lucide-react";
+import { Swords, Trophy, Zap, ArrowUpRight, ShieldCheck, Flame, Star, CheckCircle2, ArrowRight } from "../lib/icons";
 import { formatPrice } from "../lib/api";
 import { useTranslation } from "../lib/i18n";
 
@@ -148,29 +148,11 @@ export default function NeuralDuelSimulator() {
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-6 border-b border-slate-100">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-bold uppercase tracking-wider mb-2">
-              <Swords className="w-3.5 h-3.5 text-rose-400" />
-              <span>
-                {language === "uz"
-                  ? "AI Neural Duel · Boshma-Bosh Solishtiruv"
-                  : language === "ru"
-                  ? "AI Нейро-Дуэль · Сравнение Топовых Моделей"
-                  : "AI Neural Duel · Head-to-Head Specification Showdown"}
-              </span>
-            </div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
-              {language === "uz"
-                ? "Ikkita Flagman To'qnashuvi"
-                : language === "ru"
-                ? "Битва Двух Флагманов"
-                : "Flagship Showdown: Impartial AI Analysis"}
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+              {language === "uz" ? "Ikki mahsulot yonma-yon" : language === "ru" ? "Два товара рядом" : "Two products side by side"}
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-              {language === "uz"
-                ? "Qaysi biri haqiqatan ham puliga arziydi? Sun'iy intellekt xolis texnik parametrlar bo'yicha taqqoslaydi."
-                : language === "ru"
-                ? "Какой товар действительно стоит своих денег? Беспристрастный технический анализ."
-                : "Which one truly justifies its price? Evaluated across verified acoustic, thermal, and durability benchmarks."}
+              {language === "uz" ? "Qaysi biri o'z narxiga arziydi? Asosiy xususiyatlar bo'yicha solishtiring." : language === "ru" ? "Какой из них стоит своих денег? Сравните по главным характеристикам." : "Which one is worth the money? Compare them on the things that matter."}
             </p>
           </div>
 
@@ -182,7 +164,7 @@ export default function NeuralDuelSimulator() {
                 className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                   selectedDuel === d.id
                     ? "bg-slate-900 text-white shadow-sm"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300"
                 }`}
               >
                 {d.label.split(" vs ")[0]} vs ...
@@ -194,13 +176,13 @@ export default function NeuralDuelSimulator() {
         {/* Duel Face-Off Arena */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
           {/* VS Center Badge */}
-          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-slate-950 text-amber-400 border-2 border-amber-400/80 items-center justify-center font-display font-black text-sm shadow-xl">
+          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-slate-950 text-amber-400 border border-amber-400/80 items-center justify-center font-display font-bold text-sm shadow-xl">
             VS
           </div>
 
           {/* Fighter A */}
-          <div className={`p-6 rounded-3xl border transition-all ${
-            current.winner === "A" ? "bg-amber-50/40 border-amber-300 shadow-md" : "bg-slate-50 border-slate-200"
+          <div className={`p-6 rounded-2xl border transition-all ${
+            current.winner === "A" ? "bg-[#eef0ff] dark:bg-amber-500/10 border-[#c7cbfe] dark:border-amber-500/30" : "bg-[#f7f7fa] dark:bg-white/[0.03] border-[var(--line)]"
           }`}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
@@ -212,7 +194,7 @@ export default function NeuralDuelSimulator() {
                 </h3>
               </div>
               <div className="text-right">
-                <span className="text-xl font-black text-slate-900 block">
+                <span className="text-xl font-bold text-slate-900 block">
                   {formatPrice(current.productA.price)}
                 </span>
                 <span className="text-xs font-bold text-amber-600">
@@ -235,7 +217,7 @@ export default function NeuralDuelSimulator() {
                   </div>
                   <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-slate-900 rounded-full transition-all duration-700"
+                      className="h-full bg-slate-900 rounded-full transition-all duration-200"
                       style={{ width: `${s.value}%` }}
                     />
                   </div>
@@ -261,8 +243,8 @@ export default function NeuralDuelSimulator() {
           </div>
 
           {/* Fighter B */}
-          <div className={`p-6 rounded-3xl border transition-all ${
-            current.winner === "B" ? "bg-amber-50/40 border-amber-300 shadow-md" : "bg-slate-50 border-slate-200"
+          <div className={`p-6 rounded-2xl border transition-all ${
+            current.winner === "B" ? "bg-[#eef0ff] dark:bg-amber-500/10 border-[#c7cbfe] dark:border-amber-500/30" : "bg-[#f7f7fa] dark:bg-white/[0.03] border-[var(--line)]"
           }`}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
@@ -274,7 +256,7 @@ export default function NeuralDuelSimulator() {
                 </h3>
               </div>
               <div className="text-right">
-                <span className="text-xl font-black text-slate-900 block">
+                <span className="text-xl font-bold text-slate-900 block">
                   {formatPrice(current.productB.price)}
                 </span>
                 <span className="text-xs font-bold text-amber-600">
@@ -297,7 +279,7 @@ export default function NeuralDuelSimulator() {
                   </div>
                   <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-slate-900 rounded-full transition-all duration-700"
+                      className="h-full bg-slate-900 rounded-full transition-all duration-200"
                       style={{ width: `${s.value}%` }}
                     />
                   </div>
@@ -329,11 +311,7 @@ export default function NeuralDuelSimulator() {
             <Trophy className="w-5 h-5 text-amber-400 shrink-0" />
             <div>
               <span className="text-[10px] font-mono uppercase font-bold text-amber-400 block tracking-wider">
-                {language === "uz"
-                  ? "AI QIYOSIY HUKMI (VERDICT)"
-                  : language === "ru"
-                  ? "ИТОГОВЫЙ AI ВЕРДИКТ"
-                  : "AI COMPARATIVE VERDICT"}
+                {language === "uz" ? "Xulosa" : language === "ru" ? "Вывод" : "Verdict"}
               </span>
               <p className="text-xs text-slate-200 font-medium leading-relaxed">
                 {current.aiVerdict}
@@ -343,15 +321,11 @@ export default function NeuralDuelSimulator() {
 
           <Link
             href="/duel"
-            className="px-4 py-2.5 rounded-xl btn-luxury-gold text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 shrink-0 shadow-md transition whitespace-nowrap cursor-pointer"
+            className="px-4 py-2.5 rounded-xl btn-luxury-gold text-slate-950 font-semibold text-xs flex items-center justify-center gap-1.5 shrink-0 shadow-md transition whitespace-nowrap cursor-pointer"
           >
             <Swords className="w-3.5 h-3.5" />
             <span>
-              {language === "uz"
-                ? "O'z modellaringizni solishtirish"
-                : language === "ru"
-                ? "Сравнить свои модели"
-                : "Custom 2-Product Duel Arena"}
+              {language === "uz" ? "O'z mahsulotlaringizni solishtiring" : language === "ru" ? "Сравнить свои товары" : "Compare your own products"}
             </span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>

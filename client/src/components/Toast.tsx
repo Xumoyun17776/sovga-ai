@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
-import { CheckCircle2, AlertCircle, Info, X, Bell } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info, X, Bell } from "../lib/icons";
 
 export type ToastType = "success" | "error" | "info" | "alert";
 
@@ -46,16 +46,16 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       {/* Toast Portal Container */}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+      <div role="status" aria-live="polite" className="fixed bottom-24 lg:bottom-5 right-0 sm:right-5 z-[80] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0">
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-xl border backdrop-blur-md transition-all duration-300 animate-slide-up ${
+            className={`pointer-events-auto flex items-start gap-3 p-4 rounded-2xl shadow-sm border backdrop-blur-md transition-all duration-300 animate-slide-up ${
               t.type === "success"
-                ? "bg-white/95 border-emerald-200 text-emerald-950 shadow-emerald-500/10"
+                ? "bg-white/95 dark:bg-slate-900/95 border-emerald-200 dark:border-emerald-500/30 text-emerald-950 dark:text-emerald-50"
                 : t.type === "error"
-                ? "bg-white/95 border-red-200 text-red-950 shadow-red-500/10"
-                : "bg-white/95 border-brand-200 text-gray-900 shadow-brand-500/10"
+                ? "bg-white/95 dark:bg-slate-900/95 border-red-200 dark:border-red-500/30 text-red-950 dark:text-red-50"
+                : "bg-white/95 dark:bg-slate-900/95 border-brand-200 dark:border-amber-500/30 text-gray-900 dark:text-slate-100"
             }`}
           >
             <div className="flex-shrink-0 mt-0.5">
@@ -66,13 +66,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex-1 min-w-0">
-              {t.title && <h5 className="font-bold text-xs tracking-wide uppercase text-gray-800 mb-0.5">{t.title}</h5>}
-              <p className="text-xs sm:text-sm font-medium text-gray-700 leading-snug">{t.message}</p>
+              {t.title && <h5 className="font-bold text-xs tracking-wide uppercase text-gray-800 dark:text-slate-100 mb-0.5">{t.title}</h5>}
+              <p className="text-xs sm:text-sm font-medium text-gray-700 dark:text-slate-300 leading-snug">{t.message}</p>
             </div>
 
             <button
               onClick={() => removeToast(t.id)}
-              className="text-gray-400 hover:text-gray-600 transition p-1"
+              aria-label="Close" className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition p-1"
             >
               <X className="w-4 h-4" />
             </button>

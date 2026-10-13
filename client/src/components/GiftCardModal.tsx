@@ -2,7 +2,8 @@ import { useState, useRef } from "react";
 import { formatPrice } from "../lib/api";
 import { useToast } from "./Toast";
 import { useTranslation } from "../lib/i18n";
-import { X, Printer, Send, Copy, Sparkles, Heart, Gift, ExternalLink, Check, ShoppingBag } from "lucide-react";
+import { X, Printer, Send, Copy, Sparkles, Heart, Gift, ExternalLink, Check, ShoppingBag } from "../lib/icons";
+import { copyText } from "../lib/clipboard";
 
 interface Props {
   product: {
@@ -125,7 +126,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
       `${reasonLabel}: ${product.reason || defaultReason}\n` +
       `${linkLabel}: ${product.url || window.location.href}`;
 
-    navigator.clipboard.writeText(text);
+    copyText(text);
     setCopied(true);
     const toastMsg =
       language === "uz"
@@ -141,14 +142,13 @@ export default function GiftCardModal({ product, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] text-slate-900 dark:text-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-luxury relative my-auto border-2 border-amber-300/80 dark:border-amber-500/25 max-h-[92vh] max-h-[92dvh] overflow-y-auto print:p-0 print:m-0 print:border-none print:shadow-none animate-scale-in">
+      <div className="bg-white dark:bg-[#0b1224] text-slate-900 dark:text-white rounded-2xl max-w-2xl w-full p-6 sm:p-8 shadow-sm relative my-auto border border-[var(--line)] dark:border-amber-500/25 max-h-[92vh] max-h-[92dvh] overflow-y-auto print:p-0 print:m-0 print:border-none print:shadow-none animate-scale-in">
         {/* Ambient Top Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-14 bg-amber-400/15 dark:bg-amber-400/10 blur-2xl pointer-events-none rounded-full print:hidden" />
 
         {/* Close Button (Hidden on Print) */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-amber-200/60 dark:border-slate-700/80 flex items-center justify-center transition cursor-pointer active:scale-95 shadow-2xs print:hidden"
+          className="absolute top-5 right-5 w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-[var(--line)] dark:border-slate-700/80 flex items-center justify-center transition cursor-pointer shadow-2xs print:hidden"
           aria-label="Yopish"
         >
           <X className="w-4 h-4 stroke-[2.2]" />
@@ -160,7 +160,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
             <Gift className="w-5 h-5 stroke-[2.2]" />
           </div>
           <div>
-            <h2 className="font-display font-extrabold text-xl text-slate-900 dark:text-white">
+            <h2 className="font-display font-semibold text-xl text-slate-900 dark:text-white">
               {language === "uz"
                 ? "Chop Etiladigan AI Sovg'a Sertifikati & Tabriknomasi"
                 : language === "ru"
@@ -240,7 +240,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
         {/* ─── ELEGANT PRINTABLE CARD CONTAINER ─────────────────────── */}
         <div
           ref={printRef}
-          className="border-2 border-slate-200 bg-white p-6 sm:p-8 rounded-3xl shadow-sm space-y-6 relative overflow-hidden"
+          className="border border-slate-200 bg-white p-6 sm:p-8 rounded-2xl shadow-sm space-y-6 relative overflow-hidden"
         >
           {/* Ornamental corner stamp */}
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
@@ -249,7 +249,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
                 <Gift className="w-4 h-4 text-indigo-600" />
               </div>
               <div>
-                <span className="font-display font-black text-xs uppercase tracking-widest text-slate-900 block">
+                <span className="font-display font-bold text-xs uppercase tracking-wide text-slate-900 block">
                   {language === "uz"
                     ? "SOVG'A SERTIFIKATI"
                     : language === "ru"
@@ -272,7 +272,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
 
           {/* Greeting Box */}
           <div className="space-y-2">
-            <h3 className="font-display font-extrabold text-lg sm:text-xl text-slate-900">
+            <h3 className="font-display font-semibold text-lg sm:text-xl text-slate-900">
               {language === "uz" ? "Hurmatli" : language === "ru" ? "Уважаемый(ая)" : "Dear"}{" "}
               <span className="text-indigo-600 underline decoration-indigo-200 underline-offset-4">{recipientName}</span>!
             </h3>
@@ -299,7 +299,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
                 {product.name}
               </h4>
               {product.price && (
-                <div className="text-sm font-extrabold text-slate-900">
+                <div className="text-sm font-semibold text-slate-900">
                   {formatPrice(product.price, product.currency)}
                 </div>
               )}
@@ -329,7 +329,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
               <span className="text-[10px] text-slate-400 block uppercase font-bold">
                 {language === "uz" ? "Samimiyat bilan:" : language === "ru" ? "С наилучшими пожеланиями:" : "With warm regards:"}
               </span>
-              <span className="font-display font-extrabold text-slate-900 text-sm sm:text-base">{giverName}</span>
+              <span className="font-display font-semibold text-slate-900 text-sm sm:text-base">{giverName}</span>
             </div>
 
             <div className="text-right">
@@ -345,7 +345,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
         <div className="flex flex-wrap items-center justify-end gap-2.5 mt-6 print:hidden">
           <button
             onClick={handleCopyText}
-            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl transition border border-slate-200/80 dark:border-white/10 active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl transition border border-slate-200/80 dark:border-white/10 cursor-pointer"
           >
             {copied ? <Check className="w-4 h-4 text-emerald-600 stroke-[2.2]" /> : <Copy className="w-4 h-4 stroke-[2.2]" />}
             <span>
@@ -357,7 +357,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
 
           <button
             onClick={handleSendTelegram}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#2AABEE] hover:bg-[#229ED9] text-white font-bold text-xs rounded-xl transition shadow-xs active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#2AABEE] hover:bg-[#229ED9] text-white font-bold text-xs rounded-xl transition shadow-xs cursor-pointer"
           >
             <Send className="w-4 h-4 stroke-[2.2]" />
             <span>
@@ -367,7 +367,7 @@ export default function GiftCardModal({ product, onClose }: Props) {
 
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-5 py-2.5 btn-luxury-gold font-bold text-xs rounded-xl transition shadow-md active:scale-95 cursor-pointer"
+            className="flex items-center gap-2 px-5 py-2.5 btn-luxury-gold font-bold text-xs rounded-xl transition shadow-md cursor-pointer"
           >
             <Printer className="w-4 h-4 stroke-[2.2]" />
             <span>

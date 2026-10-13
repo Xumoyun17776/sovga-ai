@@ -32,14 +32,14 @@ export default function EasterEgg() {
             angle: 60,
             spread: 55,
             origin: { x: 0 },
-            colors: ['#f59e0b', '#fbbf24', '#ffffff'] // Gold and White
+            colors: ['#d9431f', '#818cf8', '#ffffff'] // Gold and White
           });
           confetti({
             particleCount: 5,
             angle: 120,
             spread: 55,
             origin: { x: 1 },
-            colors: ['#f59e0b', '#fbbf24', '#ffffff']
+            colors: ['#d9431f', '#818cf8', '#ffffff']
           });
 
           if (Date.now() < end) {

@@ -9,7 +9,7 @@ const translations: Record<Lang, Record<string, any>> = {
     search: { placeholder: "Nima qidiryapsiz?", button: "Qidirish", researching: "Tadqiqot olib borilmoqda...", examples: "Masalan: 'To'y sovg'asi 700 ming gacha', 'Eng yaxshi quloqchinlar'" },
     gift: { title: "Mukammal sovg'ani toping", occasion: "Bayram", budget: "Byudjet", budgetMin: "Minimal", budgetMax: "Maksimal", recipient: "Kimga", relationship: "Munosabat", interests: "Qiziqishlari", avoid: "Nimalardan qochish kerak", find: "Sovg'a topish", age: "Yoshi", gender: "Jinsi" },
     occasions: { wedding: "To'y", birthday: "Tug'ilgan kun", graduation: "Bitirish", anniversary: "Yillik", new_baby: "Yangi chaqaloq", housewarming: "Yangi uy", holiday: "Bayram", teacher: "O'qituvchi", friend: "Do'st", family: "Oila", corporate: "Korporativ", other: "Boshqa" },
-    results: { bestOverall: "Eng yaxshi tanlov", bestValue: "Eng yaxshi narx", cheapest: "Eng arzon", premium: "Premium", mostUnique: "Eng noyob", sourcesResearched: "manba tekshirildi", lastChecked: "Oxirgi tekshiruv", priceNotVerified: "Narx tasdiqlanmagan", demoData: "DEMO MA'LUMOTLAR", viewDetails: "Batafsil", whyRecommended: "Nega tavsiya etildi?" },
+    results: { bestOverall: "Eng yaxshi tanlov", bestValue: "Eng yaxshi narx", cheapest: "Eng arzon", premium: "Premium", mostUnique: "Eng noyob", sourcesResearched: "ta do'kon tekshirildi", lastChecked: "Oxirgi tekshiruv", priceNotVerified: "Narx tasdiqlanmagan", demoData: "DEMO MA'LUMOTLAR", viewDetails: "Batafsil", whyRecommended: "Nega tavsiya etildi?" },
     product: { buy: "Sotib olish", compare: "Taqqoslash", save: "Saqlash", why: "Nega bu?" },
     registry: { create: "Ro'yxat yaratish", title: "To'y ro'yxati", items: "Mahsulotlar", reserve: "Bu sovg'ani band qilish", reserved: "Band qilingan", purchased: "Sotib olingan", addItem: "Mahsulot qo'shish", guestName: "Ismingiz", message: "Xabar", share: "Ulashish" },
     wishlist: { create: "Ro'yxat yaratish", title: "Istaklar ro'yxati", addItem: "Mahsulot qo'shish" },
@@ -23,7 +23,7 @@ const translations: Record<Lang, Record<string, any>> = {
     search: { placeholder: "Что вы ищете?", button: "Искать", researching: "Исследуем...", examples: "Например: 'Подарок на свадьбу до 700 тыс', 'Лучшие наушники'" },
     gift: { title: "Найдите идеальный подарок", occasion: "Повод", budget: "Бюджет", budgetMin: "Минимум", budgetMax: "Максимум", recipient: "Для кого", relationship: "Отношение", interests: "Интересы", avoid: "Чего избегать", find: "Найти подарок", age: "Возраст", gender: "Пол" },
     occasions: { wedding: "Свадьба", birthday: "День рождения", graduation: "Выпускной", anniversary: "Годовщина", new_baby: "Новорожденный", housewarming: "Новоселье", holiday: "Праздник", teacher: "Учитель", friend: "Друг", family: "Семья", corporate: "Корпоратив", other: "Другое" },
-    results: { bestOverall: "Лучший выбор", bestValue: "Лучшая цена", cheapest: "Самый доступный", premium: "Премиум", mostUnique: "Самый уникальный", sourcesResearched: "источников проверено", lastChecked: "Проверено", priceNotVerified: "Цена не подтверждена", demoData: "ДЕМО ДАННЫЕ", viewDetails: "Подробнее", whyRecommended: "Почему рекомендован?" },
+    results: { bestOverall: "Лучший выбор", bestValue: "Лучшая цена", cheapest: "Самый доступный", premium: "Премиум", mostUnique: "Самый уникальный", sourcesResearched: "магазинов проверено", lastChecked: "Проверено", priceNotVerified: "Цена не подтверждена", demoData: "ДЕМО ДАННЫЕ", viewDetails: "Подробнее", whyRecommended: "Почему рекомендован?" },
     product: { buy: "Купить", compare: "Сравнить", save: "Сохранить", why: "Почему это?" },
     registry: { create: "Создать список", title: "Свадебный список", items: "Товары", reserve: "Забронировать подарок", reserved: "Забронирован", purchased: "Куплен", addItem: "Добавить товар", guestName: "Ваше имя", message: "Сообщение", share: "Поделиться" },
     wishlist: { create: "Создать список", title: "Список желаний", addItem: "Добавить товар" },
@@ -37,7 +37,7 @@ const translations: Record<Lang, Record<string, any>> = {
     search: { placeholder: "What are you looking for?", button: "Search", researching: "Researching...", examples: "E.g.: 'Wedding gift under 700k', 'Best headphones under 800k'" },
     gift: { title: "Find the perfect gift", occasion: "Occasion", budget: "Budget", budgetMin: "Minimum", budgetMax: "Maximum", recipient: "For whom", relationship: "Relationship", interests: "Interests", avoid: "Things to avoid", find: "Find a Gift", age: "Age", gender: "Gender" },
     occasions: { wedding: "Wedding", birthday: "Birthday", graduation: "Graduation", anniversary: "Anniversary", new_baby: "New Baby", housewarming: "Housewarming", holiday: "Holiday", teacher: "Teacher", friend: "Friend", family: "Family", corporate: "Corporate", other: "Other" },
-    results: { bestOverall: "Best Overall", bestValue: "Best Value", cheapest: "Cheapest Good Option", premium: "Premium Pick", mostUnique: "Most Unique", sourcesResearched: "sources researched", lastChecked: "Last checked", priceNotVerified: "Price not verified", demoData: "DEMO DATA", viewDetails: "View Details", whyRecommended: "Why recommended?" },
+    results: { bestOverall: "Best Overall", bestValue: "Best Value", cheapest: "Cheapest Good Option", premium: "Premium Pick", mostUnique: "Most Unique", sourcesResearched: "stores checked", lastChecked: "Last checked", priceNotVerified: "Price not verified", demoData: "DEMO DATA", viewDetails: "View Details", whyRecommended: "Why recommended?" },
     product: { buy: "Buy", compare: "Compare", save: "Save", why: "Why this?" },
     registry: { create: "Create Registry", title: "Wedding Registry", items: "Items", reserve: "Reserve This Gift", reserved: "Reserved", purchased: "Purchased", addItem: "Add Item", guestName: "Your Name", message: "Message", share: "Share" },
     wishlist: { create: "Create Wishlist", title: "My Wishlists", addItem: "Add Item" },
@@ -96,3 +96,31 @@ export const useTranslation = create<I18nState>((set, get) => ({
     return typeof val === "string" ? val : key;
   },
 }));
+
+/**
+ * Inline translation for UI text written directly in components:
+ *   tr("Saqlash", "Сохранить", "Save")
+ * Components that use it should also call useTranslation() so they re-render when the language changes.
+ */
+export function tr(uz: string, ru: string, en: string): string {
+  const lang = useTranslation.getState().language;
+  return lang === "ru" ? ru : lang === "en" ? en : uz;
+}
+
+/** Translate common store phrases that come from the catalog data (installments, stock, delivery). */
+export function trData(text: string | null | undefined): string {
+  if (!text) return text ?? "";
+  const lang = useTranslation.getState().language;
+  if (lang === "uz") return text;
+  const ru = lang === "ru";
+  return text
+    .replace(/Muddatli to'lov: (\d+) x ([\d,.\s]+) UZS\/oy/, ru ? "Рассрочка: $1 × $2 UZS/мес" : "Installments: $1 × $2 UZS/month")
+    .replace(/Uzum Nasiya: (\d+) x ([\d,.\s]+) UZS\/oy/, ru ? "Uzum Nasiya: $1 × $2 UZS/мес" : "Uzum Nasiya: $1 × $2 UZS/month")
+    .replace(/Muddatli to'lov: oyiga ([\d,.\s]+) so'mdan/, ru ? "Рассрочка: от $1 сум/мес" : "Installments from $1 UZS/month")
+    .replace(/Toshkent omborida mavjud \((\d+) kun\)/, ru ? "Есть на складе в Ташкенте ($1 дн.)" : "In stock in Tashkent ($1 day)")
+    .replace(/^Do'konda mavjud$/, ru ? "В наличии" : "In stock")
+    .replace(/^Mavjud$/, ru ? "В наличии" : "In stock")
+    .replace(/(\d+(?:-\d+)?) kun ichida/, ru ? "за $1 дн." : "in $1 days")
+    .replace(/(\d+) ish kuni/, ru ? "$1 рабочий день" : "$1 business day")
+    .replace(/Do'kon sahifasida ko'rsatilgan/, ru ? "Указано на странице магазина" : "See the store page");
+}

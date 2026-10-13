@@ -3,57 +3,67 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <script>try{if(localStorage.getItem("sovga_theme")==="dark"){document.documentElement.classList.add("dark");document.querySelector('meta[name="theme-color"]').setAttribute("content","#0A1020");}}catch(e){}</script>
     
     <!-- PWA & Apple Web App Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Sovga AI" />
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b86a16'><path d='M20 12v9H4v-9H2v-2h20v2h-2zm-2 2H6v5h12v-5zM9 4.5A2.5 2.5 0 0 1 11.5 7H7A2.5 2.5 0 0 1 9 4.5zm6 0A2.5 2.5 0 0 1 17.5 7H13a2.5 2.5 0 0 1 2-2.5z'/></svg>">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script defer src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <!-- SEO & Social Media -->
-    <title>Sovg'a AI — O'zbekistondagi 1-raqamli AI Xarid Tadqiqotchisi</title>
-    <meta name="description" content="Sovg'a AI haqiqiy mahsulotlarni izlaydi, Uzum, Texnomart va MediaPark narxlarini taqqoslaydi. Eng ommabop chegirmalar, sovg'alar reyestri va AI arbitraj." />
-    <meta property="og:title" content="Sovg'a AI — Your AI Shopping Researcher" />
-    <meta property="og:description" content="AI gift researcher, smart price comparison across Uzbekistan stores, wedding registries, and price drop alerts." />
+    <title>Sovg'a AI — sovg'a toping va narxlarni solishtiring</title>
+    <meta name="description" content="Sovg'a AI mos sovg'ani topishga yordam beradi va Uzum, Texnomart, MediaPark kabi do'konlardagi narxlarni solishtiradi. To'y ro'yxatlari, istaklar ro'yxati va narx eslatmalari." />
+    <meta property="og:title" content="Sovg'a AI — find the right gift at the right price" />
+    <meta property="og:description" content="Gift ideas, price comparison across stores in Uzbekistan, wedding registries and price-drop alerts." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://sovgatop.uz/" />
+    <meta property="og:site_name" content="Sovg'a" />
+    <meta property="og:image" content="https://sovgatop.uz/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://sovgatop.uz/og.png" />
+    <link rel="canonical" href="https://sovgatop.uz/" />
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Sovg'a","url":"https://sovgatop.uz/","potentialAction":{"@type":"SearchAction","target":"https://sovgatop.uz/search?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
     
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23b86a16'><path d='M20 12v9H4v-9H2v-2h20v2h-2zm-2 2H6v5h12v-5zM9 4.5A2.5 2.5 0 0 1 11.5 7H7A2.5 2.5 0 0 1 9 4.5zm6 0A2.5 2.5 0 0 1 17.5 7H13a2.5 2.5 0 0 1 2-2.5z'/></svg>" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/png" href="/icon-192.png" sizes="192x192" />
     
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     
     <style>
       body { margin: 0; width: 100%; overflow-x: hidden; }
       #initial-loader {
         position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        background: radial-gradient(circle at 50% 50%, #0f172a 0%, #08090d 100%); z-index: 99999;
-        font-family: 'Plus Jakarta Sans', sans-serif;
+        background: #FFFFFF; z-index: 99999;
+        font-family: 'Manrope', sans-serif;
       }
-      .loader-logo { width: 64px; height: 64px; margin-bottom: 24px; animation: pulse-glow 2s infinite ease-in-out; }
-      .loader-text { color: #f8fafc; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
-      .loader-text span { color: #f59e0b; }
-      .loader-bar { width: 150px; height: 2px; background: rgba(255,255,255,0.1); margin-top: 16px; border-radius: 4px; overflow: hidden; }
-      .loader-progress { width: 0%; height: 100%; background: #f59e0b; animation: load-bar 1.5s ease-out forwards; }
+      .loader-logo { width: 44px; height: 44px; margin-bottom: 16px; }
+      .loader-text { color: #0E1A36; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+      .loader-text span { color: #1F4CA8; }
+      .loader-bar { width: 120px; height: 2px; background: rgba(0,0,0,0.08); margin-top: 16px; border-radius: 4px; overflow: hidden; }
+      .loader-progress { width: 0%; height: 100%; background: #b7791f; animation: load-bar 1.5s ease-out forwards; }
       @keyframes pulse-glow { 0% { filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.2)); transform: scale(1); } 50% { filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.6)); transform: scale(1.05); } 100% { filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.2)); transform: scale(1); } }
+      .loader-progress { background: #1F4CA8 !important; }
+      html.dark, html.dark body { background: #0A1020; }
+      html.dark #initial-loader { background: #0A1020; }
+      html.dark .loader-text { color: #E9EEF8; }
+      html.dark .loader-text span { color: #4A7BE6; }
+      html.dark .loader-bar { background: rgba(255,255,255,0.1); }
       @keyframes load-bar { 0% { width: 0%; } 100% { width: 100%; } }
     </style>
   </head>
-  <body class="bg-white dark:bg-[#08090d] text-gray-900 dark:text-gray-100 antialiased">
+  <body class="antialiased">
     <div id="root">
-      <!-- Luxury Preloader -->
+      <!-- Preloader -->
       <div id="initial-loader">
-        <svg class="loader-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="20 12 20 22 4 22 4 12"></polyline>
-          <rect x="2" y="7" width="20" height="5"></rect>
-          <line x1="12" y1="22" x2="12" y2="7"></line>
-          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
-          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
-        </svg>
-        <div class="loader-text">Sovg'a<span>.ai</span></div>
+        <div class="loader-text">Sovg'a<span>.</span></div>
         <div class="loader-bar"><div class="loader-progress"></div></div>
       </div>
     </div>

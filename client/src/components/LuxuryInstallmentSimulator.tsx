@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calculator, CreditCard, Check, ArrowRight, ShieldCheck, Sparkles, Building2 } from "lucide-react";
+import { Calculator, CreditCard, Check, ArrowRight, ShieldCheck, Sparkles, Building2 } from "../lib/icons";
 import { formatPrice } from "../lib/api";
 import { useTranslation } from "../lib/i18n";
 
@@ -110,17 +110,7 @@ export default function LuxuryInstallmentSimulator() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full luxury-gold-chip text-xs font-bold uppercase tracking-wider mb-2">
-              <Calculator className="w-3.5 h-3.5 text-amber-600" />
-              <span>
-                {language === "uz"
-                  ? "Smart Nasiya & Muddatli To'lov Simulyatori"
-                  : language === "ru"
-                  ? "Симулятор Рассрочки и Насия"
-                  : "Smart Installment & Nasiya Simulator"}
-              </span>
-            </div>
-            <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 tracking-tight">
+            <h2 className="font-display font-semibold text-2xl sm:text-3xl text-slate-900 tracking-tight">
               {language === "uz"
                 ? "Qimmatbaho Sovg'ani Oson Va Shaffof Rejalashtiring"
                 : language === "ru"
@@ -157,7 +147,7 @@ export default function LuxuryInstallmentSimulator() {
                 <span className="text-xs font-bold text-slate-600">
                   {language === "uz" ? "Sovg'a yoki tovar narxi:" : language === "ru" ? "Стоимость подарка или товара:" : "Gift or item price:"}
                 </span>
-                <span className="font-display font-black text-2xl text-slate-900">
+                <span className="font-display font-bold text-2xl text-slate-900">
                   {formatPrice(amount)}
                 </span>
               </div>
@@ -221,8 +211,8 @@ export default function LuxuryInstallmentSimulator() {
           </div>
 
           {/* Quick Snapshot Card */}
-          <div className="lg:col-span-5 bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 p-6 rounded-3xl text-white shadow-xl space-y-4">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-amber-400 block">
+          <div className="lg:col-span-5 p-6 rounded-2xl text-white shadow-sm space-y-4 bg-slate-900">
+            <span className="text-[10px] uppercase font-bold tracking-wide text-amber-400 block">
               {language === "uz"
                 ? "Hisoblangan O'rtacha Oylik"
                 : language === "ru"
@@ -230,7 +220,7 @@ export default function LuxuryInstallmentSimulator() {
                 : "Estimated Monthly Payment"}
             </span>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl sm:text-4xl font-display font-black text-white">
+              <span className="text-3xl sm:text-4xl font-display font-bold text-white">
                 {formatPrice(Math.round((amount * 1.2) / selectedMonths))}
               </span>
               <span className="text-xs text-slate-400">
@@ -275,7 +265,7 @@ export default function LuxuryInstallmentSimulator() {
                     <span className="text-[10px] text-slate-400 uppercase font-semibold">
                       {language === "uz" ? "Oylik to'lov:" : language === "ru" ? "Ежемесячный платеж:" : "Monthly payment:"}
                     </span>
-                    <p className="font-display font-extrabold text-lg text-slate-900">
+                    <p className="font-display font-semibold text-lg text-slate-900">
                       {formatPrice(monthly)}
                       <span className="text-[11px] font-normal text-slate-500">
                         {language === "uz" ? " /oy" : language === "ru" ? " /мес" : " /mo"}

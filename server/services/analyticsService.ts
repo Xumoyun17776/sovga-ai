@@ -30,6 +30,14 @@ interface AnalyticsData {
 
 const ANALYTICS_FILE = path.resolve(process.cwd(), "data", "analytics.json");
 
+/** True for real site pages ("/", "/catalog", "/wedding/ali-madina"), false for files and dev/API paths. */
+export function isPagePath(p: string): boolean {
+  if (!p.startsWith("/")) return false;
+  if (/^\/(api|assets|src|@|node_modules)/.test(p)) return false;
+  const last = p.split("/").pop() || "";
+  return !last.includes(".");
+}
+
 class AnalyticsService {
   private data: AnalyticsData;
   private activeVisitors = new Map<string, number>(); // visitorHash -> lastActiveMs
@@ -109,16 +117,8 @@ class AnalyticsService {
       const rawPath = targetPath || req.path || "/";
       const cleanPath = rawPath.split("?")[0].toLowerCase() || "/";
 
-      // Ignore asset / static requests
-      if (
-        cleanPath.startsWith("/api") ||
-        cleanPath.startsWith("/assets") ||
-        cleanPath.endsWith(".js") ||
-        cleanPath.endsWith(".css") ||
-        cleanPath.endsWith(".png") ||
-        cleanPath.endsWith(".ico") ||
-        cleanPath.endsWith(".jpg")
-      ) {
+      // Ignore anything that isn't a page: API calls, built assets, dev-server modules, files with an extension
+      if (!isPagePath(cleanPath)) {
         return { success: false, totalVisits: this.data.totalVisits };
       }
 
@@ -199,6 +199,7 @@ class AnalyticsService {
 
     // Top pages sorted by count
     const topPages = Object.entries(this.data.pathCounts)
+      .filter(([p]) => isPagePath(p))
       .map(([pathName, count]) => ({ path: pathName, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
@@ -222,7 +223,7 @@ class AnalyticsService {
       totalRegisteredUsers: totalUsers,
       deviceBreakdown: this.data.deviceCounts,
       topPages,
-      recentVisits: this.data.recentVisits.slice(0, 20),
+      recentVisits: this.data.recentVisits.filter((v) => isPagePath(v.path)).slice(0, 20),
       last7Days,
     };
   }

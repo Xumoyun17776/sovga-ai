@@ -26,7 +26,7 @@ export function detectUzOperator(phoneRaw: string): OperatorInfo | null {
       return {
         name: "Beeline",
         code: prefix,
-        color: "#FBBF24",
+        color: "#818cf8",
         textColor: "text-amber-800 dark:text-amber-300",
         bgColor: "bg-amber-100 dark:bg-amber-950/60",
         borderColor: "border-amber-300 dark:border-amber-700",
@@ -75,7 +75,7 @@ export function detectUzOperator(phoneRaw: string): OperatorInfo | null {
       return {
         name: "Humans",
         code: prefix,
-        color: "#F97316",
+        color: "#7c3aed",
         textColor: "text-orange-800 dark:text-orange-300",
         bgColor: "bg-orange-100 dark:bg-orange-950/60",
         borderColor: "border-orange-300 dark:border-orange-700",

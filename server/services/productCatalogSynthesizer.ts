@@ -1844,6 +1844,45 @@ export function synthesizeProductsForQuery(
     detectedCategory = "perfume";
     pool = [
       {
+        name: "Zara Gardenia Eau de Parfum ayollar atiri (90ml)",
+        price: 320000,
+        originalPrice: 360000,
+        store: "Uzum Market",
+        imageUrl: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800&auto=format&fit=crop",
+        rating: 4.7,
+        reviewCount: 180,
+        reason: "Arzon va mashhur ayollar atiri: gardeniya va yasmin notalari, kundalik foydalanish uchun.",
+        warranty: "Original mahsulot",
+        delivery: "1 kunda yetkazish (Uzum punktiga bepul)",
+        specs: { "Hajmi": "90 ml", "Turi": "Eau de Parfum", "Notalar": "Gardeniya, yasmin, paçuli" },
+      },
+      {
+        name: "Lattafa Yara Eau de Parfum ayollar atiri (100ml)",
+        price: 390000,
+        originalPrice: 450000,
+        store: "Olcha",
+        imageUrl: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?w=800&auto=format&fit=crop",
+        rating: 4.8,
+        reviewCount: 310,
+        reason: "Shirin va barqaror sharqona ifor; narxiga nisbatan uzoq saqlanadi — sovg'a uchun ommabop tanlov.",
+        warranty: "Original mahsulot",
+        delivery: "Toshkentda 1 kunda",
+        specs: { "Hajmi": "100 ml", "Turi": "Eau de Parfum", "Notalar": "Orxideya, vanil, mushk" },
+      },
+      {
+        name: "Lancôme La Vie Est Belle Eau de Parfum ayollar atiri (50ml)",
+        price: 1650000,
+        originalPrice: 1850000,
+        store: "Texnomart",
+        imageUrl: "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800&auto=format&fit=crop",
+        rating: 4.9,
+        reviewCount: 140,
+        reason: "Klassik ayollar atiri: iris va pralin notalari, nafis qutida — tug'ilgan kun uchun yaxshi sovg'a.",
+        warranty: "Original mahsulot",
+        delivery: "1-2 ish kuni",
+        specs: { "Hajmi": "50 ml", "Turi": "Eau de Parfum", "Notalar": "Iris, pralin, vanil" },
+      },
+      {
         name: "Zara Seoul 532-8 erkaklar uchun tetiklashtiruvchi tualet suvi (100ml)",
         price: 290000,
         originalPrice: 350000,
@@ -2107,8 +2146,11 @@ export function synthesizeProductsForQuery(
   // 6. Integrate real live scraped items from DuckDuckGo search
   if (liveScraped.length > 0) {
     liveScraped.forEach((ls) => {
+      // Skip live hits without a real scraped price — inventing one (and calling it
+      // verified) produced absurd results like a MacBook Pro M4 Max for 5M UZS.
+      if (!(typeof ls.price === "number" && ls.price > 0)) return;
       if (!finalProducts.some((p) => p.name.toLowerCase().includes(ls.title.toLowerCase().slice(0, 15)))) {
-        const fallbackPrice = ls.price || Math.round((finalProducts[0]?.price || 150000) * 1.15);
+        const fallbackPrice = ls.price;
         finalProducts.push({
           name: ls.title,
           price: fallbackPrice,
@@ -2117,7 +2159,7 @@ export function synthesizeProductsForQuery(
           store: ls.store,
           url: ensureProductUrl(ls.title, ls.store, ls.url, query),
           imageUrl: getVerifiedProductImage(ls.title, detectedCategory) || finalProducts[0]?.imageUrl || "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800&auto=format&fit=crop",
-          discount: "13% off",
+          discount: null,
           rating: 4.8,
           reviewCount: 160,
           availability: "Do'konda mavjud (Jonli Internet Natijasi)",

@@ -27,7 +27,7 @@ import {
   ShieldCheck,
   Compass,
   Fingerprint,
-} from "lucide-react";
+} from "../lib/icons";
 import type { GiftCriteria, Occasion } from "@shared/types";
 
 interface OccasionMeta {
@@ -155,11 +155,7 @@ export default function GiftFinderPage() {
     // Step 0: Occasion Picker
     <div className="space-y-6 animate-fade-in" key="step-0">
       <div className="text-center max-w-lg mx-auto mb-6">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/90 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 text-xs font-bold uppercase tracking-wider mb-2 border border-amber-300 dark:border-amber-800/80">
-          <Compass className="w-3.5 h-3.5" />
-          <span>{language === "uz" ? "1-BOSQICH" : language === "ru" ? "ШАГ 1" : "STEP 1: OCCASION"}</span>
-        </div>
-        <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight">
+        <h2 className="lux-title text-[2.2rem] sm:text-[2.8rem] leading-[1.05] text-slate-900 dark:text-white">
           {language === "uz"
             ? "Qaysi Ayyom yoki Tadbir Uchun?"
             : language === "ru"
@@ -188,17 +184,17 @@ export default function GiftFinderPage() {
                 setCriteria((c) => ({ ...c, occasion: o.key }));
                 setStep(1);
               }}
-              className={`p-4 rounded-3xl border-2 transition-all text-left flex flex-col justify-between h-36 group cursor-pointer active:scale-95 ${
+              className={`p-4 rounded-2xl border transition-all text-left flex flex-col justify-between h-36 group cursor-pointer ${
                 selected
-                  ? "border-amber-500 bg-gradient-to-b from-amber-500/15 via-amber-500/10 to-amber-500/5 dark:from-amber-950/50 dark:to-[#131622] shadow-md ring-2 ring-amber-500/30"
-                  : "border-amber-200/70 dark:border-slate-800 bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#131622] dark:to-[#0a0c14] hover:border-amber-400 dark:hover:border-slate-700 hover:shadow-luxury"
+                  ? "border-amber-500 dark:to-[#131622] shadow-md ring-2 ring-amber-500/30 bg-amber-500/15 dark:bg-amber-950/50"
+                  : "bg-white dark:bg-[#0b1224] border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)] dark:hover:border-slate-700 hover:shadow-luxury"
               }`}
             >
               <div
-                className={`w-11 h-11 rounded-2xl icon-medallion flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
+                className={`w-11 h-11 rounded-2xl icon-medallion flex items-center justify-center shrink-0 transition-transform ${
                   selected
-                    ? "icon-box-gold shadow-md shadow-amber-500/25"
-                    : "bg-amber-100/70 text-amber-800 dark:bg-slate-800/80 dark:text-amber-300 border border-amber-200/70 dark:border-slate-700"
+                    ? "icon-box-gold shadow-md"
+                    : "bg-amber-100/70 text-amber-800 dark:bg-slate-800/80 dark:text-amber-300 border border-[var(--line)] dark:border-slate-700"
                 }`}
               >
                 <OccasionIcon className="w-5 h-5 stroke-[2.2]" />
@@ -218,11 +214,7 @@ export default function GiftFinderPage() {
     // Step 1: Recipient Profile
     <div className="space-y-6 max-w-xl mx-auto animate-fade-in" key="step-1">
       <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/90 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 text-xs font-bold uppercase tracking-wider mb-2 border border-amber-300 dark:border-amber-800/80">
-          <UserCheck className="w-3.5 h-3.5" />
-          <span>{language === "uz" ? "2-BOSQICH" : language === "ru" ? "ШАГ 2" : "STEP 2: PERSONA"}</span>
-        </div>
-        <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight">
+        <h2 className="lux-title text-[2.2rem] sm:text-[2.8rem] leading-[1.05] text-slate-900 dark:text-white">
           {language === "uz"
             ? "Sovg'a Kim Uchun Tanlanmoqda?"
             : language === "ru"
@@ -238,7 +230,7 @@ export default function GiftFinderPage() {
         </p>
       </div>
 
-      <div className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#131622] dark:to-[#0a0c14] p-6 sm:p-7 rounded-3xl border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury space-y-5">
+      <div className="bg-white dark:bg-[#0b1224] p-6 sm:p-7 rounded-2xl border border-[var(--line)] dark:border-slate-800 shadow-sm space-y-5">
         <div>
           <label className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide block mb-1.5">
             {language === "uz"
@@ -258,7 +250,7 @@ export default function GiftFinderPage() {
             }
             value={criteria.recipient || ""}
             onChange={(e) => setCriteria((c) => ({ ...c, recipient: e.target.value }))}
-            className="w-full px-4 py-3 bg-white dark:bg-slate-900/90 border border-amber-300/80 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-amber-500 transition"
+            className="w-full px-4 py-3 bg-white dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-amber-500 transition"
           />
         </div>
 
@@ -278,8 +270,8 @@ export default function GiftFinderPage() {
                 onClick={() => setCriteria((c) => ({ ...c, relationship: r }))}
                 className={`text-xs px-3 py-1.5 rounded-xl font-bold transition cursor-pointer ${
                   criteria.relationship === r
-                    ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white shadow-xs"
-                    : "bg-amber-50/80 dark:bg-slate-800 text-amber-950 dark:text-slate-200 border border-amber-200/70 dark:border-slate-700 hover:bg-amber-100 dark:hover:bg-slate-700"
+                    ? "text-white shadow-xs bg-amber-500"
+                    : "bg-amber-50/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-[var(--line)] dark:border-slate-700 hover:bg-amber-100 dark:hover:bg-slate-700"
                 }`}
               >
                 {r}
@@ -291,7 +283,7 @@ export default function GiftFinderPage() {
             placeholder={language === "uz" ? "Yoki o'zingiz yozing..." : language === "ru" ? "Или введите своё..." : "Or type custom relationship..."}
             value={criteria.relationship || ""}
             onChange={(e) => setCriteria((c) => ({ ...c, relationship: e.target.value }))}
-            className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-amber-300/80 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500"
           />
         </div>
 
@@ -305,7 +297,7 @@ export default function GiftFinderPage() {
               placeholder="e.g. 28"
               value={criteria.age || ""}
               onChange={(e) => setCriteria((c) => ({ ...c, age: parseInt(e.target.value) || undefined }))}
-              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-amber-300/80 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
           <div>
@@ -315,7 +307,7 @@ export default function GiftFinderPage() {
             <select
               value={criteria.gender || ""}
               onChange={(e) => setCriteria((c) => ({ ...c, gender: e.target.value || undefined }))}
-              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-amber-300/80 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
+              className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-700 text-slate-900 dark:text-white rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer"
             >
               <option value="">{language === "uz" ? "Farqi yo'q / Barchasi" : language === "ru" ? "Любой / Не важно" : "Any / Not specified"}</option>
               <option value="male">{language === "uz" ? "Erkak / Yigit" : language === "ru" ? "Мужчина / Парень" : "Gentleman / Male"}</option>
@@ -330,11 +322,7 @@ export default function GiftFinderPage() {
     // Step 2: Budget Setting
     <div className="space-y-6 max-w-xl mx-auto animate-fade-in" key="step-2">
       <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/90 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 text-xs font-bold uppercase tracking-wider mb-2 border border-amber-300 dark:border-amber-800/80">
-          <DollarSign className="w-3.5 h-3.5" />
-          <span>{language === "uz" ? "3-BOSQICH" : language === "ru" ? "ШАГ 3" : "STEP 3: BUDGET"}</span>
-        </div>
-        <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight">
+        <h2 className="lux-title text-[2.2rem] sm:text-[2.8rem] leading-[1.05] text-slate-900 dark:text-white">
           {language === "uz"
             ? "Rejalashtirilgan Byudjetingiz Qancha?"
             : language === "ru"
@@ -350,12 +338,12 @@ export default function GiftFinderPage() {
         </p>
       </div>
 
-      <div className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#131622] dark:to-[#0a0c14] p-6 sm:p-8 rounded-3xl border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury space-y-6">
-        <div className="text-center bg-gradient-to-r from-amber-100/90 via-amber-200/60 to-amber-100/90 dark:from-slate-800 dark:to-slate-900 p-4 rounded-2xl border-2 border-amber-300 dark:border-amber-500/30">
-          <span className="text-xs font-bold text-amber-900 dark:text-amber-400 uppercase tracking-widest block mb-1">
+      <div className="bg-white dark:bg-[#0b1224] p-6 sm:p-8 rounded-2xl border border-[var(--line)] dark:border-slate-800 shadow-sm space-y-6">
+        <div className="text-center p-4 rounded-2xl border border-[var(--line)] dark:border-amber-500/30 bg-amber-100/90 dark:bg-slate-800">
+          <span className="text-xs font-bold text-amber-900 dark:text-amber-400 uppercase tracking-wide block mb-1">
             {language === "uz" ? "Tanlangan Byudjet Oralig'i" : language === "ru" ? "Выбранный Диапазон" : "Active Budget Window"}
           </span>
-          <span className="text-2xl sm:text-3xl font-extrabold text-amber-950 dark:text-amber-200">
+          <span className="text-2xl sm:text-3xl font-semibold text-amber-950 dark:text-amber-200">
             {formatPrice(criteria.budgetMin || 0)} — {formatPrice(criteria.budgetMax || 0)}
           </span>
         </div>
@@ -381,8 +369,8 @@ export default function GiftFinderPage() {
                 }}
                 className={`py-2 px-3 rounded-xl text-xs font-bold transition border cursor-pointer ${
                   criteria.budgetMax === preset.max
-                    ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white border-amber-600 shadow-xs"
-                    : "bg-amber-50/80 dark:bg-slate-800 text-amber-950 dark:text-slate-200 border border-amber-200/70 dark:border-slate-700 hover:bg-amber-100 dark:hover:bg-slate-700"
+                    ? "text-white border-amber-600 shadow-xs bg-amber-500"
+                    : "bg-amber-50/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-[var(--line)] dark:border-slate-700 hover:bg-amber-100 dark:hover:bg-slate-700"
                 }`}
               >
                 {preset.label}
@@ -429,11 +417,7 @@ export default function GiftFinderPage() {
     // Step 3: Interests & Avoidance
     <div className="space-y-6 max-w-xl mx-auto animate-fade-in" key="step-3">
       <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/90 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 text-xs font-bold uppercase tracking-wider mb-2 border border-amber-300 dark:border-amber-800/80">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>{language === "uz" ? "4-BOSQICH" : language === "ru" ? "ШАГ 4" : "STEP 4: CURATION"}</span>
-        </div>
-        <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight">
+        <h2 className="lux-title text-[2.2rem] sm:text-[2.8rem] leading-[1.05] text-slate-900 dark:text-white">
           {language === "uz"
             ? "Qiziqishlar & Nomaqbul Buyumlar"
             : language === "ru"
@@ -449,7 +433,7 @@ export default function GiftFinderPage() {
         </p>
       </div>
 
-      <div className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#131622] dark:to-[#0a0c14] p-6 sm:p-7 rounded-3xl border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury space-y-5">
+      <div className="bg-white dark:bg-[#0b1224] p-6 sm:p-7 rounded-2xl border border-[var(--line)] dark:border-slate-800 shadow-sm space-y-5">
         <div>
           <label className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide block mb-2">
             {language === "uz"
@@ -468,8 +452,8 @@ export default function GiftFinderPage() {
                   onClick={() => toggleInterest(tag)}
                   className={`text-xs px-3 py-1.5 rounded-xl font-bold transition border cursor-pointer ${
                     selected
-                      ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white border-amber-600 shadow-xs"
-                      : "bg-amber-50/80 dark:bg-slate-800 text-amber-950 dark:text-slate-200 border border-amber-200/70 dark:border-slate-700 hover:bg-amber-100 dark:hover:bg-slate-700"
+                      ? "text-white border-amber-600 shadow-xs bg-amber-500"
+                      : "bg-amber-50/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-[var(--line)] dark:border-slate-700 hover:bg-amber-100 dark:hover:bg-slate-700"
                   }`}
                 >
                   {selected ? "✓ " : "+ "}
@@ -497,7 +481,7 @@ export default function GiftFinderPage() {
                   setInterestInput("");
                 }
               }}
-              className="flex-1 px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-amber-300/80 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500"
+              className="flex-1 px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500"
             />
           </div>
         </div>
@@ -525,7 +509,7 @@ export default function GiftFinderPage() {
                 avoid: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
               }))
             }
-            className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-amber-300/80 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-4 py-2.5 bg-white dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 rounded-xl text-sm outline-none focus:ring-2 focus:ring-amber-500"
           />
         </div>
       </div>
@@ -539,9 +523,8 @@ export default function GiftFinderPage() {
 
   if (mutation.isSuccess && mutation.data) {
     return (
-      <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#07080c] text-slate-900 dark:text-white py-8 transition-colors relative overflow-hidden">
+      <div className="min-h-screen text-slate-900 dark:text-white py-8 transition-colors relative overflow-hidden">
         {/* Ambient luxury vignette glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(1000px,100vw)] h-[380px] bg-gradient-to-b from-amber-500/10 via-amber-400/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 animate-fade-in relative z-10">
           <button
@@ -549,30 +532,30 @@ export default function GiftFinderPage() {
               mutation.reset();
               setStep(0);
             }}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 transition cursor-pointer bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-xl border border-amber-200/80 dark:border-amber-900/60 active:scale-95 shadow-2xs"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 transition cursor-pointer bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-xl border border-[var(--line)] dark:border-amber-900/60 shadow-2xs"
           >
             <ArrowLeft className="w-4 h-4 stroke-[2.2]" />{" "}
             {language === "uz" ? "Yangi sovg'a qidiruvi boshlash" : language === "ru" ? "Начать новый поиск подарка" : "Configure New Gift Search"}
           </button>
 
-          <div className="border-b border-amber-200/70 dark:border-slate-800 pb-4">
-            <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white">
+          <div className="border-b border-[var(--line)] dark:border-slate-800 pb-4">
+            <h1 className="lux-title text-[2.15rem] sm:text-[2.7rem] text-slate-900 dark:text-white leading-[1.05]">
               {criteria.recipient
                 ? `${criteria.recipient} — ${
                     language === "uz"
-                      ? "AI Sovg'a Tavsiyalari"
+                      ? "Sovg'a g'oyalari"
                       : language === "ru"
-                      ? "Подборка подарков от ИИ"
-                      : "AI Curated Gifts"
+                      ? "Идеи подарков"
+                      : "Gift ideas"
                   }`
                 : language === "uz"
-                ? "AI Sovg'a Tavsiyalari"
+                ? "Sovg'a g'oyalari"
                 : language === "ru"
-                ? "Подборка подарков от ИИ"
-                : "AI Curated Gift Dossier"}
+                ? "Идеи подарков"
+                : "Gift ideas"}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-              {language === "uz" ? "Sabab" : language === "ru" ? "Повод" : "Occasion"}: <span className="font-semibold text-slate-900 dark:text-slate-200">{t(`occasions.${criteria.occasion}`)}</span> · {language === "uz" ? "Byudjet" : language === "ru" ? "Бюджет" : "Target Budget"}:{" "}
+              {language === "uz" ? "Sabab" : language === "ru" ? "Повод" : "Occasion"}: <span className="font-semibold text-slate-900 dark:text-slate-200">{t(`occasions.${criteria.occasion}`)}</span> · {language === "uz" ? "Byudjet" : language === "ru" ? "Бюджет" : "Budget"}:{" "}
               <span className="font-semibold text-amber-700 dark:text-amber-400">{formatPrice(criteria.budgetMax || 0)}</span>
             </p>
           </div>
@@ -584,9 +567,8 @@ export default function GiftFinderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#07080c] text-slate-900 dark:text-white py-8 sm:py-12 transition-colors relative overflow-hidden">
+    <div className="min-h-screen text-slate-900 dark:text-white py-8 sm:py-12 transition-colors relative overflow-hidden">
       {/* Ambient luxury vignette glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(1000px,100vw)] h-[380px] bg-gradient-to-b from-amber-500/10 via-amber-400/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-8 relative z-10">
       {/* ─── VIP AI GIFT DETECTIVE LAUNCHER BANNER ─── */}
@@ -596,24 +578,24 @@ export default function GiftFinderPage() {
             cyberSound.playConfirm();
             setShowGiftDetective(true);
           }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-indigo-500/15 border border-amber-400/50 hover:border-amber-400 text-slate-800 dark:text-slate-200 text-xs font-bold transition hover:scale-105 active:scale-95 cursor-pointer shadow-sm group"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-400/50 hover:border-[var(--line-strong)] text-slate-800 dark:text-slate-200 text-xs font-bold transition cursor-pointer shadow-sm group bg-amber-500/15"
         >
-          <Fingerprint className="w-4 h-4 text-amber-500 animate-pulse" />
+          <Fingerprint className="w-4 h-4 text-amber-500" />
           <span>
             {language === "uz"
-              ? "Yangi: AI Sovg'a Detektivi (Psixologik DNA Scanner) rejimini ochish"
+              ? "Nima sovg'a qilishni bilmayapsizmi? Inson tavsifi bo'yicha g'oyalar oling"
               : language === "ru"
               ? "Новинка: AI Детектив Подарков (Психологический ДНК Сканер)"
-              : "Launch AI Gift Detective & Psychological DNA Scanner"}
+              : "Not sure what to get? Get ideas from a description"}
           </span>
-          <ArrowRight className="w-3.5 h-3.5 text-amber-500 group-hover:translate-x-1 transition-transform" />
+          <ArrowRight className="w-3.5 h-3.5 text-amber-500 transition-transform" />
         </button>
       </div>
 
       {/* Stepper Progress Header */}
       <div className="max-w-xl mx-auto">
         <div className="flex items-center justify-between text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
-          <span className="text-amber-700 dark:text-amber-400 font-extrabold uppercase tracking-wider">
+          <span className="text-amber-700 dark:text-amber-400 font-semibold uppercase tracking-wider">
             {language === "uz"
               ? `${step + 1}-BOSQICH / JAMI ${totalSteps} TA`
               : language === "ru"
@@ -622,9 +604,9 @@ export default function GiftFinderPage() {
           </span>
           <span className="text-slate-800 dark:text-slate-200 font-semibold">{stepTitles[step]}</span>
         </div>
-        <div className="w-full h-2.5 bg-amber-100/90 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-amber-200/60 dark:border-slate-700">
+        <div className="w-full h-2.5 bg-amber-100/90 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-[var(--line)] dark:border-slate-700">
           <div
-            className="h-full bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 rounded-full transition-all duration-300 shadow-xs"
+            className="h-full rounded-full transition-all duration-300 shadow-xs bg-amber-500"
             style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
           />
         </div>
@@ -632,14 +614,14 @@ export default function GiftFinderPage() {
 
       {mutation.isPending ? (
         <div className="text-center py-16 space-y-5">
-          <div className="w-14 h-14 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin mx-auto" />
+          <div className="w-14 h-14 border-4 border-[var(--line)] border-t-amber-600 rounded-full animate-spin mx-auto" />
           <div className="space-y-1">
-            <h3 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white">
+            <h3 className="font-display font-semibold text-xl sm:text-2xl text-slate-900 dark:text-white">
               {language === "uz"
                 ? "O'zbekistonda Jonli Mahsulotlar Izlanmoqda..."
                 : language === "ru"
                 ? "Поиск актуальных предложений в Узбекистане..."
-                : "Scanning Uzbekistan Retail Telemetry in Real-Time..."}
+                : "Checking store prices…"}
             </h3>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
               {language === "uz"
@@ -659,11 +641,11 @@ export default function GiftFinderPage() {
 
       {/* Navigation Controls */}
       {!mutation.isPending && (
-        <div className="max-w-xl mx-auto flex items-center justify-between pt-5 border-t border-amber-200/70 dark:border-slate-800">
+        <div className="max-w-xl mx-auto flex items-center justify-between pt-5 border-t border-[var(--line)] dark:border-slate-800">
           <button
             onClick={() => setStep(Math.max(0, step - 1))}
             disabled={step === 0}
-            className="flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white disabled:opacity-30 transition cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 stroke-[2.2]" /> {language === "uz" ? "Ortga" : language === "ru" ? "Назад" : "Back"}
           </button>
@@ -675,7 +657,7 @@ export default function GiftFinderPage() {
                 setStep(step + 1);
               }}
               disabled={step === 0 && !criteria.occasion}
-              className="flex items-center gap-1.5 px-6 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:brightness-105 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-amber-500/25 transition disabled:opacity-30 cursor-pointer active:scale-95"
+              className="flex items-center gap-1.5 px-6 py-2.5 hover:brightness-105 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md transition disabled:opacity-30 cursor-pointer bg-amber-500"
             >
               {language === "uz" ? "Davom etish" : language === "ru" ? "Продолжить" : "Continue"}{" "}
               <ArrowRight className="w-4 h-4 stroke-[2.2]" />
@@ -684,7 +666,7 @@ export default function GiftFinderPage() {
             <button
               onClick={handleLaunchResearch}
               disabled={!criteria.occasion}
-              className="flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:brightness-105 text-white rounded-xl text-xs sm:text-sm font-bold shadow-lg shadow-amber-500/30 transition cursor-pointer active:scale-95"
+              className="flex items-center gap-2 px-7 py-3 hover:brightness-105 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition cursor-pointer bg-amber-500"
             >
               <Sparkles className="w-4 h-4 text-amber-200 stroke-[2.2]" />{" "}
               {language === "uz"

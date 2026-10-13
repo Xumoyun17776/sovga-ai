@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { useTranslation } from "../lib/i18n";
+import { useTranslation, trData } from "../lib/i18n";
 import { formatPrice } from "../lib/api";
 import { getProductFallbackImage } from "../lib/imageHelper";
 import {
@@ -25,7 +25,7 @@ import {
   PackageCheck,
   Users,
   Sparkles,
-} from "lucide-react";
+} from "../lib/icons";
 import type { ResearchProduct } from "@shared/types";
 import { ensureProductUrl } from "../lib/urlHelper";
 import { cyberSound } from "../lib/cyberSound";
@@ -46,12 +46,12 @@ const categoryColors: Record<string, string> = {
 };
 
 const categoryGradients: Record<string, string> = {
-  best_overall: "from-slate-900 via-slate-800 to-indigo-950",
-  best_value: "from-emerald-700 via-teal-800 to-slate-900",
-  cheapest: "from-blue-700 via-indigo-800 to-slate-900",
-  premium: "from-indigo-800 via-purple-900 to-slate-950",
-  most_unique: "from-violet-800 via-slate-800 to-slate-900",
-  alternative: "from-slate-700 via-slate-800 to-slate-900",
+  best_overall: "bg-slate-900",
+  best_value: "bg-emerald-700",
+  cheapest: "bg-blue-700",
+  premium: "bg-indigo-800",
+  most_unique: "bg-violet-800",
+  alternative: "bg-slate-700",
 };
 
 const getStoreBadgeClass = (storeName: string) => {
@@ -61,7 +61,7 @@ const getStoreBadgeClass = (storeName: string) => {
   if (s.includes("texnomart")) return "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/50";
   if (s.includes("mediapark")) return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/50";
   if (s.includes("asaxiy")) return "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800/50";
-  if (s.includes("idea")) return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/50";
+  if (s.includes("idea")) return "bg-amber-50 text-amber-700 border-[var(--line)] dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/50";
   if (s.includes("yandex")) return "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/50";
   return "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10";
 };
@@ -135,17 +135,17 @@ export default function ProductCard({
   return (
     <>
       <div
-        className={`card-luxury-elevated rounded-3xl overflow-hidden group hover:-translate-y-1.5 flex flex-col justify-between border bg-gradient-to-b from-white via-[#fcfbf7] to-[#f8f5ed] dark:from-[#12141f] dark:to-[#0a0c14] ${
+        className={`bg-white dark:bg-[#0b1224] card-luxury-elevated rounded-2xl overflow-hidden group flex flex-col justify-between border ${
           isBestPrice
-            ? "ring-2 ring-emerald-500/80 border-emerald-500/60 shadow-[0_0_28px_rgba(16,185,129,0.22)] dark:shadow-[0_0_35px_rgba(16,185,129,0.28)]"
-            : "border-amber-200/80 dark:border-white/10 hover:border-amber-400 dark:hover:border-amber-500/30 shadow-luxury hover:shadow-luxury-hover"
+            ? "ring-2 ring-emerald-500/80 border-emerald-500/60"
+            : "border-[var(--line)] dark:border-white/10 hover:border-[var(--line-strong)] dark:hover:border-amber-500/30 shadow-sm hover:shadow-luxury-hover"
         }`}
       >
         <div>
           {/* Category badge + Image with refined aspect ratio and zoom */}
           <div
             onClick={() => setShowQuickView(true)}
-            className={`h-52 bg-gradient-to-br ${
+            className={`h-52 ${
               categoryGradients[product.category] || categoryGradients.alternative
             } relative flex items-center justify-center overflow-hidden cursor-pointer`}
             title="Tezkor ma'lumotlarni ko'rish"
@@ -156,7 +156,7 @@ export default function ProductCard({
               loading="lazy"
               decoding="async"
               onError={() => setImgSrc(getProductFallbackImage(product.name, product.category))}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+              className="w-full h-full object-cover transition-transform duration-200 ease-out"
             />
 
             {/* Category Badge */}
@@ -170,7 +170,7 @@ export default function ProductCard({
 
             {/* Glowing Best Price Ribbon Badge */}
             {isBestPrice && (
-              <div className="absolute bottom-3 left-3 z-10 px-3 py-1 rounded-full bg-emerald-600/95 text-white font-black text-[10px] uppercase tracking-wider shadow-lg flex items-center gap-1.5 border border-emerald-400 backdrop-blur-md">
+              <div className="absolute bottom-3 left-3 z-10 px-3 py-1 rounded-full bg-emerald-600/95 text-white font-bold text-[10px] uppercase tracking-wider shadow-lg flex items-center gap-1.5 border border-emerald-400 backdrop-blur-md">
                 <Sparkles className="w-3 h-3 text-emerald-200 fill-emerald-200" />
                 <span>
                   {language === "uz"
@@ -188,7 +188,7 @@ export default function ProductCard({
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="absolute top-3.5 right-3.5 px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 text-[11px] font-bold shadow-sm backdrop-blur-md border border-slate-200/90 dark:border-white/10 flex items-center gap-1.5 hover:scale-105 transition-all z-10"
+              className="absolute top-3.5 right-3.5 px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/90 hover:bg-white dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 text-[11px] font-bold shadow-sm backdrop-blur-md border border-slate-200/90 dark:border-white/10 flex items-center gap-1.5 transition-all z-10"
               title={`${product.store} do'konida to'g'ridan-to'g'ri ochish`}
             >
               <span className={`w-2 h-2 rounded-full ${getStoreDot(product.store)}`}></span>
@@ -198,7 +198,7 @@ export default function ProductCard({
 
             {/* Hover quick view overlay */}
             <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
-              <span className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-bold px-3.5 py-2 rounded-full shadow-lg flex items-center gap-1.5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 transform group-hover:scale-100 scale-95 transition-all duration-300">
+              <span className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-bold px-3.5 py-2 rounded-full shadow-sm flex items-center gap-1.5 backdrop-blur-md border border-slate-200/60 dark:border-white/10 transform group-hover:scale-100 scale-95 transition-all duration-300">
                 <Eye className="w-3.5 h-3.5 text-amber-500" />
                 <span>{language === "uz" ? "Tezkor ko'rish" : language === "ru" ? "Быстрый просмотр" : "Quick View"}</span>
               </span>
@@ -215,7 +215,7 @@ export default function ProductCard({
               <div className="flex items-center gap-1.5">
                 {product.rating && (
                   <span className="text-xs text-slate-700 dark:text-slate-200 flex items-center gap-1 font-bold bg-slate-100/90 dark:bg-slate-800/80 px-2 py-0.5 rounded-lg border border-slate-200/70 dark:border-white/10">
-                    <Star className="w-3 h-3 text-amber-500 fill-amber-400" />
+                    <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                     {product.rating}
                     {product.reviewCount ? ` (${product.reviewCount})` : ""}
                   </span>
@@ -229,7 +229,7 @@ export default function ProductCard({
                     {language === "uz" ? "Tasdiqlangan" : language === "ru" ? "Проверено" : "Verified"}
                   </span>
                 ) : (
-                  <span className="text-[10px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-lg flex items-center gap-1 border border-amber-200/60 dark:border-amber-800/50">
+                  <span className="text-[10px] px-2 py-0.5 rounded-lg flex items-center gap-1 border border-[var(--line)] bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                     <AlertTriangle className="w-2.5 h-2.5" />
                     {t("results.priceNotVerified")}
                   </span>
@@ -247,7 +247,7 @@ export default function ProductCard({
 
             {/* Price Row */}
             <div className="flex items-baseline gap-2.5 pt-0.5">
-              <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+              <span className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
                 {formatPrice(product.price, product.currency)}
               </span>
               {product.originalPrice && product.originalPrice > (product.price || 0) && (
@@ -264,7 +264,7 @@ export default function ProductCard({
 
             {/* Installment & Halol Nasiya Chip */}
             <div className="space-y-1.5">
-              <div className="text-[11px] font-bold text-amber-950 dark:text-slate-200 bg-amber-50/70 dark:bg-slate-800/60 border border-amber-200/70 dark:border-white/10 px-3 py-1.5 rounded-xl flex items-center justify-between">
+              <div className="text-[11px] font-bold text-amber-950 dark:text-slate-200 bg-amber-50/70 dark:bg-slate-800/60 border border-[var(--line)] dark:border-white/10 px-3 py-1.5 rounded-xl flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
                   <CreditCard className="w-3.5 h-3.5 text-amber-600 dark:text-amber-500" />
                   <span className="truncate">
@@ -280,14 +280,11 @@ export default function ProductCard({
                         : "Installments available")}
                   </span>
                 </span>
-                <span className="text-[10px] font-black text-emerald-800 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800/60 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                  {language === "uz" ? "0% USTAMA" : language === "ru" ? "0% ПЕРЕПЛАТА" : "0% INTEREST"}
-                </span>
               </div>
               {product.deliveryEstimate && (
                 <div className="text-[11px] text-slate-600 dark:text-slate-400 font-medium flex items-center gap-1.5 px-1">
                   <Truck className="w-3.5 h-3.5 text-amber-600 dark:text-slate-500 flex-shrink-0" />
-                  <span className="truncate">{product.deliveryEstimate}</span>
+                  <span className="truncate">{trData(product.deliveryEstimate)}</span>
                 </div>
               )}
             </div>
@@ -299,7 +296,7 @@ export default function ProductCard({
                   ? product.specs.slice(0, 3).map((s: any) => String(s))
                   : Object.entries(product.specs).slice(0, 3).map(([k, v]) => `${k}: ${v}`)
                 ).map((specText: string, sIdx: number) => (
-                  <span key={sIdx} className="text-[10px] bg-amber-100/60 dark:bg-slate-800/80 text-amber-950 dark:text-slate-300 px-2.5 py-0.5 rounded-md font-bold border border-amber-200/70 dark:border-white/10">
+                  <span key={sIdx} className="text-[10px] dark:bg-slate-800/80 dark:text-slate-300 px-2.5 py-0.5 rounded-md font-bold border border-[var(--line)] dark:border-white/10 bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                     {specText}
                   </span>
                 ))}
@@ -307,7 +304,7 @@ export default function ProductCard({
             )}
 
             {/* Primary Action Row */}
-            <div className="space-y-2 pt-3 border-t border-amber-200/60 dark:border-white/10">
+            <div className="space-y-2 pt-3 border-t border-[var(--line)] dark:border-white/10">
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
@@ -315,7 +312,7 @@ export default function ProductCard({
                     setShowQuickView(true);
                   }}
                   title={language === "uz" ? "Tezkor ko'rish" : language === "ru" ? "Быстрый просмотр" : "Quick View"}
-                  className="px-3 py-2.5 rounded-xl border border-amber-300/80 dark:border-white/10 hover:border-amber-500 hover:bg-amber-100/70 dark:hover:bg-slate-800/80 text-amber-950 dark:text-slate-200 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs active:scale-95"
+                  className="px-3 py-2.5 rounded-xl border border-[var(--line)] dark:border-white/10 hover:border-[var(--line-strong)] hover:bg-amber-100/70 dark:hover:bg-slate-800/80 text-amber-950 dark:text-slate-200 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
                 >
                   <Eye className="w-3.5 h-3.5 text-amber-600 dark:text-amber-500 stroke-[2.2]" />
                   <span>{language === "uz" ? "Ko'rish" : language === "ru" ? "Обзор" : "View"}</span>
@@ -327,9 +324,9 @@ export default function ProductCard({
                   rel="noopener noreferrer"
                   onClick={() => cyberSound.playConfirm()}
                   title={language === "uz" ? `${product.store} do'konida ochish` : language === "ru" ? `Открыть в ${product.store}` : `Open on ${product.store}`}
-                  className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition shadow-sm active:scale-95 cursor-pointer text-center ${
+                  className={`flex-1 min-w-0 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition shadow-sm cursor-pointer text-center ${
                     isBestPrice
-                      ? "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/25 shadow-md ring-1 ring-emerald-400/40"
+                      ? "text-white shadow-md ring-1 ring-emerald-400/40 bg-emerald-600 hover:bg-emerald-500"
                       : "btn-luxury-gold"
                   }`}
                 >
@@ -356,7 +353,7 @@ export default function ProductCard({
                     setShowDirectOrder(true);
                   }}
                   title={language === "uz" ? "Ilovada tezkor buyurtma" : language === "ru" ? "Прямой заказ в приложении" : "Direct In-App Order"}
-                  className="w-10 h-10 rounded-xl border border-slate-200 dark:border-white/10 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold text-xs transition flex items-center justify-center shrink-0 cursor-pointer active:scale-95"
+                  className="w-10 h-10 rounded-xl border border-slate-200 dark:border-white/10 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50/80 dark:hover:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-semibold text-xs transition flex items-center justify-center shrink-0 cursor-pointer"
                 >
                   <Truck className="w-4 h-4 stroke-[2.2]" />
                 </button>
@@ -371,7 +368,7 @@ export default function ProductCard({
                       setShowSave(true);
                     }}
                     title={language === "uz" ? "Istaklar ro'yxatiga saqlash" : language === "ru" ? "Сохранить в избранное" : "Save to wishlist"}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 border border-transparent hover:border-rose-200 dark:hover:border-rose-900/50 transition-all cursor-pointer active:scale-95"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 border border-transparent hover:border-rose-200 dark:hover:border-rose-900/50 transition-all cursor-pointer"
                   >
                     <Heart className="w-3.5 h-3.5 stroke-[2.2]" />
                   </button>
@@ -382,7 +379,7 @@ export default function ProductCard({
                       setShowCompare(true);
                     }}
                     title={language === "uz" ? "Boshqa do'konlar narxlarini solishtirish" : language === "ru" ? "Сравнить цены в магазинах" : "Compare all store prices"}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all cursor-pointer active:scale-95"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-indigo-50 dark:hover:bg-indigo-950/40 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-900/50 transition-all cursor-pointer"
                   >
                     <BarChart2 className="w-3.5 h-3.5 stroke-[2.2]" />
                   </button>
@@ -393,7 +390,7 @@ export default function ProductCard({
                       setShowTrack(true);
                     }}
                     title={language === "uz" ? "Narx tushishini kuzatish" : language === "ru" ? "Отслеживать снижение цены" : "Track price drops"}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 border border-transparent hover:border-amber-200 dark:hover:border-amber-900/50 transition-all cursor-pointer active:scale-95"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 border border-transparent hover:border-[var(--line-strong)] dark:hover:border-amber-900/50 transition-all cursor-pointer"
                   >
                     <Bell className="w-3.5 h-3.5 stroke-[2.2]" />
                   </button>
@@ -402,7 +399,7 @@ export default function ProductCard({
                     href="/packaging-studio"
                     onClick={() => cyberSound.playClick()}
                     title={language === "uz" ? "Qadoqlash Studiyasida bezash" : language === "ru" ? "Оформить в Студии Упаковки" : "Customize in Packaging Studio"}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 border border-transparent hover:border-amber-200 dark:hover:border-amber-900/50 transition-all cursor-pointer active:scale-95"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-amber-50 dark:hover:bg-amber-950/40 text-slate-500 hover:text-amber-600 dark:hover:text-amber-400 border border-transparent hover:border-[var(--line-strong)] dark:hover:border-amber-900/50 transition-all cursor-pointer"
                   >
                     <PackageCheck className="w-3.5 h-3.5 stroke-[2.2]" />
                   </Link>
@@ -411,7 +408,7 @@ export default function ProductCard({
                     href="/group-gifting"
                     onClick={() => cyberSound.playClick()}
                     title={language === "uz" ? "Do'stlar bilan ulush hisoblash" : language === "ru" ? "Разделить оплату с друзьями" : "Split cost with friends"}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-200 dark:hover:border-purple-900/50 transition-all cursor-pointer active:scale-95"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-purple-50 dark:hover:bg-purple-950/40 text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 border border-transparent hover:border-purple-200 dark:hover:border-purple-900/50 transition-all cursor-pointer"
                   >
                     <Users className="w-3.5 h-3.5 stroke-[2.2]" />
                   </Link>
@@ -422,7 +419,7 @@ export default function ProductCard({
                       setShowGiftCard(true);
                     }}
                     title={language === "uz" ? "Tabriknoma yaratish" : language === "ru" ? "Создать открытку" : "Create greeting card"}
-                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all cursor-pointer active:scale-95"
+                    className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 border border-transparent hover:border-emerald-200 dark:hover:border-emerald-900/50 transition-all cursor-pointer"
                   >
                     <Gift className="w-3.5 h-3.5 stroke-[2.2]" />
                   </button>
@@ -431,7 +428,7 @@ export default function ProductCard({
                 <button
                   onClick={handleShareTelegram}
                   title={language === "uz" ? "Telegram orqali ulashish" : language === "ru" ? "Поделиться в Telegram" : "Share via Telegram"}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-sky-50 dark:hover:bg-sky-950/40 text-sky-500 hover:text-sky-600 dark:hover:text-sky-400 border border-transparent hover:border-sky-200 dark:hover:border-sky-900/50 transition-all cursor-pointer active:scale-95"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-sky-50 dark:hover:bg-sky-950/40 text-sky-500 hover:text-sky-600 dark:hover:text-sky-400 border border-transparent hover:border-sky-200 dark:hover:border-sky-900/50 transition-all cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5 text-sky-500 stroke-[2.2]" />
                 </button>

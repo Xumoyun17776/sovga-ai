@@ -5,7 +5,7 @@ import confetti from "canvas-confetti";
 import { research } from "../lib/api";
 import { useToast } from "../components/Toast";
 import { cyberSound } from "../lib/cyberSound";
-import { useTranslation } from "../lib/i18n";
+import { useTranslation, tr } from "../lib/i18n";
 import {
   Sparkles,
   PenTool,
@@ -26,8 +26,9 @@ import {
   Play,
   Square,
   Music,
-} from "lucide-react";
+} from "../lib/icons";
 import { ambientMusic, AmbientTrack } from "../lib/ambientMusic";
+import { copyText } from "../lib/clipboard";
 
 type ThemeId = "royal_zardozi" | "feruza_arabesque" | "adras_silk" | "swiss_platinum";
 type FontStyle = "nastaliq" | "serif" | "cursive" | "modern";
@@ -51,56 +52,56 @@ const THEMES: Record<ThemeId, ThemeConfig> = {
     name: "Buxoro Zardo'zi & Qora Kadife",
     badge: "Qirollik Oltini",
     bgClass: "bg-slate-950",
-    cardBg: "bg-gradient-to-br from-slate-900 via-slate-950 to-amber-950/40 text-amber-100",
+    cardBg: "text-amber-100 bg-slate-900",
     textColor: "text-amber-100",
     accentColor: "text-amber-400",
-    borderClass: "border-amber-500/40 shadow-2xl shadow-amber-950/40 ring-1 ring-amber-400/20",
-    goldAccent: "from-amber-300 via-yellow-200 to-amber-500",
+    borderClass: "border-amber-500/40 shadow-sm ring-1 ring-amber-400/20",
+    goldAccent: "bg-amber-300",
   },
   feruza_arabesque: {
     id: "feruza_arabesque",
     name: "Samarqand Feruzasi & Naqsh",
     badge: "Sharqona Naqsh",
     bgClass: "bg-cyan-950",
-    cardBg: "bg-gradient-to-br from-teal-950 via-slate-900 to-cyan-950 text-cyan-100",
+    cardBg: "text-cyan-100 bg-teal-950",
     textColor: "text-cyan-100",
     accentColor: "text-cyan-300",
-    borderClass: "border-cyan-400/30 shadow-2xl shadow-cyan-950/40 ring-1 ring-cyan-300/20",
-    goldAccent: "from-cyan-200 via-teal-100 to-amber-300",
+    borderClass: "border-cyan-400/30 shadow-sm ring-1 ring-cyan-300/20",
+    goldAccent: "bg-cyan-200",
   },
   adras_silk: {
     id: "adras_silk",
     name: "Marg'ilon Adras Ipag'i",
     badge: "Ipak Nafisligi",
     bgClass: "bg-rose-950",
-    cardBg: "bg-gradient-to-br from-stone-900 via-rose-950/60 to-purple-950/50 text-rose-100",
+    cardBg: "text-rose-100 bg-stone-900",
     textColor: "text-rose-100",
     accentColor: "text-rose-300",
-    borderClass: "border-rose-400/30 shadow-2xl shadow-rose-950/40 ring-1 ring-rose-300/20",
-    goldAccent: "from-rose-200 via-amber-200 to-rose-400",
+    borderClass: "border-rose-400/30 shadow-sm ring-1 ring-rose-300/20",
+    goldAccent: "bg-rose-200",
   },
   swiss_platinum: {
     id: "swiss_platinum",
     name: "Shveysariya Mat Platinasi",
     badge: "Minimalist Elegans",
     bgClass: "bg-slate-900",
-    cardBg: "bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-100",
+    cardBg: "text-slate-100 bg-slate-900",
     textColor: "text-slate-100",
     accentColor: "text-indigo-300",
-    borderClass: "border-slate-600 shadow-2xl shadow-slate-950/50 ring-1 ring-slate-500/20",
-    goldAccent: "from-slate-200 via-indigo-200 to-slate-400",
+    borderClass: "border-slate-600 shadow-sm ring-1 ring-slate-500/20",
+    goldAccent: "bg-slate-200",
   },
 };
 
-const OCCASIONS: { key: OccasionKey; label: string }[] = [
-  { key: "birthday", label: "🎂 Tavallud kuni" },
-  { key: "wedding", label: "💍 Nikoh to'yi" },
-  { key: "parents", label: "👑 Ota-ona ehtiromi" },
-  { key: "eid", label: "🌙 Hayit ayyomi" },
-  { key: "navruz", label: "🌱 Navro'zi Olam" },
-  { key: "beshik", label: "👶 Beshik to'yi" },
-  { key: "kelin", label: "👰 Kelin salom" },
-  { key: "newyear", label: "✨ Yangi yil" },
+const get_OCCASIONS = (): { key: OccasionKey; label: string }[] => [
+  { key: "birthday", label: tr("Tavallud kuni", "День рождения", "Birthday") },
+  { key: "wedding", label: tr("Nikoh to'yi", "Свадьба", "Wedding") },
+  { key: "parents", label: tr("Ota-ona ehtiromi", "Родителям", "For parents") },
+  { key: "eid", label: tr("Hayit ayyomi", "Хайит", "Eid") },
+  { key: "navruz", label: tr("Navro'zi Olam", "Навруз", "Navruz") },
+  { key: "beshik", label: tr("Beshik to'yi", "Бешик-той", "Beshik toy (new baby)") },
+  { key: "kelin", label: tr("Kelin salom", "Келин салом", "Kelin salom") },
+  { key: "newyear", label: tr("Yangi yil", "Новый год", "New Year") },
 ];
 
 const PRESET_SEALS = [
@@ -232,12 +233,12 @@ export default function CalligraphyCardPage() {
   const handleCopyText = () => {
     cyberSound.playConfirm();
     const fullText = `TABRIKNOMA\n\nKimga: ${recipient}\n\n${customVerse}\n\nDuomiz: ${customBlessing}\n\nMuhr: [${sealText}]\n— Sovg'a AI Kalligrafik Studiyasi orqali yozildi`;
-    navigator.clipboard.writeText(fullText);
+    copyText(fullText);
     confetti({
       particleCount: 50,
       spread: 50,
       origin: { y: 0.7 },
-      colors: ["#f59e0b", "#d97706", "#b45309"],
+      colors: ["#d9431f", "#b53518", "#4338ca"],
     });
     toast.success(
       language === "uz" ? "Tabriknoma matni nusxalandi!" : language === "ru" ? "Текст скопирован в буфер!" : "Greeting card copied!",
@@ -265,51 +266,24 @@ export default function CalligraphyCardPage() {
   };
 
   return (
-    <div className="min-h-screen text-slate-900 dark:text-slate-100 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 transition-colors bg-[#fcfbf9] dark:bg-[#07080c] relative overflow-hidden animate-fade-in">
+    <div className="min-h-screen text-slate-900 dark:text-slate-100 py-8 sm:py-12 px-4 sm:px-6 lg:px-8 transition-colors relative overflow-hidden animate-fade-in">
       {/* Ambient luxury glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[360px] bg-gradient-to-b from-amber-500/10 via-amber-400/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-6xl mx-auto space-y-10">
         {/* Header */}
         <div className="text-center space-y-3.5">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 border border-amber-300/70 dark:border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs font-bold uppercase tracking-wider shadow-xs">
-            <Crown className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-            <span>
-              {language === "uz"
-                ? "Kalligrafik Tabriknoma & Duolar Studiyasi"
-                : language === "ru"
-                ? "Каллиграфические Открытки & Пожелания"
-                : "Calligraphy Card & Blessings Atelier"}
-            </span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight font-display text-slate-900 dark:text-white">
-            {language === "uz" ? (
-              <>
-                Nafis Xattotlik & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 dark:from-amber-300 dark:to-yellow-400">Chin Yurakdan Tilaklar</span>
-              </>
-            ) : language === "ru" ? (
-              <>
-                Изящная Каллиграфия & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 dark:from-amber-300 dark:to-yellow-400">Искренние Пожелания</span>
-              </>
-            ) : (
-              <>
-                Exquisite Calligraphy & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 dark:from-amber-300 dark:to-yellow-400">Bespoke Greetings</span>
-              </>
-            )}
+          <h1 className="lux-title text-[2.4rem] sm:text-[3.2rem] text-slate-900 dark:text-white leading-[1.05]">
+            {language === "uz" ? "Tabriknoma" : language === "ru" ? "Открытка" : "Greeting card"}
           </h1>
-          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-2xl mx-auto font-normal">
-            {language === "uz"
-              ? "Sovg'angizga qo'shib beriladigan eng qimmatli narsa — bu mehr bilan bitilgan samimiy tilakdir. Xattotlik qoidalariga mos, milliy naqshlar bilan bezatilgan shaxsiy tabriknomani loyihalang."
-              : language === "ru"
-              ? "Самое ценное дополнение к подарку — искреннее теплое пожелание. Создайте открытку с аутентичными орнаментами и каллиграфией."
-              : "The most cherished accompaniment to any gift is a heartfelt message. Design a personalized greeting card enriched with traditional Uzbek ornamentation."}
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-3 max-w-2xl mx-auto leading-relaxed">
+            {language === "uz" ? "Tabrik matnini o'zingiz yozing yoki tayyor matnni tanlang, so'ng uslub va bezakni belgilang." : language === "ru" ? "Напишите поздравление сами или выберите готовое, затем подберите стиль и оформление." : "Write your own message or pick a ready one, then choose the style and decoration."}
           </p>
         </div>
 
         {/* Studio Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Controls & Presets (5 cols) */}
-          <div className="lg:col-span-5 space-y-6 bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-slate-900/90 dark:to-slate-950/90 p-6 sm:p-7 rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury text-slate-900 dark:text-white">
+          <div className="bg-white dark:bg-[#0b1224] lg:col-span-5 space-y-6 p-6 sm:p-7 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 shadow-sm text-slate-900 dark:text-white">
             <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <PenTool className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
               <span>
@@ -333,7 +307,7 @@ export default function CalligraphyCardPage() {
                     ? "Например: Дорогая Мама, Джасур и Мадина"
                     : "E.g. Dearest Mother, Jasur & Madina, Beloved Family"
                 }
-                className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-950 border border-amber-200/80 dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition shadow-2xs"
+                className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-950 border border-[var(--line)] dark:border-slate-700 rounded-2xl text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition shadow-2xs"
               />
             </div>
 
@@ -343,17 +317,17 @@ export default function CalligraphyCardPage() {
                 {language === "uz" ? "Qutlov Munosabati" : language === "ru" ? "Повод для поздравления" : "Celebration Occasion"}
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {OCCASIONS.map((item) => (
+                {get_OCCASIONS().map((item) => (
                   <button
                     key={item.key}
                     onClick={() => {
                       cyberSound.playClick();
                       setOccasion(item.key);
                     }}
-                    className={`py-2 px-2 rounded-xl text-[11px] font-semibold transition border text-center cursor-pointer active:scale-95 ${
+                    className={`py-2 px-2 rounded-xl text-[11px] font-semibold transition border text-center cursor-pointer ${
                       occasion === item.key
-                        ? "bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 text-slate-950 border-amber-500 font-black shadow-md shadow-amber-500/20"
-                        : "bg-white/90 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-amber-200/70 dark:border-slate-800 hover:border-amber-400"
+                        ? "text-white border-amber-500 font-bold shadow-md bg-amber-500"
+                        : "bg-white/90 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)]"
                     }`}
                   >
                     {item.label}
@@ -375,13 +349,13 @@ export default function CalligraphyCardPage() {
                       cyberSound.playClick();
                       setSelectedTheme(t.id);
                     }}
-                    className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 cursor-pointer shadow-2xs active:scale-95 ${
+                    className={`p-3 rounded-2xl border text-left transition flex flex-col justify-between h-20 cursor-pointer shadow-2xs ${
                       selectedTheme === t.id
                         ? "border-amber-500 bg-amber-50/60 dark:bg-slate-950 ring-2 ring-amber-400/50 shadow-md"
-                        : "border-amber-200/60 dark:border-slate-800 bg-white/80 dark:bg-slate-950/60 hover:border-amber-400"
+                        : "border-[var(--line)] dark:border-slate-800 bg-white/80 dark:bg-slate-950/60 hover:border-[var(--line-strong)]"
                     }`}
                   >
-                    <span className="text-[10px] uppercase font-black text-amber-700 dark:text-amber-400 tracking-wider">
+                    <span className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400 tracking-wider">
                       {t.badge}
                     </span>
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200 line-clamp-1">{t.name}</span>
@@ -408,10 +382,10 @@ export default function CalligraphyCardPage() {
                       cyberSound.playClick();
                       setSelectedFont(f.key as any);
                     }}
-                    className={`py-2 text-center rounded-xl text-xs transition border cursor-pointer active:scale-95 ${
+                    className={`py-2 text-center rounded-xl text-xs transition border cursor-pointer ${
                       selectedFont === f.key
-                        ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 border-amber-400 font-black shadow-xs"
-                        : "bg-white/90 dark:bg-slate-950 text-slate-700 dark:text-slate-400 border-amber-200/70 dark:border-slate-800 hover:border-amber-400"
+                        ? "text-white border-amber-400 font-bold shadow-xs bg-amber-500"
+                        : "bg-white/90 dark:bg-slate-950 text-slate-700 dark:text-slate-400 border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)]"
                     }`}
                   >
                     {f.label}
@@ -436,10 +410,10 @@ export default function CalligraphyCardPage() {
                       cyberSound.playClick();
                       setSealText(s);
                     }}
-                    className={`px-3 py-1 rounded-xl text-[11px] font-bold border transition cursor-pointer active:scale-95 ${
+                    className={`px-3 py-1 rounded-xl text-[11px] font-bold border transition cursor-pointer ${
                       sealText === s
-                        ? "bg-amber-600/25 text-amber-900 dark:text-amber-300 border-amber-400 font-black shadow-2xs"
-                        : "bg-white/90 dark:bg-slate-950 text-slate-700 dark:text-slate-400 border-amber-200/70 dark:border-slate-800 hover:border-amber-400"
+                        ? "bg-amber-600/25 text-amber-900 dark:text-amber-300 border-amber-400 font-bold shadow-2xs"
+                        : "bg-white/90 dark:bg-slate-950 text-slate-700 dark:text-slate-400 border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)]"
                     }`}
                   >
                     {s}
@@ -449,7 +423,7 @@ export default function CalligraphyCardPage() {
             </div>
 
             {/* AI Verse Templates */}
-            <div className="space-y-2 pt-2 border-t border-amber-100 dark:border-slate-800">
+            <div className="space-y-2 pt-2 border-t border-[var(--line)] dark:border-slate-800">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
@@ -474,11 +448,11 @@ export default function CalligraphyCardPage() {
                   <button
                     key={card.id}
                     onClick={() => handleSelectCardTemplate(card)}
-                    className="w-full text-left p-3.5 rounded-2xl bg-white/90 dark:bg-slate-950/70 border border-amber-200/70 dark:border-slate-800/80 hover:border-amber-400 hover:bg-amber-50/30 transition group cursor-pointer shadow-2xs"
+                    className="w-full text-left p-3.5 rounded-2xl bg-white/90 dark:bg-slate-950/70 border border-[var(--line)] dark:border-slate-800/80 hover:border-[var(--line-strong)] hover:bg-amber-50/30 transition group cursor-pointer shadow-2xs"
                   >
                     <div className="flex items-center justify-between text-xs font-bold text-amber-800 dark:text-amber-300 mb-1">
                       <span>{card.title}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-400 border border-amber-500/30 font-bold">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full border font-bold bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                         {card.sealText}
                       </span>
                     </div>
@@ -499,7 +473,7 @@ export default function CalligraphyCardPage() {
                 rows={3}
                 value={customVerse}
                 onChange={(e) => setCustomVerse(e.target.value)}
-                className="w-full p-3 bg-white/90 dark:bg-slate-950 border border-amber-200/80 dark:border-slate-700 rounded-2xl text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition shadow-2xs"
+                className="w-full p-3 bg-white/90 dark:bg-slate-950 border border-[var(--line)] dark:border-slate-700 rounded-2xl text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition shadow-2xs"
               />
             </div>
           </div>
@@ -509,11 +483,9 @@ export default function CalligraphyCardPage() {
             {/* The Luxury Visual Canvas */}
             <div
               id="printable-card"
-              className={`relative p-5 sm:p-12 rounded-3xl sm:rounded-[2.5rem] border transition-all duration-300 min-h-[400px] sm:min-h-[440px] flex flex-col justify-between overflow-hidden ${currentTheme.cardBg} ${currentTheme.borderClass}`}
+              className={`relative p-5 sm:p-12 rounded-2xl sm:rounded-[2.5rem] border transition-all duration-300 min-h-[400px] sm:min-h-[440px] flex flex-col justify-between overflow-hidden ${currentTheme.cardBg} ${currentTheme.borderClass}`}
             >
               {/* Background Luxury Guilloché / Pattern Accents */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
 
               {/* Decorative Corner Ornaments */}
               <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-amber-400/40 rounded-tl-xl pointer-events-none" />
@@ -528,7 +500,7 @@ export default function CalligraphyCardPage() {
                     <Crown className="w-4 h-4 stroke-[2.2]" />
                   </div>
                   <div>
-                    <span className="text-[10px] tracking-widest uppercase font-bold text-amber-400/80 block">
+                    <span className="text-[10px] tracking-wide uppercase font-bold text-amber-400/80 block">
                       {language === "uz" ? "Ehtirom & Samimiyat" : language === "ru" ? "С глубоким почтением" : "With Highest Regard"}
                     </span>
                     <span className="text-xs font-semibold text-slate-300">
@@ -540,10 +512,10 @@ export default function CalligraphyCardPage() {
                 <div className="text-right flex items-center gap-3">
                   {isPlayingAudio && (
                     <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300">
-                      <span className="w-1 h-3 bg-amber-400 rounded-full animate-bounce" />
-                      <span className="w-1 h-5 bg-amber-400 rounded-full animate-bounce [animation-delay:0.12s]" />
-                      <span className="w-1 h-2.5 bg-amber-400 rounded-full animate-bounce [animation-delay:0.24s]" />
-                      <span className="w-1 h-4 bg-amber-400 rounded-full animate-bounce [animation-delay:0.36s]" />
+                      <span className="w-1 h-3 bg-amber-400 rounded-full" />
+                      <span className="w-1 h-5 bg-amber-400 rounded-full [animation-delay:0.12s]" />
+                      <span className="w-1 h-2.5 bg-amber-400 rounded-full [animation-delay:0.24s]" />
+                      <span className="w-1 h-4 bg-amber-400 rounded-full [animation-delay:0.36s]" />
                       <span className="text-[10px] font-mono font-bold uppercase ml-1">
                         {selectedMusic === "ney" ? "Ney" : selectedMusic === "piano" ? "Piano" : selectedMusic === "lofi" ? "Lofi" : "Voice"}
                       </span>
@@ -558,10 +530,10 @@ export default function CalligraphyCardPage() {
               {/* Center Body: Recipient & Verse */}
               <div className="relative z-10 my-8 space-y-6 text-center">
                 <div className="space-y-1">
-                  <span className="text-xs tracking-widest uppercase font-mono text-amber-400/80">
+                  <span className="text-xs tracking-wide uppercase font-mono text-amber-400/80">
                     {language === "uz" ? "Hurmat va ehtirom ila:" : language === "ru" ? "С глубоким уважением:" : "Presented with deepest regard to:"}
                   </span>
-                  <h3 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white font-display">
+                  <h3 className="text-2xl sm:text-4xl font-semibold tracking-tight text-white font-display">
                     {recipient || (language === "uz" ? "Aziz Insonim" : language === "ru" ? "Дорогому человеку" : "Honored Recipient")}
                   </h3>
                 </div>
@@ -589,16 +561,16 @@ export default function CalligraphyCardPage() {
               <div className="relative z-10 flex items-end justify-between border-t border-white/10 pt-4">
                 <div className="text-left">
                   <span className="text-[10px] text-slate-400 block font-mono">
-                    {language === "uz" ? "Qadoq Muhr Raqami" : language === "ru" ? "Номер сургучной печати" : "Seal Protocol ID"}
+                    {language === "uz" ? "Qadoq Muhr Raqami" : language === "ru" ? "Номер сургучной печати" : "Card ID"}
                   </span>
                   <span className="text-xs font-mono font-bold text-amber-300">UZ-ATELIER-2026</span>
                 </div>
 
                 {/* Realistic Wax Seal Badge */}
                 <div className="flex flex-col items-center">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 border-2 border-amber-300/60 shadow-xl flex items-center justify-center text-center p-1 transform rotate-[-4deg]">
-                    <div className="w-11 h-11 rounded-full border border-dashed border-amber-200/40 flex flex-col items-center justify-center">
-                      <span className="text-[8px] tracking-wider uppercase font-extrabold text-amber-100 leading-none">
+                  <div className="w-14 h-14 rounded-full border border-[var(--line)] shadow-sm flex items-center justify-center text-center p-1 transform rotate-[-4deg] bg-amber-600">
+                    <div className="w-11 h-11 rounded-full border border-dashed border-[var(--line)] flex flex-col items-center justify-center">
+                      <span className="text-[8px] tracking-wider uppercase font-semibold text-amber-100 leading-none">
                         {sealText}
                       </span>
                     </div>
@@ -608,18 +580,18 @@ export default function CalligraphyCardPage() {
             </div>
 
             {/* ─── LIVE NEURAL AUDIO RECITATION & INSTRUMENT SOUNDTRACK ─── */}
-            <div className="bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-amber-500/15 p-5 sm:p-6 rounded-3xl border-2 border-amber-300/80 dark:border-amber-400/40 shadow-luxury space-y-4 text-slate-900 dark:text-white">
+            <div className="p-5 sm:p-6 rounded-2xl border border-[var(--line)] dark:border-amber-400/40 shadow-sm space-y-4 text-slate-900 dark:text-white bg-amber-500/15">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-400/40 flex items-center justify-center flex-shrink-0">
-                    <Music className="w-5 h-5 stroke-[2.2] animate-pulse" />
+                    <Music className="w-5 h-5 stroke-[2.2]" />
                   </div>
                   <div>
                     <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                       <span>{language === "uz" ? "Ovozli Ijro & Musiqiy Jo'rlik" : language === "ru" ? "Голосовое Чтение с Музыкой" : "Voice Recitation & Music"}</span>
                       {isPlayingAudio && (
                         <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-700 dark:text-emerald-400 uppercase bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-800">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                           <span>{language === "uz" ? "Ijro etilmoqda" : "Playing"}</span>
                         </span>
                       )}
@@ -637,10 +609,10 @@ export default function CalligraphyCardPage() {
                 {/* Primary Voice Toggle Button */}
                 <button
                   onClick={handleToggleVoicePlayback}
-                  className={`w-full sm:w-auto px-6 py-3 rounded-2xl text-xs font-black transition flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95 ${
+                  className={`w-full sm:w-auto px-6 py-3 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-md ${
                     isPlayingAudio
-                      ? "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/30"
-                      : "bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 shadow-amber-500/25"
+                      ? "bg-rose-500 hover:bg-rose-600 text-white"
+                      : "text-white bg-amber-500 hover:bg-amber-400"
                   }`}
                 >
                   {isPlayingAudio ? (
@@ -658,15 +630,15 @@ export default function CalligraphyCardPage() {
               </div>
 
               {/* Music Soundtrack Selector */}
-              <div className="pt-2 border-t border-amber-200/60 dark:border-white/10 flex flex-wrap items-center gap-2">
+              <div className="pt-2 border-t border-[var(--line)] dark:border-white/10 flex flex-wrap items-center gap-2">
                 <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 mr-1">
                   {language === "uz" ? "Fon musiqasi:" : language === "ru" ? "Фоновая музыка:" : "Atmosphere:"}
                 </span>
                 {[
-                  { id: "ney" as AmbientTrack, labelUz: "🪈 Sharqona Ney", labelRu: "🪈 Восточный Ней", labelEn: "🪈 Oriental Ney" },
-                  { id: "piano" as AmbientTrack, labelUz: "🎹 Royal Pianino", labelRu: "🎹 Фортепиано", labelEn: "🎹 Royal Piano" },
-                  { id: "lofi" as AmbientTrack, labelUz: "🌌 Lofi Tinchlik", labelRu: "🌌 Спокойный Лофай", labelEn: "🌌 Ambient Lofi" },
-                  { id: "none" as AmbientTrack, labelUz: "🔇 Faqat Ovoz", labelRu: "🔇 Без музыки", labelEn: "🔇 Voice Only" },
+                  { id: "ney" as AmbientTrack, labelUz: "Sharqona Ney", labelRu: "Восточный Ней", labelEn: "Oriental Ney" },
+                  { id: "piano" as AmbientTrack, labelUz: "Royal Pianino", labelRu: "Фортепиано", labelEn: "Royal Piano" },
+                  { id: "lofi" as AmbientTrack, labelUz: tr("Lofi Tinchlik", "Спокойный лофай", "Ambient Lofi"), labelRu: "Спокойный Лофай", labelEn: "Ambient Lofi" },
+                  { id: "none" as AmbientTrack, labelUz: tr("Faqat Ovoz", "Без музыки", "Voice only"), labelRu: "Без музыки", labelEn: "Voice Only" },
                 ].map((track) => {
                   const label = language === "uz" ? track.labelUz : language === "ru" ? track.labelRu : track.labelEn;
                   const selected = selectedMusic === track.id;
@@ -680,10 +652,10 @@ export default function CalligraphyCardPage() {
                           ambientMusic.play(track.id);
                         }
                       }}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition border cursor-pointer active:scale-95 shadow-2xs ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition border cursor-pointer shadow-2xs ${
                         selected
-                          ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 border-amber-400 font-black shadow-xs"
-                          : "bg-white/90 dark:bg-slate-950/70 text-slate-700 dark:text-slate-300 border-amber-200/70 dark:border-slate-700/80 hover:border-amber-400"
+                          ? "text-white border-amber-400 font-bold shadow-xs bg-amber-500"
+                          : "bg-white/90 dark:bg-slate-950/70 text-slate-700 dark:text-slate-300 border-[var(--line)] dark:border-slate-700/80 hover:border-[var(--line-strong)]"
                       }`}
                     >
                       {label}
@@ -694,12 +666,12 @@ export default function CalligraphyCardPage() {
             </div>
 
             {/* Quick Export & Actions Row */}
-            <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-slate-900/90 dark:to-slate-950/90 p-6 rounded-3xl border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury space-y-4 text-slate-900 dark:text-white">
+            <div className="bg-white dark:bg-[#0b1224] p-6 rounded-2xl border border-[var(--line)] dark:border-slate-800 shadow-sm space-y-4 text-slate-900 dark:text-white">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleCopyText}
-                    className="px-4 py-2.5 bg-white/90 dark:bg-slate-800 hover:bg-amber-50 text-slate-800 dark:text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 border border-amber-200/80 dark:border-slate-700 cursor-pointer active:scale-95 shadow-2xs"
+                    className="px-4 py-2.5 bg-white/90 dark:bg-slate-800 hover:bg-amber-50 text-slate-800 dark:text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 border border-[var(--line)] dark:border-slate-700 cursor-pointer shadow-2xs"
                   >
                     <Copy className="w-4 h-4 stroke-[2.2] text-amber-600 dark:text-amber-400" />
                     <span>
@@ -709,7 +681,7 @@ export default function CalligraphyCardPage() {
 
                   <button
                     onClick={handleShareTelegram}
-                    className="px-4 py-2.5 bg-[#2AABEE] hover:bg-[#229ED9] text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-sky-500/20 cursor-pointer active:scale-95"
+                    className="px-4 py-2.5 bg-[#2AABEE] hover:bg-[#229ED9] text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 shadow-md cursor-pointer"
                   >
                     <Share2 className="w-4 h-4 stroke-[2.2]" />
                     <span>
@@ -719,7 +691,7 @@ export default function CalligraphyCardPage() {
 
                   <button
                     onClick={handlePrint}
-                    className="px-4 py-2.5 bg-white/90 dark:bg-slate-800 hover:bg-amber-50 text-slate-800 dark:text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 border border-amber-200/80 dark:border-slate-700 cursor-pointer active:scale-95 shadow-2xs"
+                    className="px-4 py-2.5 bg-white/90 dark:bg-slate-800 hover:bg-amber-50 text-slate-800 dark:text-white rounded-2xl text-xs font-bold transition flex items-center gap-1.5 border border-[var(--line)] dark:border-slate-700 cursor-pointer shadow-2xs"
                   >
                     <Printer className="w-4 h-4 stroke-[2.2] text-slate-500" />
                     <span>
@@ -730,7 +702,7 @@ export default function CalligraphyCardPage() {
 
                 <Link
                   href="/packaging-studio"
-                  className="px-5 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black rounded-2xl text-xs transition flex items-center gap-2 shadow-lg shadow-amber-500/25 active:scale-95"
+                  className="px-5 py-2.5 text-white font-bold rounded-2xl text-xs transition flex items-center gap-2 shadow-sm bg-amber-500 hover:bg-amber-400"
                 >
                   <PackageCheck className="w-4 h-4 stroke-[2.2]" />
                   <span>
@@ -739,7 +711,7 @@ export default function CalligraphyCardPage() {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-amber-100 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 text-[11px]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-[var(--line)] dark:border-slate-800/80 text-slate-600 dark:text-slate-400 text-[11px]">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 stroke-[2.2] text-emerald-600 dark:text-emerald-400" />
                   <span>

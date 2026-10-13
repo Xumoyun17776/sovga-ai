@@ -14,7 +14,8 @@ import {
   MessageSquare,
   Volume2,
   VolumeX,
-} from "lucide-react";
+  MessageCircle,
+} from "../lib/icons";
 import { useTranslation } from "../lib/i18n";
 import { concierge, formatPrice } from "../lib/api";
 import { cyberSound } from "../lib/cyberSound";
@@ -228,9 +229,7 @@ export default function FloatingAIOrb() {
         id: "error-" + Date.now(),
         role: "assistant",
         content:
-          language === "uz"
-            ? "O'zbekiston bozorini tekshirdim! Eng qulay narxlar va chegirmalar do'konlarimizda mavjud. Qidiruv paneli orqali ham darhol solishtirishingiz mumkin."
-            : "Проверил рынок Узбекистана! Актуальные цены и предложения доступны через строку поиска.",
+          language === "uz" ? "O'zbekiston bozorini tekshirdim! Eng qulay narxlar va chegirmalar do'konlarimizda mavjud. Qidiruv paneli orqali ham darhol solishtirishingiz mumkin." : language === "ru" ? "Проверил рынок Узбекистана! Актуальные цены и предложения доступны через строку поиска." : "I checked the Uzbekistan market! The best prices and deals are available in our stores. You can also compare instantly from the search bar.",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
       setMessages((prev) => [...prev, fallbackMsg]);
@@ -279,61 +278,57 @@ export default function FloatingAIOrb() {
 
   const quickPrompts = {
     uz: [
-      "🎁 Onamga 500,000 so'mga sovg'a",
-      "💍 Yangi kelin-kuyovga nima olsam bo'ladi?",
-      "📱 iPhone 16 qayerda eng arzon?",
-      "⚡ Bugungi super chegirmalar",
+      "Onamga 500,000 so'mga sovg'a",
+      "Yangi kelin-kuyovga nima olsam bo'ladi?",
+      "iPhone 16 qayerda eng arzon?",
+      "Bugungi super chegirmalar",
     ],
     ru: [
-      "🎁 Подарок маме до 500,000 UZS",
-      "💍 Свадебный подарок молодоженам",
-      "📱 Где дешевле iPhone 16?",
-      "⚡ Лучшие скидки сегодня",
+      "Подарок маме до 500,000 UZS",
+      "Свадебный подарок молодоженам",
+      "Где дешевле iPhone 16?",
+      "Лучшие скидки сегодня",
     ],
     en: [
-      "🎁 Gift for mom under 500k UZS",
-      "💍 Best wedding gift idea",
-      "📱 Cheapest iPhone 16 deals",
-      "⚡ Flash sales today",
+      "Gift for mom under 500k UZS",
+      "Best wedding gift idea",
+      "Cheapest iPhone 16 deals",
+      "Flash sales today",
     ],
   };
 
   const currentPrompts = quickPrompts[language] || quickPrompts.uz;
 
   return (
-    <div className="fixed bottom-20 sm:bottom-6 right-3 sm:right-6 z-50 flex flex-col items-end safe-area-mb">
+    <div className="floating-orb fixed bottom-20 sm:bottom-6 right-3 sm:right-6 z-50 flex flex-col items-end safe-area-mb">
       {/* Tooltip on Hover */}
       {!isOpen && isHovered && (
-        <div className="mb-3 px-3.5 py-1.5 bg-slate-900 text-white text-xs font-bold rounded-2xl shadow-xl animate-fade-in border border-slate-700 relative flex items-center gap-1.5 hidden sm:flex">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-          <span>{language === "uz" ? "AI Konsyerj: Savolingiz bormi?" : language === "ru" ? "AI Консьерж: Нужна помощь?" : "AI Concierge: Need help?"}</span>
+        <div className="mb-3 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-lg shadow-sm animate-fade-in relative items-center gap-1.5 hidden sm:flex">
+          <span>{language === "uz" ? "Savolingiz bormi?" : language === "ru" ? "Есть вопрос?" : "Have a question?"}</span>
           <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-slate-900 border-r border-b border-slate-700 rotate-45"></div>
         </div>
       )}
 
       {/* Floating Chat Modal */}
       {isOpen && (
-        <div className="mb-3 w-[calc(100vw-24px)] sm:w-[420px] max-w-[420px] bg-white dark:bg-[#0c0e17] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-slide-up origin-bottom-right flex flex-col h-[min(70dvh,540px)] max-h-[580px] z-50">
+        <div className="mb-3 w-[calc(100vw-24px)] sm:w-[420px] max-w-[420px] bg-white dark:bg-[#0c0e17] rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden animate-slide-up origin-bottom-right flex flex-col h-[min(70dvh,540px)] max-h-[580px] z-50">
           {/* Header */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 flex items-center justify-between border-b border-white/10 relative">
+          <div className="text-white p-4 flex items-center justify-between border-b border-white/10 relative bg-slate-900">
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center shadow-md">
-                  <Sparkles className="w-5 h-5 text-white" />
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-amber-500">
+                  <MessageCircle className="w-4 h-4 text-slate-900" />
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-slate-900 rounded-full"></span>
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border border-slate-900 rounded-full"></span>
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-display font-black text-sm text-white">
-                    Sovg'a AI Konsyerj
+                  <h3 className="font-display font-bold text-sm text-white">
+                    {language === "uz" ? "Sovg'a yordamchisi" : language === "ru" ? "Помощник Sovg'a" : "Sovg'a assistant"}
                   </h3>
-                  <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black uppercase">
-                    PRO AI
-                  </span>
                 </div>
-                <p className="text-[10px] text-slate-300 font-mono mt-0.5 flex items-center gap-1">
-                  <span>Gemini 3.8 Flash • Jonli shopping yordamchisi</span>
+                <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                  <span>{language === "uz" ? "Sovg'a va narxlar bo'yicha savollar" : language === "ru" ? "Вопросы о подарках и ценах" : "Ask about gifts and prices"}</span>
                 </p>
               </div>
             </div>
@@ -341,10 +336,10 @@ export default function FloatingAIOrb() {
             <div className="flex items-center gap-1 sm:gap-1.5">
               {isSpeaking && (
                 <div className="flex items-center gap-0.5 px-2 py-1 rounded-full bg-amber-400/20 border border-amber-400/40 text-amber-300 text-[10px] font-mono mr-1">
-                  <span className="w-1 h-3 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></span>
-                  <span className="w-1 h-4.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></span>
-                  <span className="w-1 h-2 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></span>
-                  <span className="w-1 h-3.5 bg-amber-400 rounded-full animate-bounce" style={{ animationDelay: "450ms" }}></span>
+                  <span className="w-1 h-3 bg-amber-400 rounded-full" style={{ animationDelay: "0ms" }}></span>
+                  <span className="w-1 h-4.5 bg-amber-400 rounded-full" style={{ animationDelay: "150ms" }}></span>
+                  <span className="w-1 h-2 bg-amber-400 rounded-full" style={{ animationDelay: "300ms" }}></span>
+                  <span className="w-1 h-3.5 bg-amber-400 rounded-full" style={{ animationDelay: "450ms" }}></span>
                   <span className="ml-1 text-[9px] font-bold hidden sm:inline">OVOZ</span>
                 </div>
               )}
@@ -390,7 +385,7 @@ export default function FloatingAIOrb() {
                 className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.role === "assistant" && (
-                  <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                  <div className="w-7 h-7 rounded-xl text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5 bg-indigo-600">
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
                 )}
@@ -445,7 +440,7 @@ export default function FloatingAIOrb() {
                                   {p.name}
                                 </span>
                                 <div className="flex items-center gap-1.5 mt-0.5">
-                                  <span className="font-black text-emerald-600 dark:text-emerald-400 text-xs">
+                                  <span className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">
                                     {formatPrice(p.price)}
                                   </span>
                                   <span className="text-[10px] text-slate-400">• {p.store}</span>
@@ -489,7 +484,7 @@ export default function FloatingAIOrb() {
             {/* Typing Indicator */}
             {isLoading && (
               <div className="flex gap-2.5 items-center text-slate-400">
-                <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <div className="w-7 h-7 rounded-xl text-white flex items-center justify-center shrink-0 shadow-sm bg-indigo-600">
                   <Sparkles className="w-3.5 h-3.5" />
                 </div>
                 <div className="p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center gap-2">
@@ -555,7 +550,7 @@ export default function FloatingAIOrb() {
             <button
               type="submit"
               disabled={!inputValue.trim() || isLoading}
-              className="p-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white transition shadow-sm disabled:opacity-40 cursor-pointer"
+              className="p-2.5 rounded-2xl text-white transition shadow-sm disabled:opacity-40 cursor-pointer bg-indigo-600 hover:bg-indigo-700"
             >
               <Send className="w-4 h-4" />
             </button>
@@ -572,26 +567,19 @@ export default function FloatingAIOrb() {
       >
         {/* Glow rings */}
         {isSpeaking && (
-          <div className="absolute -inset-3 rounded-full border-2 border-amber-400 animate-ping opacity-75 pointer-events-none"></div>
+          <div className="absolute -inset-3 rounded-full border border-amber-400 opacity-75 pointer-events-none"></div>
         )}
-        <div className="absolute inset-0 bg-indigo-500 rounded-full blur-xl opacity-40 group-hover:opacity-75 transition-opacity duration-300 animate-pulse"></div>
-        <div className="absolute -inset-1.5 bg-gradient-to-tr from-amber-400 via-indigo-600 to-purple-600 rounded-full blur-md opacity-30 group-hover:opacity-60 transition-opacity duration-300"></div>
 
         {/* Main Orb */}
-        <div className="relative w-14 h-14 bg-gradient-to-br from-indigo-600 via-indigo-700 to-slate-950 rounded-full shadow-2xl flex items-center justify-center border-2 border-amber-400/60 overflow-hidden">
+        <div className="relative w-12 h-12 rounded-full shadow-lg flex items-center justify-center bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 transition-colors">
           {isOpen ? (
-            <X className="w-6 h-6 text-white drop-shadow-md" />
+            <X className="w-5 h-5 text-white dark:text-slate-900" />
           ) : (
-            <Sparkles className="w-6 h-6 text-amber-300 drop-shadow-md animate-pulse" />
+            <MessageCircle className="w-5 h-5 text-white dark:text-slate-900" />
           )}
         </div>
 
         {/* Live Notification Indicator */}
-        {!isOpen && (
-          <div className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-[9px] shadow-sm border border-white">
-            AI
-          </div>
-        )}
       </button>
 
       {/* Price Comparison Modal */}

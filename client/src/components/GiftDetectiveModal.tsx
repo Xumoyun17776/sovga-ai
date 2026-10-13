@@ -22,12 +22,13 @@ import {
   RotateCcw,
   AlertTriangle,
   Lightbulb,
-} from "lucide-react";
+} from "../lib/icons";
 import { giftDetectiveApi, formatPrice } from "../lib/api";
 import { cyberSound } from "../lib/cyberSound";
 import { useTranslation } from "../lib/i18n";
 import { useToast } from "./Toast";
 import confetti from "canvas-confetti";
+import { copyText } from "../lib/clipboard";
 
 interface Props {
   isOpen: boolean;
@@ -36,36 +37,36 @@ interface Props {
 
 const personaPresets = [
   {
-    labelUz: "☕ Minimalist & Kitobxon",
-    labelRu: "☕ Минималист & Книголюб",
-    labelEn: "☕ Minimalist & Bookworm",
+    labelUz: "Minimalist & Kitobxon",
+    labelRu: "Минималист & Книголюб",
+    labelEn: "Minimalist & Bookworm",
     target: "Yaqin do'st",
     textUz: "Estetik narsalarni yoqtiradi, qahva ichadi, tinchlikni qadrlaydi, ko'p mutolaa qiladi, ortiqcha shovqinni yoqtirmaydi.",
     textRu: "Любит эстетику, пьет кофе, ценит покой, много читает, не выносит лишнего шума и бесполезных вещей.",
     textEn: "Loves aesthetics, specialty coffee, calm environments, reading books, dislikes clutter.",
   },
   {
-    labelUz: "💻 IT Dasturchi & Gadjetlar",
-    labelRu: "💻 IT Разработчик & Гаджеты",
-    labelEn: "💻 Software Engineer & Tech",
+    labelUz: "IT Dasturchi & Gadjetlar",
+    labelRu: "IT Разработчик & Гаджеты",
+    labelEn: "Software Engineer & Tech",
     target: "Hamkasb / Do'st",
     textUz: "Kun bo'yi kompyuterda ishlaydi, zamonaviy texnika, o'yinlar va qulay ish stolini qadrlaydi. Ergonomikaga e'tiborli.",
     textRu: "Работает за компьютером, ценит умные гаджеты, качественные наушники и эргономику рабочего места.",
     textEn: "Works at computer, loves smart tech gadgets, noise canceling audio, and desktop ergonomics.",
   },
   {
-    labelUz: "🌸 Nafis & Go'zallik Ishqibozi",
-    labelRu: "🌸 Эстетика & Уход за собой",
-    labelEn: "🌸 Beauty & Self-care Enthusiast",
+    labelUz: "Nafis & Go'zallik Ishqibozi",
+    labelRu: "Эстетика & Уход за собой",
+    labelEn: "Beauty & Self-care Enthusiast",
     target: "Sevgan yorim / Qiz o'rtoq",
     textUz: "O'ziga qarashni, terini parvarish qilishni, xushbo'y shamlar va bej rangdagi shinam dizaynni yoqtiradi.",
     textRu: "Обожает качественный уход за кожей, эстетичные свечи, уютные детали и теплые оттенки.",
     textEn: "Loves skincare routines, luxury scented candles, cozy home decor and warm aesthetic.",
   },
   {
-    labelUz: "👑 Hurmatli Rahbar / Katta Yoshli",
-    labelRu: "👑 Руководитель / Старший",
-    labelEn: "👑 Executive & Senior Figure",
+    labelUz: "Hurmatli Rahbar / Katta Yoshli",
+    labelRu: "Руководитель / Старший",
+    labelEn: "Executive & Senior Figure",
     target: "Rahbar / Otam",
     textUz: "Jiddiy, martabasi baland, an'analarni hurmat qiladi, sifatli qalam, teri va brend mahsulotlarni qadrlaydi.",
     textRu: "Статусный человек, ценит премиальное качество, кожаные аксессуары, традиции и надежность.",
@@ -105,9 +106,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
   const handleStartInvestigation = () => {
     if (!personalityTraits.trim()) {
       toast.error(
-        language === "uz"
-          ? "Iltimos, insonning qiziqishlari yoki shaxsiyati haqida qisqacha yozing"
-          : "Пожалуйста, опишите увлечения или характер человека"
+        language === "uz" ? "Iltimos, insonning qiziqishlari yoki shaxsiyati haqida qisqacha yozing" : language === "ru" ? "Пожалуйста, опишите увлечения или характер человека" : "Please briefly describe the person's interests or personality"
       );
       return;
     }
@@ -125,10 +124,10 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
 
   const handleCopyScript = (text: string) => {
     cyberSound.playClick();
-    navigator.clipboard.writeText(text);
+    copyText(text);
     setCopiedScript(true);
     toast.success(
-      language === "uz" ? "Nusxalandi! Sovg'a berayotganda ayting." : "Скопировано в буфер!",
+      language === "uz" ? "Nusxalandi! Sovg'a berayotganda ayting." : language === "ru" ? "Скопировано в буфер!" : "Copied! Mention it when you give the gift.",
       "Sovg'a Detektivi"
     );
     setTimeout(() => setCopiedScript(false), 2500);
@@ -142,17 +141,17 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="card-luxury bg-white dark:bg-[#0c0e17] text-slate-900 dark:text-slate-100 rounded-3xl w-full max-w-4xl max-h-[92vh] max-h-[92dvh] flex flex-col shadow-luxury border-2 border-amber-300/80 dark:border-amber-500/30 relative my-auto animate-scale-in overflow-hidden"
+        className="card-luxury bg-white dark:bg-[#0c0e17] text-slate-900 dark:text-slate-100 rounded-2xl w-full max-w-4xl max-h-[92vh] max-h-[92dvh] flex flex-col shadow-sm border border-[var(--line)] dark:border-amber-500/30 relative my-auto animate-scale-in overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-5 sm:p-6 bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-950 text-white border-b border-white/10 relative">
+        <div className="p-5 sm:p-6 text-white border-b border-white/10 relative bg-slate-950">
           <button
             onClick={() => {
               cyberSound.playClick();
               onClose();
             }}
-            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition cursor-pointer active:scale-95 shadow-2xs"
+            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xs"
           >
             <X className="w-4 h-4 stroke-[2.2]" />
           </button>
@@ -167,15 +166,15 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
               <Search className="w-5 h-5 text-indigo-400 stroke-[2.2]" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-display font-black text-white tracking-tight flex items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-display font-bold text-white tracking-tight flex items-center gap-2">
                 <span>
                   {language === "uz"
                     ? "AI Sovg'a Detektivi & Shaxsiyat Psixologiyasi"
                     : language === "ru"
                     ? "AI Детектив Подарков & Психология Личности"
-                    : "AI Gift Detective & Psychological Persona DNA"}
+                    : "Gift ideas from a description"}
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase font-mono">
+                <span className="px-2 py-0.5 rounded-full bg-amber-400 text-white text-[10px] font-bold uppercase font-mono">
                   PREMIUM
                 </span>
               </h2>
@@ -198,7 +197,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
               {/* Quick Persona Templates */}
               <div>
                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">
-                  {language === "uz" ? "Tezkor Shaxsiyat Shabloni (1-bosishda):" : "Готовые шаблоны психотипа:"}
+                  {language === "uz" ? "Tezkor Shaxsiyat Shabloni (1-bosishda):" : language === "ru" ? "Готовые шаблоны психотипа:" : "Quick Personality Templates (1-click):"}
                 </span>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {personaPresets.map((preset, idx) => (
@@ -212,7 +211,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
                           language === "uz" ? preset.textUz : language === "ru" ? preset.textRu : preset.textEn
                         );
                       }}
-                      className="p-2.5 rounded-2xl border border-amber-200/70 dark:border-slate-800 bg-white/90 dark:bg-slate-900/60 hover:border-amber-400 hover:bg-amber-50/40 dark:hover:bg-amber-950/20 text-left transition cursor-pointer group active:scale-95 shadow-2xs"
+                      className="p-2.5 rounded-2xl border border-[var(--line)] dark:border-slate-800 bg-white/90 dark:bg-slate-900/60 hover:border-[var(--line-strong)] hover:bg-amber-50/40 dark:hover:bg-amber-950/20 text-left transition cursor-pointer group shadow-2xs"
                     >
                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block group-hover:text-amber-500 transition">
                         {language === "uz" ? preset.labelUz : language === "ru" ? preset.labelRu : preset.labelEn}
@@ -226,7 +225,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    {language === "uz" ? "Kimga beriladi?" : "Кому дарите?"}
+                    {language === "uz" ? "Kimga beriladi?" : language === "ru" ? "Кому дарите?" : "Who is it for?"}
                   </label>
                   <input
                     type="text"
@@ -239,7 +238,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    {language === "uz" ? "Yoshi & Jinsi" : "Возраст и пол"}
+                    {language === "uz" ? "Yoshi & Jinsi" : language === "ru" ? "Возраст и пол" : "Age & Gender"}
                   </label>
                   <div className="flex gap-2">
                     <select
@@ -263,7 +262,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    {language === "uz" ? "Byudjet & Sabab" : "Бюджет и повод"}
+                    {language === "uz" ? "Byudjet & Sabab" : language === "ru" ? "Бюджет и повод" : "Budget & Occasion"}
                   </label>
                   <input
                     type="text"
@@ -278,18 +277,14 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
               {/* Personality Description Textarea */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  {language === "uz"
-                    ? "Insonning shaxsiyati, sevimli mashg'ulotlari, fe'l-atvori yoki Instagram/Telegram bio-si:"
-                    : "Характер, увлечения, образ жизни или привычки человека:"}
+                  {language === "uz" ? "Insonning shaxsiyati, sevimli mashg'ulotlari, fe'l-atvori yoki Instagram/Telegram bio-si:" : language === "ru" ? "Характер, увлечения, образ жизни или привычки человека:" : "The person's personality, hobbies, temperament or Instagram/Telegram bio:"}
                 </label>
                 <textarea
                   rows={4}
                   value={personalityTraits}
                   onChange={(e) => setPersonalityTraits(e.target.value)}
                   placeholder={
-                    language === "uz"
-                      ? "Masalan: Ko'p qahva ichadi, IT sohasida ishlaydi, kitob mutolaa qiladi, shovqindan charchaydi, sifatli va estetik jihozlarni qadrlaydi..."
-                      : "Например: Любит хороший кофе, работает в IT, ценит тишину, читает нон-фикшн, обращает внимание на дизайн и материалы..."
+                    language === "uz" ? "Masalan: Ko'p qahva ichadi, IT sohasida ishlaydi, kitob mutolaa qiladi, shovqindan charchaydi, sifatli va estetik jihozlarni qadrlaydi..." : language === "ru" ? "Например: Любит хороший кофе, работает в IT, ценит тишину, читает нон-фикшн, обращает внимание на дизайн и материалы..." : "E.g.: Drinks a lot of coffee, works in IT, reads books, gets tired of noise, values quality and well-designed things..."
                   }
                   className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs sm:text-sm font-medium outline-none focus:ring-2 focus:ring-amber-500/20"
                 />
@@ -300,24 +295,20 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
                 type="button"
                 disabled={mutation.isPending}
                 onClick={handleStartInvestigation}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                className="w-full py-4 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50 bg-amber-500 hover:bg-amber-400"
               >
                 {mutation.isPending ? (
                   <>
-                    <span className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+                    <span className="w-5 h-5 border border-slate-950 border-t-transparent rounded-full animate-spin"></span>
                     <span>
-                      {language === "uz"
-                        ? "Psixologik dosye va O'zbekiston bozori tahlil qilinmoqda..."
-                        : "Формирование психологического досье..."}
+                      {language === "uz" ? "Psixologik dosye va O'zbekiston bozori tahlil qilinmoqda..." : language === "ru" ? "Формирование психологического досье..." : "Analyzing the psychological profile and the Uzbekistan market..."}
                     </span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-slate-950 stroke-[2.2]" />
                     <span>
-                      {language === "uz"
-                        ? "🕵️‍♂️ Psixologik Tekshiruv & Dosyeni Ochish"
-                        : "🕵️‍♂️ Сформировать Психологическое Досье"}
+                      {language === "uz" ? "Psixologik Tekshiruv & Dosyeni Ochish" : language === "ru" ? "Сформировать Психологическое Досье" : "Get gift ideas"}
                     </span>
                     <ArrowRight className="w-4 h-4 text-slate-950 stroke-[2.2]" />
                   </>
@@ -338,23 +329,22 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
                     cyberSound.playClick();
                     mutation.reset();
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:border-amber-400 hover:text-amber-600 transition cursor-pointer shadow-2xs active:scale-95"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 text-xs font-bold text-slate-700 dark:text-slate-300 hover:border-[var(--line-strong)] hover:text-amber-600 transition cursor-pointer shadow-2xs"
                 >
                   <RotateCcw className="w-3.5 h-3.5 stroke-[2.2]" />
-                  <span>{language === "uz" ? "Yangi tahlil" : "Новый анализ"}</span>
+                  <span>{language === "uz" ? "Yangi tahlil" : language === "ru" ? "Новый анализ" : "New analysis"}</span>
                 </button>
               </div>
 
               {/* Archetype Hero Banner */}
-              <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white border border-amber-500/30 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="p-5 sm:p-6 rounded-2xl text-white border border-amber-500/30 shadow-sm relative overflow-hidden bg-indigo-950">
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                   <div>
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-mono font-black uppercase tracking-wider">
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-400 text-white text-[10px] font-mono font-bold uppercase tracking-wider">
                       {dossier.archetype.badge || "CLASS A+ ARCHETYPE"}
                     </span>
-                    <h3 className="text-2xl sm:text-3xl font-display font-black text-white mt-1">
+                    <h3 className="text-2xl sm:text-3xl font-display font-bold text-white mt-1">
                       {dossier.archetype.name}
                     </h3>
                   </div>
@@ -363,25 +353,25 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
                     <div className="p-2 rounded-xl bg-white/5 border border-white/10">
                       <span className="text-[10px] text-slate-400 block">Kreativlik</span>
-                      <span className="text-sm font-black text-amber-400 font-mono">
+                      <span className="text-sm font-bold text-amber-400 font-mono">
                         {dossier.archetype.radarScores?.creativity || 88}%
                       </span>
                     </div>
                     <div className="p-2 rounded-xl bg-white/5 border border-white/10">
                       <span className="text-[10px] text-slate-400 block">Ratsionallik</span>
-                      <span className="text-sm font-black text-cyan-400 font-mono">
+                      <span className="text-sm font-bold text-cyan-400 font-mono">
                         {dossier.archetype.radarScores?.rationality || 92}%
                       </span>
                     </div>
                     <div className="p-2 rounded-xl bg-white/5 border border-white/10">
                       <span className="text-[10px] text-slate-400 block">Hissiyot</span>
-                      <span className="text-sm font-black text-rose-400 font-mono">
+                      <span className="text-sm font-bold text-rose-400 font-mono">
                         {dossier.archetype.radarScores?.emotionality || 74}%
                       </span>
                     </div>
                     <div className="p-2 rounded-xl bg-white/5 border border-white/10">
                       <span className="text-[10px] text-slate-400 block">Texnologik</span>
-                      <span className="text-sm font-black text-emerald-400 font-mono">
+                      <span className="text-sm font-bold text-emerald-400 font-mono">
                         {dossier.archetype.radarScores?.techSavviness || 85}%
                       </span>
                     </div>
@@ -431,13 +421,13 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
               {/* 3 Precision Matched Real Products */}
               <div className="space-y-3">
                 <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
-                  🎯 O'zbekiston Bozoridan 100% Aniq Munosib Sovg'alar:
-                </span>
+ O'zbekiston Bozoridan 100% Aniq Munosib Sovg'alar:
+ </span>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {dossier.precisionGifts?.map((gift: any, idx: number) => (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury flex flex-col justify-between hover:border-amber-400 dark:hover:border-amber-500/40 transition"
+                      className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-amber-500/20 shadow-sm flex flex-col justify-between hover:border-[var(--line-strong)] dark:hover:border-amber-500/40 transition"
                     >
                       <div className="space-y-2">
                         <div className="relative aspect-video rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -456,7 +446,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
                           <h4 className="font-bold text-xs text-slate-900 dark:text-white line-clamp-2">
                             {gift.name}
                           </h4>
-                          <span className="font-black text-amber-600 dark:text-amber-400 text-sm mt-1 block">
+                          <span className="font-bold text-amber-600 dark:text-amber-400 text-sm mt-1 block">
                             {formatPrice(gift.price)}
                           </span>
                         </div>
@@ -470,7 +460,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
                         href={gift.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95"
+                        className="mt-3 w-full py-2.5 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 transition shadow-sm bg-amber-500 hover:bg-amber-400"
                       >
                         <ShoppingBag className="w-3.5 h-3.5 stroke-[2.2]" />
                         <span>{gift.store}da ochish</span>
@@ -483,7 +473,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
 
               {/* Presentation Tactic & Script */}
               {dossier.presentationTactic && (
-                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-50/90 via-white to-amber-50/50 dark:from-[#131626] dark:via-[#0f1120] dark:to-[#0b0d18] border-2 border-amber-200/80 dark:border-amber-500/30 shadow-luxury space-y-3">
+                <div className="bg-white dark:bg-[#0b1224] p-4 sm:p-5 rounded-2xl border border-[var(--line)] dark:border-amber-500/30 shadow-sm space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400 font-bold text-xs uppercase tracking-wider">
                       <Lightbulb className="w-4 h-4 stroke-[2.2]" />
@@ -492,7 +482,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
 
                     <button
                       onClick={() => handleCopyScript(dossier.presentationTactic.exactWordsToSay)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-300/70 dark:border-amber-500/40 text-amber-900 dark:text-amber-300 text-xs font-bold transition cursor-pointer active:scale-95 shadow-2xs"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-[var(--line)] dark:border-amber-500/40 text-amber-900 dark:text-amber-300 text-xs font-bold transition cursor-pointer shadow-2xs"
                     >
                       {copiedScript ? <Check className="w-3.5 h-3.5 text-emerald-500 stroke-[2.2]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.2]" />}
                       <span>{copiedScript ? "Nusxalandi!" : "Nutqdan nusxa olish"}</span>
@@ -513,7 +503,7 @@ export default function GiftDetectiveModal({ isOpen, onClose }: Props) {
                       <span className="font-bold text-slate-700 dark:text-slate-300 block mb-0.5">
                         Aytiladigan samimiy so'zlar:
                       </span>
-                      <blockquote className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800 italic text-slate-800 dark:text-slate-200 font-medium">
+                      <blockquote className="p-3 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 italic text-slate-800 dark:text-slate-200 font-medium">
                         "{dossier.presentationTactic.exactWordsToSay}"
                       </blockquote>
                     </div>

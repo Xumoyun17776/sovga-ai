@@ -19,26 +19,66 @@ export function getOccasionGuidance(occasion: string): string {
   return occasionGuidance[occasion] || occasionGuidance.other;
 }
 
-export function buildGiftQuery(criteria: GiftCriteria): string {
-  // 1. If user specified specific interests, select the strongest shopping term
-  if (criteria.interests && criteria.interests.length > 0) {
-    const rawInterest = criteria.interests[0];
-    if (/qahva|kofe/i.test(rawInterest)) return "kofe mashinasi";
-    if (/oshxona|tovoq|serviz|ovqat/i.test(rawInterest)) return "oshxona to'plami";
-    if (/quloqchin|naushnik|musiqa/i.test(rawInterest)) return "quloqchin naushnik";
-    if (/aqlli uy|smart home/i.test(rawInterest)) return "aqlli uy gadjet";
-    if (/kulol|rishton|san'at/i.test(rawInterest)) return "rishton choy to'plami";
-    if (/soat|watch/i.test(rawInterest)) return "smart soat";
-    if (/kitob/i.test(rawInterest)) return "kitob to'plami";
-    if (/fitnes|sport/i.test(rawInterest)) return "sport mashg'ulot";
-    if (/changyutgich|pilesos/i.test(rawInterest)) return "robot changyutgich";
+/** Interest labels (UZ / RU / EN, free text) → product words the search understands. */
+const INTEREST_TERMS: Array<[RegExp, string]> = [
+  [/qahva|kofe|coffee|кофе/i, "kofe"],
+  [/choy|tea|чай/i, "choy"],
+  [/oshxona|oshpaz|kitchen|culinary|кухн|кулинар|посуд|tovoq|serviz/i, "oshxona"],
+  [/quloqchin|naushnik|musiqa|audio|headphone|music|наушник|аудио|музык/i, "naushnik"],
+  [/kolonka|speaker|колонк/i, "kolonka"],
+  [/aqlli uy|smart home|iot|умный дом/i, "changyutgich"],
+  [/gadjet|gadget|гаджет/i, "naushnik soat"],
+  [/kulol|rishton|san'at|craft|ceramic|heritage|промысл|керамик/i, "choy to'plami"],
+  [/sport|fitnes|fitness|athlet|спорт|фитнес/i, "smart band"],
+  [/kitob|adabiyot|book|literature|книг|литератур/i, "kitob"],
+  [/geym|gaming|kompyuter|keyboard|гейм|игр|клавиатур/i, "naushnik"],
+  [/sayohat|chemodan|travel|luggage|путешеств|чемодан/i, "sumka"],
+  [/dekor|decor|interer|interior|интерьер|декор/i, "suzani choy"],
+  [/atir|parfyum|perfume|духи|парфюм/i, "atir"],
+  [/soat|watch|часы/i, "soat"],
+  [/gul|flower|цвет/i, "gul"],
+  [/go'zallik|beauty|kosmetika|soch|hair|красот|космет/i, "fen atir"],
+  [/zargarlik|jewel|украшен/i, "zargarlik"],
+  [/o'yinchoq|toy|lego|игрушк/i, "o'yinchoq"],
+];
 
-    // Clean up general tags
-    const cleaned = rawInterest.replace(/[^\w\s\u0400-\u04FF'-]/gi, " ").trim();
-    if (cleaned.length > 2) return cleaned;
+/** Relationship labels → a recipient word the search understands (gender/kids). */
+function recipientWord(criteria: GiftCriteria): string {
+  const text = `${criteria.relationship || ""} ${criteria.recipient || ""}`.toLowerCase();
+  const g = (criteria.gender || "").toLowerCase();
+  if (/ona|mother|mom|мама|мать|buvi|grandma|бабушк/.test(text)) return "onam";
+  if (/\bota|otam|father|dad|отец|пап|bobo|grandpa|дедушк/.test(text)) return "otam";
+  if (/xotin|rafiqa|wife|жена|kelin/.test(text)) return "xotinim";
+  if (/\ber\b|erim|husband|муж\b|kuyov/.test(text)) return "erim";
+  if (/opa|singil|sister|сестр|qiz\b|qizim|daughter|доч/.test(text)) return "ayol";
+  if (/aka|uka|brother|брат|o'g'il|son\b|сын/.test(text)) return "erkak";
+  if (/bola|kid|child|ребен|ребён|дет/.test(text) || (criteria.age && criteria.age < 13)) return "bolalar";
+  if (/female|ayol|woman|women|жен/.test(g)) return "ayol";
+  if (/male|erkak|man|men|муж/.test(g)) return "erkak";
+  if (/hamkasb|colleague|коллег/.test(text)) return "hamkasb";
+  if (/rahbar|boshliq|boss|executive|руковод|начальник/.test(text)) return "rahbar";
+  return "";
+}
+
+export function buildGiftQuery(criteria: GiftCriteria): string {
+  const who = recipientWord(criteria);
+
+  // 1. Interests → product types (all of them, so the results can mix e.g. coffee + books)
+  const words: string[] = [];
+  for (const raw of criteria.interests || []) {
+    const hit = INTEREST_TERMS.find(([re]) => re.test(raw));
+    if (hit) {
+      for (const w of hit[1].split(" ")) if (!words.includes(w)) words.push(w);
+    } else {
+      const cleaned = raw.replace(/[^\w\s\u0400-\u04FF'-]/gi, " ").trim();
+      if (cleaned.length > 2 && words.length < 4) words.push(cleaned);
+    }
+  }
+  if (words.length > 0) {
+    return `${who ? `${who} uchun ` : ""}${words.slice(0, 5).join(" ")}`.trim();
   }
 
-  // 2. Otherwise, map occasion to realistic Uzbek gift query
+  // 2. No interests: occasion + recipient
   const occasionMap: Record<Occasion, string> = {
     wedding: "to'y sovg'asi",
     birthday: "tug'ilgan kun sovg'asi",
@@ -50,18 +90,18 @@ export function buildGiftQuery(criteria: GiftCriteria): string {
     teacher: "ustoz uchun sovg'a",
     friend: "do'st uchun sovg'a",
     family: "oila uchun sovg'a",
-    corporate: "biznes sovg'a",
-    other: "sovg'a to'plami",
+    corporate: "hamkasb uchun sovg'a",
+    other: "sovg'a",
   };
-
   const occTerm = occasionMap[criteria.occasion] || "sovg'a";
+  return who ? `${who} uchun ${occTerm}` : occTerm;
+}
 
-  if (criteria.budgetMax && criteria.budgetMax > 0 && criteria.budgetMax <= 1500000) {
-    const k = Math.round(criteria.budgetMax / 1000);
-    return `${occTerm} ${k} ming gacha`;
-  }
-
-  return occTerm;
+/** Remove results that contain anything the user asked to avoid. */
+export function applyAvoidList<T extends { name: string }>(items: T[], avoid?: string[]): T[] {
+  const terms = (avoid || []).map((a) => a.toLowerCase().trim()).filter((a) => a.length > 2);
+  if (!terms.length) return items;
+  return items.filter((it) => !terms.some((t) => it.name.toLowerCase().includes(t)));
 }
 
 export function buildGiftPromptContext(criteria: GiftCriteria): string {

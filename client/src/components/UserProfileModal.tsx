@@ -22,7 +22,7 @@ import {
   LogOut,
   ShieldAlert,
   Lock,
-} from "lucide-react";
+} from "../lib/icons";
 import PasswordStrengthIndicator from "./PasswordStrengthIndicator";
 
 interface Props {
@@ -273,33 +273,32 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
       {/* Ambient background vignette glow */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[350px] bg-gradient-to-tr from-amber-500/10 via-amber-400/5 to-transparent rounded-full blur-3xl opacity-70" />
       </div>
 
-      <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl max-w-lg w-full max-h-[92vh] max-h-[92dvh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative border-2 border-amber-300/80 dark:border-amber-500/25 my-auto transition-all">
+      <div className="bg-white dark:bg-[#0b1224] rounded-2xl max-w-lg w-full max-h-[92vh] max-h-[92dvh] overflow-y-auto p-6 sm:p-8 shadow-sm relative border border-[var(--line)] dark:border-amber-500/25 my-auto transition-all">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer active:scale-95"
+          className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
         >
           <X className="w-5 h-5 stroke-[2.2]" />
         </button>
 
         {/* User Header Profile Card */}
-        <div className="flex items-center gap-4 pb-6 border-b border-amber-100 dark:border-slate-800">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-slate-950 via-slate-900 to-amber-500/90 text-white font-black text-xl flex items-center justify-center shadow-lg shadow-amber-500/10 border border-amber-400/20">
+        <div className="flex items-center gap-4 pb-6 border-b border-[var(--line)] dark:border-slate-800">
+          <div className="w-14 h-14 rounded-2xl text-white font-bold text-xl flex items-center justify-center shadow-sm border border-amber-400/20 bg-slate-950">
             {user.name ? user.name.charAt(0).toUpperCase() : "U"}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h2 className="font-display font-black text-lg text-slate-900 dark:text-white truncate">
+              <h2 className="font-display font-bold text-lg text-slate-900 dark:text-white truncate">
                 {user.name}
               </h2>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                   user.role === "admin"
                     ? "bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200"
-                    : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200"
+                    : "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-[var(--line)]"
                 }`}
               >
                 {user.role === "admin"
@@ -319,7 +318,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
         <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl my-5 text-xs font-bold border border-slate-200/60 dark:border-slate-700">
           <button
             onClick={() => setActiveTab("profile")}
-            className={`flex-1 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
+            className={`flex-1 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "profile"
                 ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
@@ -330,7 +329,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
           </button>
           <button
             onClick={() => setActiveTab("security")}
-            className={`flex-1 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
+            className={`flex-1 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "security"
                 ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
@@ -341,7 +340,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
           </button>
           <button
             onClick={() => setActiveTab("privacy")}
-            className={`flex-1 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
+            className={`flex-1 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === "privacy"
                 ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
                 : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
@@ -456,7 +455,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
             <button
               type="submit"
               disabled={updateProfileMut.isPending}
-              className="w-full py-2.5 btn-luxury-gold text-slate-950 rounded-xl text-xs font-black transition shadow-md cursor-pointer disabled:opacity-50 active:scale-95"
+              className="w-full py-2.5 btn-luxury-gold text-slate-950 rounded-xl text-xs font-bold transition shadow-md cursor-pointer disabled:opacity-50"
             >
               {updateProfileMut.isPending
                 ? language === "uz" ? "Saqlanmoqda..." : language === "ru" ? "Сохранение..." : "Saving..."
@@ -493,7 +492,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                   </div>
                 </div>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   <span>Online</span>
                 </span>
               </div>
@@ -510,7 +509,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                   type="button"
                   onClick={() => terminateSessionsMut.mutate()}
                   disabled={terminateSessionsMut.isPending}
-                  className="px-2.5 py-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/50 rounded-lg transition border border-amber-200 dark:border-amber-900 cursor-pointer active:scale-95"
+                  className="px-2.5 py-1 text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/50 rounded-lg transition border border-[var(--line)] dark:border-amber-900 cursor-pointer"
                 >
                   {terminateSessionsMut.isPending
                     ? language === "uz" ? "To'xtatilmoqda..." : language === "ru" ? "Завершение..." : "Terminating..."
@@ -551,7 +550,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                   setTwoFactor(newVal);
                   updatePrivacyMut.mutate({ twoFactorEnabled: newVal });
                 }}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer active:scale-95 ${
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
                   twoFactor ? "bg-purple-600" : "bg-slate-300 dark:bg-slate-700"
                 }`}
               >
@@ -593,7 +592,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                   <button
                     type="button"
                     onClick={() => setShowCurrent(!showCurrent)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer active:scale-95"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                   >
                     {showCurrent ? <EyeOff className="w-4 h-4 stroke-[2.2]" /> : <Eye className="w-4 h-4 stroke-[2.2]" />}
                   </button>
@@ -617,7 +616,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                   <button
                     type="button"
                     onClick={() => setShowNew(!showNew)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer active:scale-95"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                   >
                     {showNew ? <EyeOff className="w-4 h-4 stroke-[2.2]" /> : <Eye className="w-4 h-4 stroke-[2.2]" />}
                   </button>
@@ -647,7 +646,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                   <button
                     type="button"
                     onClick={() => setShowConfirm(!showConfirm)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer active:scale-95"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                   >
                     {showConfirm ? <EyeOff className="w-4 h-4 stroke-[2.2]" /> : <Eye className="w-4 h-4 stroke-[2.2]" />}
                   </button>
@@ -674,7 +673,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
               <button
                 type="submit"
                 disabled={changePasswordMut.isPending}
-                className="w-full py-2.5 btn-luxury-gold text-slate-950 rounded-xl text-xs font-black transition shadow-md cursor-pointer disabled:opacity-50 active:scale-95"
+                className="w-full py-2.5 btn-luxury-gold text-slate-950 rounded-xl text-xs font-bold transition shadow-md cursor-pointer disabled:opacity-50"
               >
                 {changePasswordMut.isPending
                   ? language === "uz" ? "Yangilanmoqda..." : language === "ru" ? "Обновление..." : "Updating..."
@@ -824,7 +823,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                 type="button"
                 onClick={() => exportDataMut.mutate()}
                 disabled={exportDataMut.isPending}
-                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition cursor-pointer shrink-0 active:scale-95"
+                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition cursor-pointer shrink-0"
               >
                 {exportDataMut.isPending
                   ? language === "uz" ? "Yuklanmoqda..." : language === "ru" ? "Выгрузка..." : "Exporting..."
@@ -840,7 +839,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                     type="button"
                     onClick={() => logoutMut.mutate()}
                     disabled={logoutMut.isPending}
-                    className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 cursor-pointer active:scale-95"
+                    className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 cursor-pointer"
                   >
                     <LogOut className="w-4 h-4 stroke-[2.2]" />
                     <span>{language === "uz" ? "Chiqish" : language === "ru" ? "Выйти" : "Sign Out"}</span>
@@ -849,7 +848,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-xl font-bold transition flex items-center justify-center gap-1.5 border border-rose-200 dark:border-rose-900 cursor-pointer active:scale-95"
+                    className="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-xl font-bold transition flex items-center justify-center gap-1.5 border border-rose-200 dark:border-rose-900 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4 stroke-[2.2]" />
                     <span>{language === "uz" ? "Hisobni O'chirish" : language === "ru" ? "Удалить" : "Delete"}</span>
@@ -893,7 +892,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                     <button
                       type="button"
                       onClick={() => setShowDeleteConfirm(false)}
-                      className="flex-1 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white rounded-lg font-bold cursor-pointer active:scale-95"
+                      className="flex-1 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white rounded-lg font-bold cursor-pointer"
                     >
                       {language === "uz" ? "Bekor qilish" : language === "ru" ? "Отмена" : "Cancel"}
                     </button>
@@ -901,7 +900,7 @@ export default function UserProfileModal({ isOpen, onClose, user: propUser }: Pr
                       type="button"
                       onClick={() => deleteAccountMut.mutate(deletePassword)}
                       disabled={deleteAccountMut.isPending}
-                      className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold disabled:opacity-50 cursor-pointer active:scale-95"
+                      className="flex-1 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg font-bold disabled:opacity-50 cursor-pointer"
                     >
                       {deleteAccountMut.isPending
                         ? language === "uz" ? "O'chirilmoqda..." : language === "ru" ? "Удаление..." : "Deleting..."

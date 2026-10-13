@@ -14,7 +14,7 @@ import {
   Sparkles,
   ShoppingBag,
   Layers,
-} from "lucide-react";
+} from "../lib/icons";
 import { useTranslation } from "../lib/i18n";
 import { formatPrice, merchantsApi } from "../lib/api";
 import { useToast } from "../components/Toast";
@@ -109,25 +109,14 @@ export default function MerchantDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#07080c] relative overflow-hidden text-slate-900 dark:text-slate-100">
+    <div className="min-h-screen relative overflow-hidden text-slate-900 dark:text-slate-100">
       {/* Ambient luxury background glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[450px] bg-gradient-to-b from-amber-500/10 via-amber-400/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-400/25 to-amber-500/15 text-amber-900 dark:text-amber-300 text-xs font-black uppercase tracking-wider mb-2 border border-amber-300/80 dark:border-amber-500/30 shadow-2xs">
-              <Store className="w-3.5 h-3.5 stroke-[2.2]" />
-              <span>
-                {language === "uz"
-                  ? "Sotuvchi Kabineti"
-                  : language === "ru"
-                  ? "Панель продавца"
-                  : "Merchant Portal"}
-              </span>
-            </div>
-            <h1 className="font-display font-black text-3xl sm:text-4xl text-slate-900 dark:text-white">
+            <h1 className="lux-title text-[2.4rem] sm:text-[3.2rem] text-slate-900 dark:text-white leading-[1.05]">
               Abu Sahiy & Malika B2B
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1 max-w-xl text-sm">
@@ -140,7 +129,7 @@ export default function MerchantDashboard() {
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-6 py-3.5 btn-luxury-gold text-slate-950 font-black rounded-2xl shadow-md active:scale-95 transition cursor-pointer"
+            className="flex items-center gap-2 px-6 py-3.5 btn-luxury-gold text-slate-950 font-bold rounded-2xl shadow-md transition cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.2]" />
             <span>
@@ -154,7 +143,7 @@ export default function MerchantDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-amber-200/80 dark:border-slate-800 mb-8 overflow-x-auto hide-scrollbar">
+        <div className="flex border-b border-[var(--line)] dark:border-slate-800 mb-8 overflow-x-auto hide-scrollbar">
           {[
             {
               id: "overview",
@@ -187,7 +176,7 @@ export default function MerchantDashboard() {
             <button
               key={t.id}
               onClick={() => setActiveTab(t.id as any)}
-              className={`px-6 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-colors cursor-pointer active:scale-95 ${
+              className={`px-6 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-colors cursor-pointer ${
                 activeTab === t.id
                   ? "border-amber-500 text-amber-600 dark:text-amber-400"
                   : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
@@ -202,7 +191,7 @@ export default function MerchantDashboard() {
         {activeTab === "overview" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] p-6 rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury">
+              <div className="bg-white dark:bg-[#0b1224] p-6 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-slate-500 dark:text-slate-400 text-sm font-bold">
                     {language === "uz" ? "Umumiy Ko'rishlar" : language === "ru" ? "Всего просмотров" : "Total Views"}
@@ -211,23 +200,23 @@ export default function MerchantDashboard() {
                     <TrendingUp className="w-5 h-5 stroke-[2.2]" />
                   </div>
                 </div>
-                <p className="text-3xl font-black text-slate-900 dark:text-white">12,450</p>
+                <p className="text-3xl font-bold text-slate-900 dark:text-white">12,450</p>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-2 flex items-center gap-1">
                   <TrendingUp className="w-3 h-3 stroke-[2.2]" />{" "}
                   {language === "uz" ? "+24% shu haftada" : language === "ru" ? "+24% на этой неделе" : "+24% this week"}
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] p-6 rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury">
+              <div className="bg-white dark:bg-[#0b1224] p-6 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-slate-500 dark:text-slate-400 text-sm font-bold">
                     {language === "uz" ? "Aktiv Tovarlar" : language === "ru" ? "Активные товары" : "Active Products"}
                   </h3>
-                  <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-200 dark:border-amber-900/40 shadow-2xs">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-[var(--line)] dark:border-amber-900/40 shadow-2xs">
                     <Package className="w-5 h-5 stroke-[2.2]" />
                   </div>
                 </div>
-                <p className="text-3xl font-black text-slate-900 dark:text-white">
+                <p className="text-3xl font-bold text-slate-900 dark:text-white">
                   {products.length > 0 ? products.length : 142}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
@@ -239,7 +228,7 @@ export default function MerchantDashboard() {
                 </p>
               </div>
 
-              <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] p-6 rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury">
+              <div className="bg-white dark:bg-[#0b1224] p-6 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-slate-500 dark:text-slate-400 text-sm font-bold">
                     {language === "uz" ? "Tahminiy Daromad" : language === "ru" ? "Ориентировочный доход" : "Est. Revenue"}
@@ -248,7 +237,7 @@ export default function MerchantDashboard() {
                     <DollarSign className="w-5 h-5 stroke-[2.2]" />
                   </div>
                 </div>
-                <p className="text-3xl font-black text-slate-900 dark:text-white">45M UZS</p>
+                <p className="text-3xl font-bold text-slate-900 dark:text-white">45M UZS</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                   {language === "uz"
                     ? "Ushbu oydagi sotuvlar"
@@ -262,10 +251,10 @@ export default function MerchantDashboard() {
         )}
 
         {activeTab === "products" && (
-          <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 overflow-hidden shadow-luxury">
+          <div className="bg-white dark:bg-[#0b1224] rounded-2xl border border-[var(--line)] dark:border-amber-500/20 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="bg-amber-50/70 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 font-bold border-b border-amber-200/80 dark:border-slate-800">
+                <thead className="bg-amber-50/70 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 font-bold border-b border-[var(--line)] dark:border-slate-800">
                   <tr>
                     <th className="p-4">
                       {language === "uz" ? "Mahsulot nomi" : language === "ru" ? "Название товара" : "Product Name"}
@@ -335,7 +324,7 @@ export default function MerchantDashboard() {
                           <button
                             onClick={() => deleteProductMut.mutate(p.id)}
                             disabled={deleteProductMut.isPending}
-                            className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl active:scale-95 transition cursor-pointer shadow-2xs"
+                            className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition cursor-pointer shadow-2xs"
                             title={language === "uz" ? "O'chirish" : language === "ru" ? "Удалить" : "Delete"}
                           >
                             <Trash2 className="w-4 h-4 stroke-[2.2]" />
@@ -351,7 +340,7 @@ export default function MerchantDashboard() {
         )}
 
         {activeTab === "settings" && (
-          <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 p-6 sm:p-7 max-w-2xl shadow-luxury">
+          <div className="bg-white dark:bg-[#0b1224] rounded-2xl border border-[var(--line)] dark:border-amber-500/20 p-6 sm:p-7 max-w-2xl shadow-sm">
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
               {language === "uz" ? "Do'kon Ma'lumotlari" : language === "ru" ? "Данные магазина" : "Store Information"}
             </h2>
@@ -363,7 +352,7 @@ export default function MerchantDashboard() {
                 <input
                   type="text"
                   defaultValue="Malika Tech Center"
-                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs font-semibold"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs font-semibold"
                 />
               </div>
               <div>
@@ -373,7 +362,7 @@ export default function MerchantDashboard() {
                 <input
                   type="text"
                   defaultValue="Toshkent sh., Malika savdo majmuasi, A-12 do'kon"
-                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs font-semibold"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs font-semibold"
                 />
               </div>
               <div>
@@ -383,7 +372,7 @@ export default function MerchantDashboard() {
                 <input
                   type="text"
                   defaultValue="+998 90 123 45 67"
-                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs font-semibold"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs font-semibold"
                 />
               </div>
             </div>
@@ -395,17 +384,15 @@ export default function MerchantDashboard() {
           <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
             {/* Ambient vignette glow */}
             <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-              <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[350px] bg-gradient-to-tr from-amber-500/10 via-amber-400/5 to-transparent rounded-full blur-3xl opacity-70" />
             </div>
 
-            <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl w-full max-w-lg p-6 sm:p-7 shadow-luxury border-2 border-amber-300/80 dark:border-amber-500/25 relative my-auto max-h-[92vh] max-h-[92dvh] overflow-y-auto">
+            <div className="bg-white dark:bg-[#0b1224] rounded-2xl w-full max-w-lg p-6 sm:p-7 shadow-sm border border-[var(--line)] dark:border-amber-500/25 relative my-auto max-h-[92vh] max-h-[92dvh] overflow-y-auto">
               {/* Top ambient glow */}
-              <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-72 h-36 bg-amber-500/15 rounded-full blur-2xl pointer-events-none" />
 
               {/* Close button */}
               <button
                 onClick={() => setShowAddModal(false)}
-                className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer active:scale-95 shadow-2xs"
+                className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer shadow-2xs"
               >
                 <X className="w-5 h-5 stroke-[2.2]" />
               </button>
@@ -414,7 +401,7 @@ export default function MerchantDashboard() {
                 <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-400 flex items-center justify-center border border-amber-400/30">
                   <Package className="w-5 h-5 stroke-[2.2]" />
                 </div>
-                <h2 className="font-display font-black text-xl text-slate-900 dark:text-white">
+                <h2 className="font-display font-bold text-xl text-slate-900 dark:text-white">
                   {language === "uz"
                     ? "Yangi Mahsulot Qo'shish"
                     : language === "ru"
@@ -439,7 +426,7 @@ export default function MerchantDashboard() {
                         ? "Например: PlayStation 5 Slim 1TB"
                         : "E.g. PlayStation 5 Slim 1TB"
                     }
-                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 text-sm font-semibold shadow-2xs"
+                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 text-sm font-semibold shadow-2xs"
                   />
                 </div>
 
@@ -453,7 +440,7 @@ export default function MerchantDashboard() {
                       value={prodPrice}
                       onChange={(e) => setProdPrice(e.target.value)}
                       placeholder="6500000"
-                      className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 text-sm font-semibold shadow-2xs"
+                      className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 text-sm font-semibold shadow-2xs"
                     />
                   </div>
                   <div>
@@ -465,7 +452,7 @@ export default function MerchantDashboard() {
                       value={prodStock}
                       onChange={(e) => setProdStock(e.target.value)}
                       placeholder="10"
-                      className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 text-sm font-semibold shadow-2xs"
+                      className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 text-sm font-semibold shadow-2xs"
                     />
                   </div>
                 </div>
@@ -478,10 +465,10 @@ export default function MerchantDashboard() {
                     <button
                       type="button"
                       onClick={() => setProdLocation("Malika A-12")}
-                      className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer border ${
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                         prodLocation === "Malika A-12"
                           ? "border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 shadow-2xs"
-                          : "border-amber-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400"
+                          : "border-[var(--line)] dark:border-slate-800 text-slate-600 dark:text-slate-400"
                       }`}
                     >
                       <MapPin className="w-3.5 h-3.5 stroke-[2.2]" /> Malika A-12
@@ -489,10 +476,10 @@ export default function MerchantDashboard() {
                     <button
                       type="button"
                       onClick={() => setProdLocation("Abu Sahiy E-34")}
-                      className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer border ${
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer border ${
                         prodLocation === "Abu Sahiy E-34"
                           ? "border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 shadow-2xs"
-                          : "border-amber-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400"
+                          : "border-[var(--line)] dark:border-slate-800 text-slate-600 dark:text-slate-400"
                       }`}
                     >
                       <MapPin className="w-3.5 h-3.5 stroke-[2.2]" /> Abu Sahiy E-34
@@ -500,18 +487,18 @@ export default function MerchantDashboard() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-amber-100 dark:border-slate-800">
+                <div className="flex justify-end gap-3 pt-4 border-t border-[var(--line)] dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => setShowAddModal(false)}
-                    className="px-5 py-2.5 font-bold text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 active:scale-95 transition cursor-pointer"
+                    className="px-5 py-2.5 font-bold text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition cursor-pointer"
                   >
                     {language === "uz" ? "Bekor qilish" : language === "ru" ? "Отмена" : "Cancel"}
                   </button>
                   <button
                     type="submit"
                     disabled={createProductMut.isPending}
-                    className="px-6 py-2.5 btn-luxury-gold text-slate-950 font-black rounded-xl text-xs flex items-center gap-2 active:scale-95 transition cursor-pointer shadow-md disabled:opacity-50"
+                    className="px-6 py-2.5 btn-luxury-gold text-slate-950 font-bold rounded-xl text-xs flex items-center gap-2 transition cursor-pointer shadow-md disabled:opacity-50"
                   >
                     <CheckCircle2 className="w-4 h-4 stroke-[2.2]" />
                     <span>

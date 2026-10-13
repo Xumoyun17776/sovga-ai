@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useTranslation } from "../lib/i18n";
-import { Search, Sparkles, Camera, X, Flame, ArrowRight, ShieldCheck, Command, Mic, MicOff, Loader } from "lucide-react";
+import { Search, Sparkles, Camera, X, Flame, ArrowRight, ShieldCheck, Command, Mic, MicOff, Loader } from "../lib/icons";
 import ImageSearchModal from "./ImageSearchModal";
 import { cyberSound } from "../lib/cyberSound";
 
@@ -137,96 +137,60 @@ export default function SearchBar({
     <div className="w-full relative" ref={dropdownRef}>
       <form
         onSubmit={handleSubmit}
-        className={`relative flex items-center bg-gradient-to-r from-white via-[#fcfaf7] to-white dark:from-[#131622] dark:via-[#10121d] dark:to-[#131622] backdrop-blur-xl rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 z-20 ${
-          isFocused
-            ? "border-amber-500 ring-4 ring-amber-500/20 shadow-2xl shadow-amber-900/10 dark:shadow-black/60"
-            : "border-amber-300/80 hover:border-amber-400 dark:border-white/10 dark:hover:border-amber-400/50 shadow-[0_12px_40px_-5px_rgba(200,154,59,0.15)] dark:shadow-[0_12px_40px_-5px_rgba(0,0,0,0.6)]"
-        } ${large ? "p-2 sm:p-2.5" : "p-1.5"}`}
+        className={`relative z-20 flex items-center bg-white border transition-all ${
+          isFocused ? "border-[var(--anor)] ring-4 ring-[var(--anor)]/10" : "border-[var(--rule-soft)] hover:border-[var(--line-strong)]"
+        } ${large ? "h-16 rounded-2xl p-1.5 shadow-[0_10px_30px_-12px_rgba(var(--shadow-color),.22)]" : "h-11 rounded-xl p-1"}`}
       >
-        <div className={`flex items-center justify-center shrink-0 ${large ? "w-10 h-10 sm:w-11 sm:h-11 ml-1 sm:ml-1.5" : "w-8 h-8 sm:w-9 sm:h-9 ml-1"} rounded-xl sm:rounded-2xl icon-medallion icon-box-gold transition-all duration-300 ${isFocused ? "scale-105 shadow-md shadow-amber-500/30" : ""}`}>
-          <Search className={`${large ? "w-4 h-4 sm:w-5 sm:h-5" : "w-3.5 h-3.5 sm:w-4 sm:h-4"} stroke-[2.2]`} />
-        </div>
+        <Search className={`${large ? "w-5 h-5 ml-3" : "w-4 h-4 ml-2"} text-[var(--ink-2)] flex-shrink-0`} />
         <input
           type="text"
           value={query}
           onFocus={() => setIsFocused(true)}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("search.placeholder")}
-          className={`flex-1 min-w-0 bg-transparent outline-none ${
-            large ? "px-2.5 sm:px-4 py-2.5 sm:py-3.5 text-sm sm:text-lg font-bold" : "px-2 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-base font-bold"
-          } text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500`}
+          aria-label={t("search.placeholder")}
+          className={`flex-1 min-w-0 h-full bg-transparent outline-none px-3 ${large ? "text-[17px]" : "text-[15px]"} text-[var(--ink)] placeholder:text-[var(--ink-2)]/70`}
         />
 
         {query && (
-          <button
-            type="button"
-            onClick={() => setQuery("")}
-            className="p-1 sm:p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-full mr-0.5 sm:mr-1 transition cursor-pointer"
-          >
-            <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          <button type="button" onClick={() => setQuery("")} aria-label="Clear" className="p-2 text-[var(--ink-2)] hover:text-[var(--ink)] cursor-pointer">
+            <X className="w-4 h-4" />
           </button>
         )}
 
-        {/* Fast Spotlight Command Palette Trigger (Desktop only) */}
-        <button
-          type="button"
-          onClick={() => {
-            cyberSound.playConfirm();
-            window.dispatchEvent(new CustomEvent("open-command-palette"));
-          }}
-          title="Spotlight & Tezkor Buyruqlar (1-bosishda ochish)"
-          className="hidden sm:flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-300 hover:bg-amber-100/60 dark:hover:bg-amber-950/40 border border-transparent hover:border-amber-300/50 dark:hover:border-amber-700/40 transition-all mr-1 flex-shrink-0 cursor-pointer active:scale-95"
-        >
-          <Command className={large ? "w-4 h-4 sm:w-5 sm:h-5" : "w-4 h-4"} strokeWidth={2.2} />
-        </button>
-
-        {/* Voice Search Mic Icon */}
         <button
           type="button"
           onClick={startListening}
-          title="Ovozli Qidiruv (Voice Search)"
-          className={`flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl transition-all mr-0.5 sm:mr-1 flex-shrink-0 relative cursor-pointer active:scale-95 border ${
-            isListening 
-              ? "text-rose-600 bg-rose-100 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 animate-pulse" 
-              : "text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-transparent hover:border-rose-200 dark:hover:border-rose-900/40"
-          }`}
+          title={t("search.placeholder")}
+          aria-label="Voice search"
+          className={`flex items-center justify-center w-10 h-10 flex-shrink-0 cursor-pointer transition-colors ${isListening ? "text-[var(--anor)]" : "text-[var(--ink-2)] hover:text-[var(--ink)]"}`}
         >
-          {isListening && (
-            <span className="absolute inset-0 rounded-xl sm:rounded-2xl bg-rose-400 opacity-20 animate-ping"></span>
-          )}
-          <Mic className={large ? "w-4 h-4 sm:w-5 sm:h-5" : "w-4 h-4"} strokeWidth={2.2} />
+          <Mic className="w-[18px] h-[18px]" />
         </button>
-
-        {/* Visual / Image Search Camera Icon */}
         <button
           type="button"
           onClick={() => setShowImageModal(true)}
-          title="Rasm orqali qidirish (AI Visual Search)"
-          className="flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-transparent hover:border-indigo-200 dark:hover:border-indigo-800/40 transition-all mr-1 sm:mr-2 flex-shrink-0 cursor-pointer active:scale-95"
+          aria-label="Image search"
+          className="flex items-center justify-center w-10 h-10 mr-1 flex-shrink-0 text-[var(--ink-2)] hover:text-[var(--ink)] cursor-pointer transition-colors"
         >
-          <Camera className={large ? "w-4 h-4 sm:w-5 sm:h-5" : "w-4 h-4"} strokeWidth={2.2} />
+          <Camera className="w-[18px] h-[18px]" />
         </button>
 
-        <button
-          type="submit"
-          className={`${
-            large ? "px-4 sm:px-8 py-2.5 sm:py-3.5 text-xs sm:text-base" : "px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm"
-          } bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:brightness-105 text-white font-black rounded-xl sm:rounded-2xl transition-all duration-200 shadow-md shadow-amber-500/25 active:scale-95 flex items-center justify-center gap-1.5 sm:gap-2 flex-shrink-0 cursor-pointer`}
-        >
-          <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-200 stroke-[2.2] animate-pulse" />
+        <button type="submit" className={`btn-primary h-full ${large ? "px-6 text-[15px] !rounded-xl" : "px-4 text-sm !rounded-lg"}`}>
+          <Search className="w-4 h-4 sm:hidden" />
           <span className="hidden sm:inline">{t("search.button")}</span>
         </button>
       </form>
 
       {/* Live Auto-Complete Suggestions Dropdown */}
       {isFocused && (
-        <div className="absolute left-0 right-0 top-full mt-2.5 bg-white/95 dark:bg-[#12141f]/95 backdrop-blur-2xl rounded-3xl shadow-2xl border-2 border-amber-300/80 dark:border-slate-800 p-4 sm:p-5 z-30 animate-fade-in space-y-3.5 text-slate-900 dark:text-white">
-          <div className="flex items-center justify-between text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider pb-2 border-b border-amber-100 dark:border-slate-800">
-            <span className="flex items-center gap-1.5 text-amber-900 dark:text-amber-300">
-              <Flame className="w-3.5 h-3.5 text-amber-500" />
+        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-xl border border-[var(--rule-soft)] p-5 z-30 space-y-3.5 text-[var(--ink)]">
+          <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider pb-2 border-b border-[var(--line)] dark:border-slate-800">
+            <span className="flex items-center gap-1.5 text-[var(--ink)]">
+              <Flame className="w-3.5 h-3.5 text-[var(--anor)]" />
               {query.trim() ? "O'xshash mahsulotlar" : "O'zbekistonda ommabop qidiruvlar"}
             </span>
-            <span className="text-[10px] bg-amber-100/80 dark:bg-slate-800 text-amber-950 dark:text-amber-300 font-bold px-2 py-0.5 rounded-md border border-amber-300/60 dark:border-slate-700">Jonli AI</span>
+            
           </div>
 
           <div className="space-y-1.5">
@@ -235,31 +199,31 @@ export default function SearchBar({
                 key={idx}
                 type="button"
                 onClick={() => handleSelectQuery(item.title)}
-                className="w-full text-left p-3 rounded-2xl hover:bg-amber-50/80 dark:hover:bg-slate-800/80 transition-all duration-200 flex items-center justify-between group border border-transparent hover:border-amber-200 dark:hover:border-slate-700 cursor-pointer"
+                className="w-full text-left p-3 rounded-2xl hover:bg-[var(--paper-2)] dark:hover:bg-slate-800/80 transition-all duration-200 flex items-center justify-between group border border-transparent hover:border-[var(--line-strong)] dark:hover:border-slate-700 cursor-pointer"
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+                  <span className="text-[var(--anor)] transition-transform">
                     <Search className="w-4 h-4" />
                   </span>
                   <div>
-                    <span className="font-extrabold text-xs text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition block">
+                    <span className="font-semibold text-xs text-slate-900 dark:text-white group-hover:text-[var(--anor)] dark:group-hover:text-amber-400 transition block">
                       {item.title}
                     </span>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400">{item.category}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-amber-950 dark:text-amber-300 bg-amber-100/80 dark:bg-slate-800 group-hover:bg-amber-200/80 dark:group-hover:bg-slate-700 px-2 py-0.5 rounded-md transition border border-amber-200/70 dark:border-slate-700">
+                  <span className="text-xs font-bold text-[var(--anor)] bg-[var(--accent-soft)] dark:bg-slate-800  dark:group-hover:bg-slate-700 px-2 py-0.5 rounded-md transition border border-[var(--line)] dark:border-slate-700">
                     {item.price}
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-400 group-hover:translate-x-0.5 transition" />
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[var(--anor)] dark:group-hover:text-amber-400 transition" />
                 </div>
               </button>
             ))}
           </div>
 
           {/* Quick preset chips inside dropdown */}
-          <div className="pt-2 border-t border-amber-100 dark:border-slate-800">
+          <div className="pt-2 border-t border-[var(--line)] dark:border-slate-800">
             <span className="text-[10px] text-slate-500 dark:text-slate-400 block mb-1.5 font-bold">Tavsiya etilgan qidiruvlar:</span>
             <div className="flex flex-wrap gap-1.5">
               {quickSearches.slice(0, 4).map((q, i) => (
@@ -267,7 +231,7 @@ export default function SearchBar({
                   key={i}
                   type="button"
                   onClick={() => handleSelectQuery(q[language as keyof typeof q] || q.en)}
-                  className="text-[11px] font-bold px-2.5 py-1 bg-amber-50 hover:bg-amber-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-amber-950 dark:text-amber-300 rounded-lg transition border border-amber-200/60 dark:border-slate-700 cursor-pointer"
+                  className="text-[11px] font-bold px-2.5 py-1 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition border border-[var(--line)] dark:border-slate-700 cursor-pointer bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]"
                 >
                   {q[language as keyof typeof q] || q.en}
                 </button>
@@ -284,9 +248,8 @@ export default function SearchBar({
             <button
               key={i}
               onClick={() => handleQuick(q)}
-              className="text-xs px-3.5 py-1.5 bg-white dark:bg-slate-900/80 border border-amber-200/80 dark:border-white/10 text-slate-800 dark:text-slate-200 rounded-full hover:border-amber-500 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50/60 dark:hover:bg-amber-950/20 transition-all duration-200 shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer flex items-center gap-1.5 font-bold"
+              className="text-xs px-3.5 py-1.5 bg-white dark:bg-slate-900/80 border border-[var(--line)] dark:border-white/10 text-slate-800 dark:text-slate-200 rounded-full hover:border-[var(--line-strong)] hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50/60 dark:hover:bg-amber-950/20 transition-all duration-200 shadow-2xs hover:shadow-xs cursor-pointer flex items-center gap-1.5 font-bold"
             >
-              <span className="text-sm">{q.icon}</span>
               <span>{q[language as keyof typeof q] || q.en}</span>
             </button>
           ))}

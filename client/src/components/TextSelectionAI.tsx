@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Search } from "lucide-react";
+import { Sparkles, Search } from "../lib/icons";
 import { useLocation } from "wouter";
 
 export default function TextSelectionAI() {

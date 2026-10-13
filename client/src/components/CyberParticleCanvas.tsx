@@ -3,21 +3,21 @@ import { useMemo } from "react";
 export default function CyberParticleCanvas() {
   // Pre-calculated deterministic star constellation points (Zero JS loop, zero lag)
   const nodes = useMemo(() => [
-    { cx: 80, cy: 90, r: 2.2, color: "#f59e0b" },
-    { cx: 220, cy: 140, r: 1.8, color: "#6366f1" },
+    { cx: 80, cy: 90, r: 2.2, color: "#d9431f" },
+    { cx: 220, cy: 140, r: 1.8, color: "#d9431f" },
     { cx: 340, cy: 70, r: 2.5, color: "#06b6d4" },
-    { cx: 500, cy: 120, r: 1.5, color: "#f59e0b" },
+    { cx: 500, cy: 120, r: 1.5, color: "#d9431f" },
     { cx: 620, cy: 80, r: 2.0, color: "#a855f7" },
     { cx: 780, cy: 150, r: 2.4, color: "#06b6d4" },
-    { cx: 920, cy: 95, r: 1.8, color: "#f59e0b" },
-    { cx: 1040, cy: 160, r: 2.2, color: "#6366f1" },
+    { cx: 920, cy: 95, r: 1.8, color: "#d9431f" },
+    { cx: 1040, cy: 160, r: 2.2, color: "#d9431f" },
     { cx: 160, cy: 260, r: 1.6, color: "#06b6d4" },
-    { cx: 290, cy: 310, r: 2.2, color: "#f59e0b" },
-    { cx: 460, cy: 250, r: 1.8, color: "#6366f1" },
-    { cx: 640, cy: 300, r: 2.5, color: "#f59e0b" },
+    { cx: 290, cy: 310, r: 2.2, color: "#d9431f" },
+    { cx: 460, cy: 250, r: 1.8, color: "#d9431f" },
+    { cx: 640, cy: 300, r: 2.5, color: "#d9431f" },
     { cx: 790, cy: 270, r: 1.6, color: "#06b6d4" },
-    { cx: 960, cy: 320, r: 2.0, color: "#6366f1" },
-    { cx: 1100, cy: 260, r: 1.5, color: "#f59e0b" },
+    { cx: 960, cy: 320, r: 2.0, color: "#d9431f" },
+    { cx: 1100, cy: 260, r: 1.5, color: "#d9431f" },
   ], []);
 
   const lines = useMemo(() => [
@@ -48,8 +48,8 @@ export default function CyberParticleCanvas() {
       >
         <defs>
           <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+            <stop offset="0%" stopColor="#d9431f" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#d9431f" stopOpacity="0" />
           </radialGradient>
         </defs>
 

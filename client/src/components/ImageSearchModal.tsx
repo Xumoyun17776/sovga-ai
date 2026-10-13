@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { research } from "../lib/api";
-import { X, Camera, Upload, Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
+import { X, Camera, Upload, Sparkles, CheckCircle2, ArrowRight } from "../lib/icons";
 import type { ImageSearchResult } from "@shared/types";
 
 interface Props {
@@ -65,13 +65,12 @@ export default function ImageSearchModal({ onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] text-slate-900 dark:text-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-luxury relative border-2 border-amber-300/80 dark:border-amber-500/25 max-h-[92vh] max-h-[92dvh] overflow-y-auto my-auto animate-scale-in">
+      <div className="bg-white dark:bg-[#0b1224] text-slate-900 dark:text-white rounded-2xl max-w-lg w-full p-6 sm:p-7 shadow-sm relative border border-[var(--line)] dark:border-amber-500/25 max-h-[92vh] max-h-[92dvh] overflow-y-auto my-auto animate-scale-in">
         {/* Ambient Top Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-12 bg-amber-400/15 dark:bg-amber-400/10 blur-2xl pointer-events-none rounded-full" />
 
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-amber-200/60 dark:border-slate-700/80 flex items-center justify-center transition cursor-pointer active:scale-95 shadow-2xs"
+          className="absolute top-5 right-5 w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-[var(--line)] dark:border-slate-700/80 flex items-center justify-center transition cursor-pointer shadow-2xs"
           aria-label="Yopish"
         >
           <X className="w-4 h-4 stroke-[2.2]" />
@@ -90,7 +89,7 @@ export default function ImageSearchModal({ onClose }: Props) {
         {!result ? (
           <div className="space-y-5 mt-4">
             {/* Upload Area */}
-            <div className="border-2 border-dashed border-amber-300/70 dark:border-white/15 rounded-3xl p-6 text-center hover:border-amber-400 transition bg-slate-50/60 dark:bg-slate-800/40">
+            <div className="border border-dashed border-[var(--line)] dark:border-white/15 rounded-2xl p-6 text-center hover:border-[var(--line-strong)] transition bg-slate-50/60 dark:bg-slate-800/40">
               {selectedImage ? (
                 <div className="relative inline-block">
                   <img
@@ -100,7 +99,7 @@ export default function ImageSearchModal({ onClose }: Props) {
                   />
                   <button
                     onClick={() => setSelectedImage("")}
-                    className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1.5 shadow-md hover:bg-rose-600 cursor-pointer active:scale-95"
+                    className="absolute -top-2 -right-2 bg-rose-500 text-white rounded-full p-1.5 shadow-md hover:bg-rose-600 cursor-pointer"
                     aria-label="Remove image"
                   >
                     <X className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -125,9 +124,9 @@ export default function ImageSearchModal({ onClose }: Props) {
                     <button
                       key={idx}
                       onClick={() => handleSelectSample(s)}
-                      className="group border border-slate-200/80 dark:border-white/10 rounded-2xl overflow-hidden hover:border-amber-400 transition text-left cursor-pointer active:scale-95 bg-white dark:bg-slate-900"
+                      className="group border border-slate-200/80 dark:border-white/10 rounded-2xl overflow-hidden hover:border-[var(--line-strong)] transition text-left cursor-pointer bg-white dark:bg-slate-900"
                     >
-                      <img src={s.url} alt={s.title} className="h-16 w-full object-cover group-hover:scale-105 transition" />
+                      <img src={s.url} alt={s.title} className="h-16 w-full object-cover transition" />
                       <p className="p-1.5 text-[10px] font-medium text-slate-700 dark:text-slate-300 truncate">{s.title}</p>
                     </button>
                   ))}
@@ -152,7 +151,7 @@ export default function ImageSearchModal({ onClose }: Props) {
             <button
               onClick={() => mutation.mutate()}
               disabled={!selectedImage || mutation.isPending}
-              className="w-full btn-luxury-gold py-3 rounded-xl text-xs font-bold transition shadow-md disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              className="w-full btn-luxury-gold py-3 rounded-xl text-xs font-bold transition shadow-md disabled:opacity-40 flex items-center justify-center gap-2 cursor-pointer"
             >
               <Sparkles className="w-4 h-4 stroke-[2.2]" />
               <span>{mutation.isPending ? "AI Identifying Product..." : "Identify & Research Deals"}</span>
@@ -161,7 +160,7 @@ export default function ImageSearchModal({ onClose }: Props) {
         ) : (
           /* Identification Result */
           <div className="space-y-5 mt-4 animate-fade-in">
-            <div className="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-500/20 rounded-2xl p-4 space-y-2">
+            <div className="bg-amber-50/70 dark:bg-amber-950/30 border border-[var(--line)] dark:border-amber-500/20 rounded-2xl p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
                   AI Product Identification
@@ -190,7 +189,7 @@ export default function ImageSearchModal({ onClose }: Props) {
               </div>
 
               {result.confidenceExplanation && (
-                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white/70 dark:bg-slate-900/60 p-2.5 rounded-xl border border-amber-200/60 dark:border-white/5">
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-white/70 dark:bg-slate-900/60 p-2.5 rounded-xl border border-[var(--line)] dark:border-white/5">
                   {result.confidenceExplanation}
                 </p>
               )}
@@ -199,7 +198,7 @@ export default function ImageSearchModal({ onClose }: Props) {
             <div className="space-y-2">
               <button
                 onClick={handleViewResearch}
-                className="w-full btn-luxury-gold py-3 rounded-xl text-xs font-bold transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                className="w-full btn-luxury-gold py-3 rounded-xl text-xs font-bold transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>View Researched Products & Deals</span>
                 <ArrowRight className="w-4 h-4 stroke-[2.2]" />
@@ -209,7 +208,7 @@ export default function ImageSearchModal({ onClose }: Props) {
                   setResult(null);
                   setSelectedImage("");
                 }}
-                className="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition cursor-pointer active:scale-95"
+                className="w-full py-2 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition cursor-pointer"
               >
                 Try Another Photo
               </button>

@@ -4,7 +4,7 @@ import confetti from "canvas-confetti";
 import { formatPrice } from "../lib/api";
 import { useToast } from "../components/Toast";
 import { cyberSound } from "../lib/cyberSound";
-import { useTranslation } from "../lib/i18n";
+import { useTranslation, tr } from "../lib/i18n";
 import {
   Gift,
   Users,
@@ -26,7 +26,7 @@ import {
   X,
   Stamp,
   CheckCircle2,
-} from "lucide-react";
+} from "../lib/icons";
 
 interface Member {
   id: string;
@@ -36,9 +36,9 @@ interface Member {
   assignedToHint?: string;
 }
 
-const ROOM_PRESETS = [
+const get_ROOM_PRESETS = () => [
   {
-    title: "IT Kompaniya Jamoasi Yangi Yili",
+    title: tr("IT Kompaniya Jamoasi Yangi Yili", "Новый год в IT-команде", "IT team New Year"),
     budget: 300000,
     date: "2026-12-25",
     members: [
@@ -50,7 +50,7 @@ const ROOM_PRESETS = [
     ],
   },
   {
-    title: "Guruhdoshlar Bayram Almashuvi",
+    title: tr("Guruhdoshlar Bayram Almashuvi", "Праздничный обмен в группе", "Classmates' holiday swap"),
     budget: 200000,
     date: "2026-12-28",
     members: [
@@ -61,7 +61,7 @@ const ROOM_PRESETS = [
     ],
   },
   {
-    title: "Oila A'zolari Yangi Yil Sovg'asi",
+    title: tr("Oila A'zolari Yangi Yil Sovg'asi", "Новогодние подарки в семье", "Family New Year gifts"),
     budget: 500000,
     date: "2026-12-31",
     members: [
@@ -77,7 +77,7 @@ export default function SecretSantaPage() {
   const toast = useToast();
   const { language } = useTranslation();
 
-  const [roomTitle, setRoomTitle] = useState("Kompaniya Jamoasi Yangi Yil Sovg'asi");
+  const [roomTitle, setRoomTitle] = useState(tr("Kompaniya Jamoasi Yangi Yil Sovg'asi", "Новогодний обмен в команде", "Team New Year gift swap"));
   const [budgetPerPerson, setBudgetPerPerson] = useState<number>(250000);
   const [eventDate, setEventDate] = useState("2026-12-25");
   const [isShuffled, setIsShuffled] = useState(false);
@@ -92,7 +92,7 @@ export default function SecretSantaPage() {
       const saved = localStorage.getItem("sovga_secret_santa_members");
       if (saved) return JSON.parse(saved);
     } catch {}
-    return ROOM_PRESETS[0].members;
+    return get_ROOM_PRESETS()[0].members;
   });
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function SecretSantaPage() {
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberHint, setNewMemberHint] = useState("");
 
-  const handleApplyPreset = (preset: typeof ROOM_PRESETS[0]) => {
+  const handleApplyPreset = (preset: ReturnType<typeof get_ROOM_PRESETS>[number]) => {
     cyberSound.playClick();
     setRoomTitle(preset.title);
     setBudgetPerPerson(preset.budget);
@@ -122,18 +122,18 @@ export default function SecretSantaPage() {
       {
         id: Date.now().toString(),
         name: newMemberName.trim(),
-        wishlistHint: newMemberHint.trim() || "AI tavsiya qilgan foydali sovg'a",
+        wishlistHint: newMemberHint.trim() || tr("AI tavsiya qilgan foydali sovg'a", "Полезный подарок", "A useful gift"),
       },
     ]);
     setNewMemberName("");
     setNewMemberHint("");
     setIsShuffled(false);
-    toast.success(`${newMemberName} xonaga qo'shildi!`, "Qo'shildi");
+    toast.success(tr(`${newMemberName} xonaga qo'shildi`, `${newMemberName} добавлен(а)`, `${newMemberName} joined`), tr("Qo'shildi", "Добавлено", "Added"));
   };
 
   const handleRemoveMember = (id: string) => {
     if (members.length <= 3) {
-      toast.error("Kamida 3 kishi bo'lishi lozim!", "Cheklov");
+      toast.error(tr("Kamida 3 kishi bo'lishi lozim!", "Нужно минимум 3 участника", "At least 3 people are needed"), "Cheklov");
       return;
     }
     cyberSound.playClick();
@@ -144,7 +144,7 @@ export default function SecretSantaPage() {
   // Derangement matching (no one gets themselves)
   const handleShuffle = () => {
     if (members.length < 3) {
-      toast.error("Sovg'a almashish uchun kamida 3 kishi kerak!", "Kam ishtirokchi");
+      toast.error(tr("Sovg'a almashish uchun kamida 3 kishi kerak!", "Для обмена нужно минимум 3 человека", "A swap needs at least 3 people"), tr("Kam ishtirokchi", "Мало участников", "Not enough people"));
       return;
     }
 
@@ -176,11 +176,11 @@ export default function SecretSantaPage() {
       particleCount: 70,
       spread: 60,
       origin: { y: 0.65 },
-      colors: ["#6366f1", "#10b981", "#f59e0b", "#ec4899"],
+      colors: ["#d9431f", "#10b981", "#d9431f", "#ec4899"],
     });
     cyberSound.play("success");
 
-    toast.success("AI ishtirokchilarni anonim tarzda juftlashtirdi!", "Muvaffaqiyatli 🎉");
+    toast.success(tr("AI ishtirokchilarni anonim tarzda juftlashtirdi!", "Пары составлены анонимно", "Pairs drawn anonymously"), "Muvaffaqiyatli");
   };
 
   const handleOpenEnvelopeModal = (memberName?: string) => {
@@ -197,20 +197,18 @@ export default function SecretSantaPage() {
       particleCount: 40,
       spread: 45,
       origin: { y: 0.6 },
-      colors: ["#fbbf24", "#f59e0b", "#ef4444"],
+      colors: ["#818cf8", "#d9431f", "#ef4444"],
     });
   };
 
   const handleShareTelegram = () => {
     cyberSound.playConfirm();
     const text =
-      `🎁 *MAXFIY SOVG'A (SECRET SANTA) TADFIRI*\n` +
-      `──────────────────────────────\n` +
-      `🏷 *Xona:* ${roomTitle}\n` +
-      `💰 *Belgilangan byudjet:* ${formatPrice(budgetPerPerson)} gacha\n` +
-      `📅 *Topshirish kuni:* ${eventDate}\n` +
-      `👥 *Ishtirokchilar:* ${members.length} kishi\n\n` +
-      `AI barchani anonim juftlashtirdi! O'zingizning maxfiy do'stingizni bilish uchun havolaga kiring: \n` +
+      `Secret Santa: ${roomTitle}\n` +
+      `${tr("Byudjet", "Бюджет", "Budget")}: ${formatPrice(budgetPerPerson)}\n` +
+      `${tr("Sana", "Дата", "Date")}: ${eventDate}\n` +
+      `${tr("Ishtirokchilar", "Участники", "People")}: ${members.length}\n\n` +
+      `${tr("Kimga sovg'a berishingizni bilish uchun havolani oching:", "Откройте ссылку, чтобы узнать, кому вы дарите:", "Open the link to see who you're giving to:")}\n` +
       `${window.location.origin}/secret-santa`;
 
     const url = `https://t.me/share/url?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(text)}`;
@@ -220,34 +218,27 @@ export default function SecretSantaPage() {
   const selectedMemberData = members.find((m) => m.name === selectedUserForEnvelope);
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#07080c] text-slate-900 dark:text-white py-8 sm:py-12 transition-colors relative overflow-hidden animate-fade-in">
+    <div className="min-h-screen text-slate-900 dark:text-white py-8 sm:py-12 transition-colors relative overflow-hidden animate-fade-in">
       {/* Artisanal Ambient Vignette & Warm Gold Lighting */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(1000px,100vw)] max-w-full h-[400px] bg-gradient-to-b from-amber-500/10 via-indigo-500/5 to-transparent blur-3xl pointer-events-none" />
-      <div className="absolute top-48 right-10 w-80 h-80 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 relative z-10">
         {/* Page Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3.5">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-gold-500/20 to-amber-500/15 border border-gold-500/30 text-amber-900 dark:text-amber-300 text-xs font-black uppercase tracking-widest shadow-xs">
-            <Gift className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-            <span>Anonim Sovg'a Almashuvi & Secret Santa</span>
-          </div>
-          <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 dark:text-white tracking-tight">
-            Maxfiy Sovg'a <span className="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent">(Secret Santa) Xonasi</span>
+          <h1 className="lux-title text-[2.4rem] sm:text-[3.2rem] text-slate-900 dark:text-white leading-[1.05]">
+            {language === "uz" ? "Secret Santa" : language === "ru" ? "Тайный Санта" : "Secret Santa"}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal max-w-2xl mx-auto">
-            Jamoangiz yoki do'stlaringiz uchun anonim sovg'a almashish tadbirini tashkillashtiring. 
-            AI har bir kishiga maxfiy do'st biriktiradi va belgilangan byudjet doirasida eng zo'r sovg'alarni topib beradi.
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-3 max-w-2xl mx-auto leading-relaxed">
+            {language === "uz" ? "Ishtirokchilarni qo'shing va byudjetni belgilang — kim kimga sovg'a berishini tasodifiy tanlaymiz." : language === "ru" ? "Добавьте участников и задайте бюджет — мы случайно распределим, кто кому дарит." : "Add the people and set a budget, and we'll randomly draw who gives to whom."}
           </p>
 
           {/* Room Presets */}
           <div className="flex items-center justify-center gap-2 pt-2 flex-wrap">
-            <span className="text-[11px] font-bold text-amber-800 dark:text-amber-400">Tezkor xonalar:</span>
-            {ROOM_PRESETS.map((p, idx) => (
+            <span className="text-[11px] font-bold text-amber-800 dark:text-amber-400">{tr("Tezkor xonalar:", "Быстрые комнаты:", "Quick rooms:")}</span>
+            {get_ROOM_PRESETS().map((p, idx) => (
               <button
                 key={idx}
                 onClick={() => handleApplyPreset(p)}
-                className="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/80 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition border-2 border-amber-200/60 dark:border-slate-800 cursor-pointer shadow-2xs active:scale-95"
+                className="text-xs font-bold px-3.5 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/80 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition border border-[var(--line)] dark:border-slate-800 cursor-pointer shadow-2xs"
               >
                 {p.title.split(" ")[0]} ({p.members.length} kishi)
               </button>
@@ -258,12 +249,12 @@ export default function SecretSantaPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Room Setup & Master Shuffle */}
           <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
-            <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-6 sm:p-7 border-2 border-amber-200/80 dark:border-amber-500/25 shadow-luxury space-y-5">
+            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-7 border border-[var(--line)] dark:border-amber-500/25 shadow-sm space-y-5">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-400 block">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-400 block">
                   Xona Boshqaruvi
                 </span>
-                <h3 className="font-display font-extrabold text-xl text-slate-900 dark:text-white mt-1">
+                <h3 className="font-display font-semibold text-xl text-slate-900 dark:text-white mt-1">
                   {roomTitle}
                 </h3>
               </div>
@@ -275,7 +266,7 @@ export default function SecretSantaPage() {
                     type="text"
                     value={roomTitle}
                     onChange={(e) => setRoomTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-200/80 dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border border-[var(--line)] dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
                   />
                 </div>
 
@@ -287,7 +278,7 @@ export default function SecretSantaPage() {
                       value={budgetPerPerson}
                       onChange={(e) => setBudgetPerPerson(Number(e.target.value))}
                       step="25000"
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-200/80 dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                      className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border border-[var(--line)] dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
                     />
                   </div>
 
@@ -297,7 +288,7 @@ export default function SecretSantaPage() {
                       type="date"
                       value={eventDate}
                       onChange={(e) => setEventDate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-200/80 dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                      className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border border-[var(--line)] dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
                     />
                   </div>
                 </div>
@@ -307,35 +298,35 @@ export default function SecretSantaPage() {
               <div className="pt-2 space-y-2.5">
                 <button
                   onClick={handleShuffle}
-                  className="w-full py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 text-slate-950 font-black rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-amber-500/20 cursor-pointer active:scale-95"
+                  className="w-full py-3.5 text-white font-bold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-sm cursor-pointer bg-amber-500 hover:bg-amber-400"
                 >
                   <Shuffle className="w-4 h-4 text-slate-950 stroke-[2.2]" />
-                  <span>{isShuffled ? "Qaytadan aralashtirish (Re-shuffle)" : "AI orqali juftlashtirish"}</span>
+                  <span>{isShuffled ? tr("Qaytadan aralashtirish (Re-shuffle)", "Перемешать заново", "Shuffle again") : tr("AI orqali juftlashtirish", "Составить пары", "Draw pairs")}</span>
                 </button>
 
                 {isShuffled && (
                   <button
                     onClick={() => handleOpenEnvelopeModal()}
-                    className="w-full py-3.5 bg-gradient-to-r from-rose-600 via-rose-700 to-pink-700 hover:from-rose-500 text-white font-black rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-rose-600/20 cursor-pointer active:scale-95"
+                    className="w-full py-3.5 text-white font-bold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-sm cursor-pointer bg-rose-600 hover:bg-rose-500"
                   >
                     <Mail className="w-4 h-4 text-amber-200 stroke-[2.2]" />
-                    <span>Maxfiy Konvertimni Ochish</span>
+                    <span>{tr("Maxfiy Konvertimni Ochish", "Открыть мой конверт", "Open my envelope")}</span>
                   </button>
                 )}
 
                 <button
                   onClick={handleShareTelegram}
-                  className="w-full py-3 bg-[#2AABEE] hover:bg-[#229ED9] text-white font-black rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md cursor-pointer active:scale-95"
+                  className="w-full py-3 bg-[#2AABEE] hover:bg-[#229ED9] text-white font-bold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md cursor-pointer"
                 >
                   <Send className="w-4 h-4 text-white stroke-[2.2]" />
-                  <span>Guruhga taklif havolasini yuborish</span>
+                  <span>{tr("Guruhga taklif havolasini yuborish", "Отправить приглашение группе", "Send the invite link to the group")}</span>
                 </button>
               </div>
 
               {isShuffled && (
-                <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border-2 border-emerald-300 dark:border-emerald-700/60 text-emerald-950 dark:text-emerald-200 text-xs flex items-center gap-2 font-semibold shadow-2xs">
+                <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-700/60 text-emerald-950 dark:text-emerald-200 text-xs flex items-center gap-2 font-semibold shadow-2xs">
                   <ShieldCheck className="w-4 h-4 text-emerald-600 stroke-[2.2] flex-shrink-0" />
-                  <span>Juftliklar tuzildi! Hech kim o'z-o'ziga tushmaganligi kafolatlanadi.</span>
+                  <span>{tr("Juftliklar tuzildi! Hech kim o'z-o'ziga tushmaganligi kafolatlanadi.", "Пары составлены! Никто не дарит самому себе.", "Pairs are ready! Nobody got themselves.")}</span>
                 </div>
               )}
             </div>
@@ -344,8 +335,8 @@ export default function SecretSantaPage() {
           {/* Right Column: Participants List & Wishlist Suggestions */}
           <div className="lg:col-span-7 space-y-6">
             {/* Add Participant Input */}
-            <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-6 border-2 border-amber-200/80 dark:border-amber-500/25 shadow-luxury space-y-4">
-              <h2 className="font-display font-black text-base text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 border border-[var(--line)] dark:border-amber-500/25 shadow-sm space-y-4">
+              <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <Users className="w-4 h-4 text-amber-500 stroke-[2.2]" />
                 <span>
                   {language === "uz"
@@ -368,7 +359,7 @@ export default function SecretSantaPage() {
                       ? "Имя участника (например, Нодир)..."
                       : "Participant name (e.g. Alex)..."
                   }
-                  className="sm:col-span-5 px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-200/80 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  className="sm:col-span-5 px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border border-[var(--line)] dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
                 />
                 <input
                   type="text"
@@ -381,11 +372,11 @@ export default function SecretSantaPage() {
                       ? "Пожелание (например: книга, наушники)..."
                       : "Wishlist hint (e.g. Book, headphones)..."
                   }
-                  className="sm:col-span-5 px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-200/80 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  className="sm:col-span-5 px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border border-[var(--line)] dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
                 />
                 <button
                   onClick={handleAddMember}
-                  className="sm:col-span-2 px-3 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 text-slate-950 font-black rounded-xl text-xs transition flex items-center justify-center gap-1 cursor-pointer shadow-md shadow-amber-500/20 active:scale-95"
+                  className="sm:col-span-2 px-3 py-2.5 text-white font-bold rounded-xl text-xs transition flex items-center justify-center gap-1 cursor-pointer shadow-md bg-amber-500 hover:bg-amber-400"
                 >
                   <Plus className="w-4 h-4 stroke-[2.2]" />
                   <span>{language === "uz" ? "Qo'shish" : language === "ru" ? "Добавить" : "Add"}</span>
@@ -398,12 +389,12 @@ export default function SecretSantaPage() {
               {members.map((member) => (
                 <div
                   key={member.id}
-                  className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-2xl p-4.5 border-2 border-amber-200/70 dark:border-amber-500/25 shadow-luxury flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition hover:border-amber-400"
+                  className="bg-white dark:bg-[#0b1224] rounded-2xl p-4.5 border border-[var(--line)] dark:border-amber-500/25 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition hover:border-[var(--line-strong)]"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm text-slate-900 dark:text-white">{member.name}</span>
-                      <span className="text-[11px] bg-amber-100/70 dark:bg-slate-800 text-amber-950 dark:text-amber-300 font-semibold px-2 py-0.5 rounded-md border border-amber-300/80 dark:border-slate-700">
+                      <span className="text-[11px] dark:bg-slate-800 font-semibold px-2 py-0.5 rounded-md border border-[var(--line)] dark:border-slate-700 bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                         {member.wishlistHint}
                       </span>
                     </div>
@@ -423,18 +414,18 @@ export default function SecretSantaPage() {
                     {isShuffled && (
                       <button
                         onClick={() => handleOpenEnvelopeModal(member.name)}
-                        className="px-3.5 py-2 bg-gradient-to-r from-amber-500/15 via-amber-400/25 to-amber-500/15 border border-amber-300/80 hover:border-amber-400 text-amber-900 dark:text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-95"
-                        title="Faqat o'zingizning konvertingizni oching"
+                        className="px-3.5 py-2 border border-[var(--line)] hover:border-[var(--line-strong)] text-amber-900 dark:text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs bg-amber-500/15"
+                        title={tr("Faqat o'zingizning konvertingizni oching", "Открывайте только свой конверт", "Only open your own envelope")}
                       >
                         <Mail className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-                        <span>Konvertni ko'rish</span>
+                        <span>{tr("Konvertni ko'rish", "Открыть конверт", "Open envelope")}</span>
                       </button>
                     )}
 
                     <button
                       onClick={() => handleRemoveMember(member.id)}
-                      className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500 dark:bg-slate-850 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-800 flex items-center justify-center transition cursor-pointer active:scale-95 shadow-2xs"
-                      title="O'chirish"
+                      className="w-8 h-8 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-400 hover:text-rose-500 dark:bg-slate-850 dark:hover:bg-rose-950/40 border border-slate-200 dark:border-slate-800 flex items-center justify-center transition cursor-pointer shadow-2xs"
+                      title={tr("O'chirish", "Удалить", "Remove")}
                     >
                       <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
                     </button>
@@ -448,10 +439,10 @@ export default function SecretSantaPage() {
         {/* Private Secret Envelope Modal */}
         {showEnvelopeModal && (
           <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
-            <div className="bg-gradient-to-br from-[#121624] via-[#0d101a] to-[#080a11] text-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border-2 border-amber-400/40 relative text-center space-y-5 animate-scale-in my-auto max-h-[92vh] max-h-[92dvh] overflow-y-auto">
+            <div className="from-[#121624] via-[#0d101a] to-[#080a11] text-white rounded-2xl max-w-md w-full p-6 sm:p-8 shadow-sm border border-amber-400/40 relative text-center space-y-5 animate-scale-in my-auto max-h-[92vh] max-h-[92dvh] overflow-y-auto bg-[#121624]">
               <button
                 onClick={() => setShowEnvelopeModal(false)}
-                className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer active:scale-95 shadow-2xs"
+                className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xs"
               >
                 <X className="w-4 h-4 stroke-[2.2]" />
               </button>
@@ -460,11 +451,11 @@ export default function SecretSantaPage() {
                 <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-400/30 text-amber-400 flex items-center justify-center mx-auto mb-2 shadow-sm">
                   <Gift className="w-6 h-6 stroke-[2.2]" />
                 </div>
-                <h3 className="font-display font-black text-xl text-white">
+                <h3 className="font-display font-bold text-xl text-white">
                   Maxfiy Konvert
                 </h3>
                 <p className="text-xs text-slate-400 mt-1">
-                  Faqat o'zingizga tegishli ismni tanlang va konvertni oching!
+                  {tr("Faqat o'zingizga tegishli ismni tanlang va konvertni oching!", "Выберите только своё имя и откройте конверт.", "Pick only your own name and open the envelope.")}
                 </p>
               </div>
 
@@ -472,7 +463,7 @@ export default function SecretSantaPage() {
               {!isEnvelopeOpened && (
                 <div className="space-y-4">
                   <div className="text-left text-xs">
-                    <label className="font-bold text-amber-300 block mb-1.5">Siz kimsiz?</label>
+                    <label className="font-bold text-amber-300 block mb-1.5">{tr("Siz kimsiz?", "Кто вы?", "Who are you?")}</label>
                     <select
                       value={selectedUserForEnvelope}
                       onChange={(e) => setSelectedUserForEnvelope(e.target.value)}
@@ -490,11 +481,11 @@ export default function SecretSantaPage() {
                   <div className="py-4">
                     <button
                       onClick={handleRevealEnvelope}
-                      className="w-24 h-24 rounded-full bg-gradient-to-br from-rose-700 via-amber-600 to-amber-800 border-4 border-amber-300/80 shadow-2xl flex flex-col items-center justify-center mx-auto transition transform hover:scale-105 active:scale-95 cursor-pointer shadow-amber-500/25"
+                      className="w-24 h-24 rounded-full border-4 border-[var(--line)] shadow-sm flex flex-col items-center justify-center mx-auto transition transform cursor-pointer bg-rose-700"
                     >
                       <Mail className="w-8 h-8 text-amber-100 stroke-[2.2]" />
-                      <span className="text-[9px] font-black uppercase text-amber-200 mt-1">
-                        Ochish
+                      <span className="text-[9px] font-bold uppercase text-amber-200 mt-1">
+                        {tr("Ochish", "Открыть", "Open")}
                       </span>
                     </button>
                     <span className="text-[11px] text-amber-300/80 mt-2 block font-medium">
@@ -507,17 +498,17 @@ export default function SecretSantaPage() {
               {/* Opened envelope secret details */}
               {isEnvelopeOpened && selectedMemberData && (
                 <div className="space-y-4 animate-scale-in">
-                  <div className="p-5 rounded-2xl bg-slate-950 border-2 border-amber-400/40 text-center space-y-3">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold block">
-                      Siz sovg'a berishingiz kerak bo'lgan inson:
+                  <div className="p-5 rounded-2xl bg-slate-950 border border-amber-400/40 text-center space-y-3">
+                    <span className="text-[10px] font-mono uppercase tracking-wide text-amber-400 font-bold block">
+                      {tr("Siz sovg'a berishingiz kerak bo'lgan inson:", "Вы дарите подарок:", "You're giving a gift to:")}
                     </span>
 
-                    <h4 className="text-2xl font-black text-amber-200">
-                      {selectedMemberData.assignedToName || "Maxfiy Do'st"}
+                    <h4 className="text-2xl font-bold text-amber-200">
+                      {selectedMemberData.assignedToName || tr("Maxfiy Do'st", "Тайный друг", "Secret friend")}
                     </h4>
 
                     <div className="bg-slate-900 p-3 rounded-xl border border-amber-400/20 text-xs">
-                      <span className="text-slate-400 block text-[10px]">Ushbu insonning istagi:</span>
+                      <span className="text-slate-400 block text-[10px]">{tr("Ushbu insonning istagi:", "Пожелание этого человека:", "Their wish:")}</span>
                       <span className="font-semibold text-amber-200 mt-0.5 block">
                         "{selectedMemberData.assignedToHint || "Foydali sovg'a"}"
                       </span>
@@ -531,17 +522,17 @@ export default function SecretSantaPage() {
                   <div className="space-y-2">
                     <Link
                       href={`/search?q=${encodeURIComponent(selectedMemberData.assignedToHint || "sovg'a")} ${budgetPerPerson}`}
-                      className="w-full py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-amber-500/20 active:scale-95"
+                      className="w-full py-3 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-sm bg-amber-500 hover:bg-amber-400"
                     >
                       <ShoppingBag className="w-4 h-4 stroke-[2.2]" />
-                      <span>Ushbu byudjetda AI sovg'a izlash</span>
+                      <span>{tr("Ushbu byudjetda AI sovg'a izlash", "Найти подарок в этом бюджете", "Find a gift in this budget")}</span>
                     </Link>
 
                     <button
                       onClick={() => setShowEnvelopeModal(false)}
-                      className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer active:scale-95"
+                      className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition cursor-pointer"
                     >
-                      Maxfiy saqlash & Yopish
+                      {tr("Maxfiy saqlash & Yopish", "Скрыть и закрыть", "Hide and close")}
                     </button>
                   </div>
                 </div>

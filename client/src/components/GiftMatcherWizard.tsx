@@ -1,3 +1,4 @@
+import SectionHeader from "./SectionHeader";
 import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
@@ -22,7 +23,7 @@ import {
   Home,
   Lightbulb,
   ShoppingBag,
-} from "lucide-react";
+} from "../lib/icons";
 
 interface RecipientOption {
   id: string;
@@ -126,40 +127,58 @@ export default function GiftMatcherWizard() {
 
   const { data: allProducts = [] } = useQuery({
     queryKey: ["catalog-products-all"],
-    queryFn: () => catalog.filter({ limit: 100 }),
+    queryFn: () => catalog.filter({ limit: 300 }),
   });
 
   const currentBracket = budgetBrackets.find((b) => b.id === selectedBudget) || budgetBrackets[1];
 
-  // Dynamic cultural matching algorithm
+  // Category preferences per recipient and occasion (live catalog categories).
+  const RECIPIENT_PREF: Record<string, string[]> = {
+    parents: ["Kitchen", "Home", "TV", "Beauty", "Wearables"],
+    partner: ["Beauty", "Wearables", "Audio", "Smartphones", "Kitchen"],
+    newlyweds: ["Kitchen", "Home", "TV"],
+    friend: ["Audio", "Wearables", "Gaming", "Beauty"],
+    colleague: ["Audio", "Kitchen", "Wearables"],
+    kids: ["Gaming", "Tablets", "Audio", "Wearables"],
+  };
+  const OCCASION_PREF: Record<string, string[]> = {
+    wedding: ["Kitchen", "Home", "TV"],
+    housewarming: ["Home", "Kitchen", "TV"],
+    birthday: [],
+    eid: ["Kitchen", "Home"],
+    anniversary: ["Beauty", "Wearables", "Audio"],
+    attention: ["Audio", "Beauty", "Kitchen"],
+  };
+
+  // Pick three products in budget from the most fitting categories, one per category where possible.
   const matchedProducts = useMemo(() => {
     if (!allProducts.length) return [];
-
-    let pool = allProducts.filter((p: any) => {
+    const inBudget = allProducts.filter((p: any) => {
       const price = p.price || 0;
       return price >= currentBracket.min && price <= currentBracket.max;
     });
-
-    if (pool.length === 0) {
-      pool = allProducts.slice(0, 6);
+    const pool = inBudget.length ? inBudget : allProducts;
+    const prefs = [...(OCCASION_PREF[selectedOccasion] || []), ...(RECIPIENT_PREF[selectedRecipient] || [])];
+    const rank = (p: any) => {
+      const i = prefs.indexOf(p.category);
+      return i === -1 ? 99 : i;
+    };
+    const sorted = [...pool].sort(
+      (a: any, b: any) => rank(a) - rank(b) || (b.reviewCount || 0) - (a.reviewCount || 0) || (b.rating || 0) - (a.rating || 0)
+    );
+    const picks: any[] = [];
+    const usedCats = new Set<string>();
+    for (const p of sorted) {
+      if (picks.length === 3) break;
+      if (usedCats.has(p.category)) continue;
+      picks.push(p);
+      usedCats.add(p.category);
     }
-
-    // Occasion and recipient specific prioritization
-    if (selectedOccasion === "wedding" || selectedRecipient === "newlyweds") {
-      pool = [...pool].sort((a: any, b: any) => {
-        const aFit = a.category?.includes("Kitchen") || a.category?.includes("Home") || a.name?.toLowerCase().includes("choy") ? 1 : 0;
-        const bFit = b.category?.includes("Kitchen") || b.category?.includes("Home") || b.name?.toLowerCase().includes("choy") ? 1 : 0;
-        return bFit - aFit;
-      });
-    } else if (selectedRecipient === "parents") {
-      pool = [...pool].sort((a: any, b: any) => {
-        const aFit = a.name?.toLowerCase().includes("massaj") || a.name?.toLowerCase().includes("choy") || a.name?.toLowerCase().includes("termos") ? 1 : 0;
-        const bFit = b.name?.toLowerCase().includes("massaj") || b.name?.toLowerCase().includes("choy") || b.name?.toLowerCase().includes("termos") ? 1 : 0;
-        return bFit - aFit;
-      });
+    for (const p of sorted) {
+      if (picks.length === 3) break;
+      if (!picks.includes(p)) picks.push(p);
     }
-
-    return pool.slice(0, 3);
+    return picks;
   }, [allProducts, selectedRecipient, selectedOccasion, currentBracket]);
 
   const recipientLabel = (r: RecipientOption) =>
@@ -172,45 +191,21 @@ export default function GiftMatcherWizard() {
 
   return (
     <>
-      <div className="card-luxury bg-white/95 rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-luxury relative overflow-hidden">
-        {/* Subtle glow backdrop */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-8">
-          {/* Section Header */}
-          <div className="text-center max-w-2xl mx-auto space-y-2.5">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              <span>
-                {language === "uz"
-                  ? "Tezkor Sovg'a Tanlovchi AI"
-                  : language === "ru"
-                  ? "AI Быстрый Подбор Подарка"
-                  : "Instant AI Gift Matcher"}
-              </span>
-            </div>
-            <h2 className="font-display font-black text-2xl sm:text-4xl text-slate-900 tracking-tight">
-              {language === "uz"
-                ? "3 soniyada ideal sovg'ani aniqlang"
-                : language === "ru"
-                ? "Идеальный подарок за 3 секунды"
-                : "Find the Ideal Gift in 3 Seconds"}
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed">
-              {language === "uz"
-                ? "Kimga, nima munosabat bilan va byudjetingizni tanlang — O'zbekiston madaniyatiga mos keluvchi eng saralangan variantlar darhol namoyon bo'ladi."
-                : language === "ru"
-                ? "Выберите получателя, повод и бюджет — идеальные подарки с учетом узбекских традиций появятся мгновенно."
-                : "Select recipient, occasion and budget — verified gifts tailored to Uzbek traditions appear instantly."}
-            </p>
-          </div>
+      <div className="relative">
+        <div className="relative space-y-12">
+          <SectionHeader
+            kicker={language === "uz" ? "Tezkor tanlash" : language === "ru" ? "Быстрый подбор" : "Quick picker"}
+            title={language === "uz" ? "Uchta savol — tayyor g'oyalar" : language === "ru" ? "Три вопроса — готовые идеи" : "Three questions, ready ideas"}
+            subtitle={language === "uz" ? "Kimga, qanday bayram va qancha byudjet — uchtasini tanlang, mos variantlar shu yerda chiqadi." : language === "ru" ? "Кому, какой повод и бюджет — выберите три пункта, и варианты появятся здесь же." : "Who, which occasion, what budget — pick three things and the options appear right here."}
+            className="!mb-0"
+          />
 
           {/* 3 Steps Control Panel */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50/80 p-5 sm:p-6 rounded-3xl border border-slate-200/80">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 rounded-3xl bg-white border border-[var(--rule-soft)] p-5 sm:p-8 shadow-sm">
             {/* Step 1: Recipient */}
             <div className="space-y-2.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black shadow-xs">
+              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-slate-900 dark:bg-amber-500 text-white dark:text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
                   1
                 </span>
                 <span>
@@ -227,11 +222,11 @@ export default function GiftMatcherWizard() {
                       onClick={() => setSelectedRecipient(r.id)}
                       className={`p-2.5 rounded-2xl text-left text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
                         isSelected
-                          ? "bg-slate-900 text-white shadow-md shadow-slate-900/10"
-                          : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80"
+                          ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-white shadow-md"
+                          : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-indigo-400" : "text-slate-500"}`} />
+                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-indigo-400 dark:text-slate-950" : "text-slate-500 dark:text-slate-400"}`} />
                       <span className="truncate">{recipientLabel(r)}</span>
                     </button>
                   );
@@ -241,12 +236,12 @@ export default function GiftMatcherWizard() {
 
             {/* Step 2: Occasion */}
             <div className="space-y-2.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black shadow-xs">
+              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-slate-900 dark:bg-amber-500 text-white dark:text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
                   2
                 </span>
                 <span>
-                  {language === "uz" ? "Munosabat / Bayram?" : language === "ru" ? "Повод / Праздник?" : "Occasion / Event?"}
+                  {language === "uz" ? "Qanday bayram?" : language === "ru" ? "Какой повод?" : "What's the occasion?"}
                 </span>
               </label>
               <div className="grid grid-cols-2 gap-1.5">
@@ -259,11 +254,11 @@ export default function GiftMatcherWizard() {
                       onClick={() => setSelectedOccasion(o.id)}
                       className={`p-2.5 rounded-2xl text-left text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
                         isSelected
-                          ? "bg-slate-900 text-white shadow-md shadow-slate-900/10"
-                          : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80"
+                          ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-white shadow-md"
+                          : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-indigo-400" : "text-slate-500"}`} />
+                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? "text-indigo-400 dark:text-slate-950" : "text-slate-500 dark:text-slate-400"}`} />
                       <span className="truncate">{occasionLabel(o)}</span>
                     </button>
                   );
@@ -273,12 +268,12 @@ export default function GiftMatcherWizard() {
 
             {/* Step 3: Budget */}
             <div className="space-y-2.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-black shadow-xs">
+              <label className="text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-slate-900 dark:bg-amber-500 text-white dark:text-white flex items-center justify-center text-[10px] font-bold shadow-xs">
                   3
                 </span>
                 <span>
-                  {language === "uz" ? "Byudjet chegarasi" : language === "ru" ? "Бюджет" : "Budget Range"}
+                  {language === "uz" ? "Byudjet" : language === "ru" ? "Бюджет" : "Budget"}
                 </span>
               </label>
               <div className="space-y-1.5">
@@ -292,12 +287,12 @@ export default function GiftMatcherWizard() {
                       onClick={() => setSelectedBudget(b.id)}
                       className={`w-full p-2.5 rounded-2xl text-left text-xs transition flex items-center justify-between cursor-pointer ${
                         isSelected
-                          ? "bg-slate-900 text-white shadow-md shadow-slate-900/10 font-bold"
-                          : "bg-white hover:bg-slate-100 text-slate-700 border border-slate-200/80 font-medium"
+                          ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-white shadow-md font-bold"
+                          : "bg-white dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 font-medium"
                       }`}
                     >
                       <span>{bracketLabel}</span>
-                      <span className={`text-[10px] ${isSelected ? "text-slate-300" : "text-slate-400"}`}>
+                      <span className={`text-[10px] ${isSelected ? "text-slate-300 dark:text-slate-900/70" : "text-slate-400 dark:text-slate-500"}`}>
                         {bracketDesc}
                       </span>
                     </button>
@@ -311,24 +306,13 @@ export default function GiftMatcherWizard() {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
               <div>
-                <h3 className="font-display font-bold text-base sm:text-lg text-slate-900 flex items-center gap-2">
+                <h3 className="font-display font-bold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
                   <span>
-                    {language === "uz"
-                      ? "AI Saralangan Variantlar"
-                      : language === "ru"
-                      ? "Подобранные Варианты"
-                      : "AI Curated Matches"}
-                  </span>
-                  <span className="text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-full">
-                    {language === "uz" ? "98% Moslik" : language === "ru" ? "98% Совпадение" : "98% Match"}
+                    {language === "uz" ? "Mos variantlar" : language === "ru" ? "Подходящие варианты" : "Matching gifts"}
                   </span>
                 </h3>
                 <p className="text-xs text-slate-500">
-                  {language === "uz"
-                    ? "Tanlovingiz bo'yicha eng yuqori baholangan va do'konlarda mavjud mahsulotlar"
-                    : language === "ru"
-                    ? "Лучшие товары с высоким рейтингом в наличии в магазинах"
-                    : "Top-rated in-stock items curated for your specific criteria"}
+                  {language === "uz" ? "Tanlovingizga mos, sotuvda bor va yaxshi baholangan mahsulotlar" : language === "ru" ? "Товары в наличии с хорошими отзывами под ваш выбор" : "In-stock, well-reviewed products that match what you picked"}
                 </p>
               </div>
 
@@ -337,13 +321,9 @@ export default function GiftMatcherWizard() {
                 className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 group self-start sm:self-auto"
               >
                 <span>
-                  {language === "uz"
-                    ? "Barcha muqobillarni ko'rish"
-                    : language === "ru"
-                    ? "Смотреть все варианты"
-                    : "Explore All Alternatives"}
+                  {language === "uz" ? "Ko'proq variantlar" : language === "ru" ? "Больше вариантов" : "See more options"}
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 transition-transform" />
               </Link>
             </div>
 
@@ -351,21 +331,22 @@ export default function GiftMatcherWizard() {
               {matchedProducts.map((product: any, idx: number) => (
                 <div
                   key={product.id || idx}
-                  className="card-luxury bg-white rounded-3xl border border-slate-200 hover:border-indigo-300 p-4 shadow-luxury hover:shadow-luxury-hover transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1"
+                  className="card-luxury bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 p-4 shadow-sm hover:shadow-luxury-hover transition-all duration-300 flex flex-col justify-between group"
                 >
                   <div>
-                    <div className="relative h-44 rounded-2xl overflow-hidden bg-slate-100 mb-3">
+                    <div className="relative h-44 rounded-2xl overflow-hidden bg-[var(--img-well)] mb-3">
                       <img
                         src={product.imageUrl}
                         alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        loading="lazy"
+                        className="w-full h-full object-contain p-4 mix-blend-multiply transition duration-500 group-hover:scale-105"
                       />
                       <span className="absolute top-2.5 left-2.5 bg-slate-900 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">
                         {idx === 0
-                          ? language === "uz" ? "TOP TAVSIYA" : language === "ru" ? "ТОП ВЫБОР" : "TOP CHOICE"
+                          ? language === "uz" ? "Eng yaxshi" : language === "ru" ? "Лучший" : "Top pick"
                           : idx === 1
-                          ? language === "uz" ? "ENG FOYDALI" : language === "ru" ? "ЛУЧШАЯ ЦЕНА" : "BEST VALUE"
-                          : language === "uz" ? "PREMIUM" : language === "ru" ? "ПРЕМИУМ" : "PREMIUM"}
+                          ? language === "uz" ? "Narxi qulay" : language === "ru" ? "Выгодно" : "Best value"
+                          : language === "uz" ? "Premium" : language === "ru" ? "Премиум" : "Premium"}
                       </span>
                       {product.discount && (
                         <span className="absolute top-2.5 right-2.5 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -378,7 +359,7 @@ export default function GiftMatcherWizard() {
                       <div className="flex items-center justify-between text-[11px] text-slate-500">
                         <span className="font-bold text-slate-700">{product.store || "Uzum Market"}</span>
                         <span className="flex items-center gap-0.5 text-amber-500 font-bold">
-                          <Star className="w-3 h-3 fill-amber-400" />
+                          <Star className="w-3 h-3 fill-yellow-400" />
                           {product.rating || "4.8"}
                         </span>
                       </div>
@@ -388,7 +369,7 @@ export default function GiftMatcherWizard() {
                       </h4>
 
                       <div className="flex items-baseline gap-2 pt-1">
-                        <span className="font-black text-base text-slate-900">
+                        <span className="font-bold text-base text-slate-900">
                           {formatPrice(product.price, product.currency)}
                         </span>
                         {product.originalPrice && product.originalPrice > product.price && (

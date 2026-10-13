@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { reminders, auth, formatPrice } from "../lib/api";
-import { useTranslation } from "../lib/i18n";
+import { useTranslation, tr } from "../lib/i18n";
 import { useToast } from "../components/Toast";
 import {
   Calendar,
@@ -20,7 +20,7 @@ import {
   CheckCircle2,
   Search,
   Flag,
-} from "lucide-react";
+} from "../lib/icons";
 
 interface NationalHoliday {
   name: string;
@@ -30,62 +30,62 @@ interface NationalHoliday {
   tip: string;
 }
 
-const UZBEKISTAN_HOLIDAYS: NationalHoliday[] = [
+const get_UZBEKISTAN_HOLIDAYS = (): NationalHoliday[] => [
   {
-    name: "Yangi Yil Bayrami",
+    name: tr("Yangi Yil Bayrami", "Новый год", "New Year"),
     date: "01-01",
     occasion: "holiday",
     category: "national",
-    tip: "Yaqinlar, oila a'zolari va hamkasblar uchun qishki sovg'alar va shirinliklar.",
+    tip: tr("Yaqinlar, oila a'zolari va hamkasblar uchun qishki sovg'alar va shirinliklar.", "Зимние подарки и сладости для близких и коллег.", "Winter gifts and sweets for family and colleagues."),
   },
   {
-    name: "Vatan Himoyachilari Kuni",
+    name: tr("Vatan Himoyachilari Kuni", "День защитников Родины", "Defenders of the Motherland Day"),
     date: "01-14",
     occasion: "holiday",
     category: "national",
-    tip: "Erkaklar, ota-onalar va yigitlar uchun sifatli aksessuarlar, parfyumeriya va texnika.",
+    tip: tr("Erkaklar, ota-onalar va yigitlar uchun sifatli aksessuarlar, parfyumeriya va texnika.", "Аксессуары, парфюм и техника для мужчин.", "Accessories, fragrance and gadgets for men."),
   },
   {
-    name: "Xalqaro Xotin-qizlar Kuni (8-Mart)",
+    name: tr("Xalqaro Xotin-qizlar Kuni (8-Mart)", "Международный женский день (8 марта)", "International Women's Day (8 March)"),
     date: "03-08",
     occasion: "holiday",
     category: "international",
-    tip: "Onalar, opa-singillar va ayollar uchun gullar, parvarish to'plamlari va zargarlik buyumlari.",
+    tip: tr("Onalar, opa-singillar va ayollar uchun gullar, parvarish to'plamlari va zargarlik buyumlari.", "Цветы, уход и украшения для мам, сестёр и всех женщин.", "Flowers, care sets and jewellery for mothers, sisters and all women."),
   },
   {
-    name: "Navro'z Umumxalq Bayrami",
+    name: tr("Navro'z Umumxalq Bayrami", "Навруз", "Navruz"),
     date: "03-21",
     occasion: "holiday",
     category: "national",
-    tip: "Milliy shirinliklar, sumalak sovg'alari, dasturxon bezaklari va ipak liboslar.",
+    tip: tr("Milliy shirinliklar, sumalak sovg'alari, dasturxon bezaklari va ipak liboslar.", "Национальные сладости, сумаляк, украшения для дастархана и шёлк.", "Traditional sweets, sumalak, table decor and silk."),
   },
   {
-    name: "Xotira va Qadrlash Kuni",
+    name: tr("Xotira va Qadrlash Kuni", "День памяти и почестей", "Day of Remembrance and Honour"),
     date: "05-09",
     occasion: "holiday",
     category: "national",
-    tip: "Katta yoshdagi faxriylar va ota-onalar ehtiromi uchun qulaylik va salomatlik buyumlari.",
+    tip: tr("Katta yoshdagi faxriylar va ota-onalar ehtiromi uchun qulaylik va salomatlik buyumlari.", "Товары для комфорта и здоровья старшего поколения.", "Comfort and health items for older relatives and veterans."),
   },
   {
-    name: "O'zbekiston Mustaqilligi Kuni",
+    name: tr("O'zbekiston Mustaqilligi Kuni", "День независимости Узбекистана", "Uzbekistan Independence Day"),
     date: "09-01",
     occasion: "holiday",
     category: "national",
-    tip: "Yurt bayrami, yangi o'quv yili arafasidagi sovg'alar va milliy esdaliklar.",
+    tip: tr("Yurt bayrami, yangi o'quv yili arafasidagi sovg'alar va milliy esdaliklar.", "Подарки к празднику и началу учебного года, национальные сувениры.", "Holiday and back-to-school gifts, national souvenirs."),
   },
   {
-    name: "O'qituvchi va Murabbiylar Kuni",
+    name: tr("O'qituvchi va Murabbiylar Kuni", "День учителя и наставника", "Teachers' and Mentors' Day"),
     date: "10-01",
     occasion: "teacher",
     category: "national",
-    tip: "Ustozlar uchun kitoblar, xattotlik qalamlari, termos va nafis esdalik sovg'alari.",
+    tip: tr("Ustozlar uchun kitoblar, xattotlik qalamlari, termos va nafis esdalik sovg'alari.", "Книги, ручки, термосы и памятные подарки для учителей.", "Books, pens, thermoses and keepsakes for teachers."),
   },
   {
-    name: "Konstitutsiya Kuni",
+    name: tr("Konstitutsiya Kuni", "День Конституции", "Constitution Day"),
     date: "12-08",
     occasion: "holiday",
     category: "national",
-    tip: "Korporativ esdaliklar va yangi yil tayyorgarligi.",
+    tip: tr("Korporativ esdaliklar va yangi yil tayyorgarligi.", "Корпоративные сувениры и подготовка к Новому году.", "Corporate keepsakes and New Year preparations."),
   },
 ];
 
@@ -141,7 +141,7 @@ export default function RemindersPage() {
       qc.invalidateQueries({ queryKey: ["reminders"] });
       setShowAdd(false);
       setForm({ title: "", personName: "", eventType: "birthday", eventDate: "", budget: "350000", notes: "" });
-      toast.success("Eslatma saqlandi!", "Muvaffaqiyatli");
+      toast.success(tr("Eslatma saqlandi!", "Напоминание сохранено", "Reminder saved"), "Muvaffaqiyatli");
     },
   });
 
@@ -149,13 +149,13 @@ export default function RemindersPage() {
     mutationFn: (id: number) => reminders.remove(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["reminders"] });
-      toast.success("Eslatma o'chirildi", "O'chirildi");
+      toast.success(tr("Eslatma o'chirildi", "Напоминание удалено", "Reminder deleted"), tr("O'chirildi", "Удалено", "Deleted"));
     },
   });
 
   const handleCreateReminder = () => {
     if (!form.personName || !form.eventDate) {
-      toast.error("Ism va sanani kiriting!", "Xatolik");
+      toast.error(tr("Ism va sanani kiriting!", "Введите имя и дату", "Enter a name and date"), "Xatolik");
       return;
     }
 
@@ -174,13 +174,13 @@ export default function RemindersPage() {
       setLocalReminders([newLocal, ...localReminders]);
       setShowAdd(false);
       setForm({ title: "", personName: "", eventType: "birthday", eventDate: "", budget: "350000", notes: "" });
-      toast.success("Eslatma saqlandi!", "Muvaffaqiyatli");
+      toast.success(tr("Eslatma saqlandi!", "Напоминание сохранено", "Reminder saved"), "Muvaffaqiyatli");
     }
   };
 
   const handleDeleteLocal = (id: string) => {
     setLocalReminders(localReminders.filter((r) => r.id !== id));
-    toast.success("Eslatma o'chirildi", "O'chirildi");
+    toast.success(tr("Eslatma o'chirildi", "Напоминание удалено", "Reminder deleted"), tr("O'chirildi", "Удалено", "Deleted"));
   };
 
   const handleResearchForHoliday = (holiday: NationalHoliday) => {
@@ -211,36 +211,29 @@ export default function RemindersPage() {
   const currentReminders = user ? serverReminders : localReminders;
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#07080c] text-slate-900 dark:text-white py-10 px-4 sm:px-6 lg:px-8 transition-colors relative overflow-hidden animate-fade-in">
+    <div className="min-h-screen text-slate-900 dark:text-white py-10 px-4 sm:px-6 lg:px-8 transition-colors relative overflow-hidden animate-fade-in">
       {/* Artisanal Ambient Vignette & Warm Gold Lighting */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(1000px,100vw)] max-w-full h-[400px] bg-gradient-to-b from-amber-500/10 via-indigo-500/5 to-transparent blur-3xl pointer-events-none" />
-      <div className="absolute top-48 right-10 w-80 h-80 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-5xl mx-auto space-y-10 relative z-10">
         {/* Header */}
         <div className="text-center space-y-3.5 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-gold-500/20 to-amber-500/15 border border-gold-500/30 text-amber-900 dark:text-amber-300 text-xs font-black uppercase tracking-widest shadow-xs">
-            <Calendar className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-            <span>Muhim Sanalar & Sovg'a Taqvimi</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight font-display text-slate-900 dark:text-white">
-            Sovg'a Eslatmalari & <span className="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent">Bayramlar Taqvimi</span>
+          <h1 className="lux-title text-[2.4rem] sm:text-[3.2rem] text-slate-900 dark:text-white leading-[1.05]">
+            {language === "uz" ? "Eslatmalar" : language === "ru" ? "Напоминания" : "Reminders"}
           </h1>
-          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-base max-w-2xl mx-auto leading-relaxed">
-            Yaqinlaringizning tug'ilgan kunlari, yubileylari hamda O'zbekiston umumxalq bayramlarini
-            oldindan rejalashtiring. AI belgilangan byudjetingizga mos sovg'alarni o'z vaqtida topib beradi.
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-3 max-w-2xl mx-auto leading-relaxed">
+            {language === "uz" ? "Yaqinlaringizning tug'ilgan kunlari, yubileylar va bayramlarni qo'shing — vaqtida eslatamiz va byudjetingizga mos g'oyalar beramiz." : language === "ru" ? "Добавьте дни рождения, годовщины и праздники близких — мы напомним вовремя и предложим идеи под ваш бюджет." : "Add birthdays, anniversaries and holidays, and we'll remind you in time with ideas that fit your budget."}
           </p>
         </div>
 
         {/* Tab Switcher & Add Button */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] p-4 sm:p-5 rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury">
+        <div className="bg-white dark:bg-[#0b1224] flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 shadow-sm">
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={() => setActiveTab("personal")}
-              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer active:scale-95 ${
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer ${
                 activeTab === "personal"
-                  ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/25 border border-amber-500"
-                  : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-amber-200/70 dark:border-slate-800 hover:border-amber-400"
+                  ? "text-white font-bold shadow-md border border-amber-500 bg-amber-500"
+                  : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)]"
               }`}
             >
               {language === "uz"
@@ -251,19 +244,19 @@ export default function RemindersPage() {
             </button>
             <button
               onClick={() => setActiveTab("holidays")}
-              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
+              className={`flex-1 sm:flex-none px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "holidays"
-                  ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black shadow-md shadow-amber-500/25 border border-amber-500"
-                  : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-amber-200/70 dark:border-slate-800 hover:border-amber-400"
+                  ? "text-white font-bold shadow-md border border-amber-500 bg-amber-500"
+                  : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)]"
               }`}
             >
               <Flag className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
               <span>
                 {language === "uz"
-                  ? `O'zbekiston Bayramlari (${UZBEKISTAN_HOLIDAYS.length})`
+                  ? `O'zbekiston Bayramlari (${get_UZBEKISTAN_HOLIDAYS().length})`
                   : language === "ru"
-                  ? `Праздники Узбекистана (${UZBEKISTAN_HOLIDAYS.length})`
-                  : `Uzbekistan Holidays (${UZBEKISTAN_HOLIDAYS.length})`}
+                  ? `Праздники Узбекистана (${get_UZBEKISTAN_HOLIDAYS().length})`
+                  : `Uzbekistan Holidays (${get_UZBEKISTAN_HOLIDAYS().length})`}
               </span>
             </button>
           </div>
@@ -271,7 +264,7 @@ export default function RemindersPage() {
           {activeTab === "personal" && (
             <button
               onClick={() => setShowAdd(!showAdd)}
-              className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 rounded-2xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 shadow-md shadow-amber-500/25 cursor-pointer active:scale-95"
+              className="w-full sm:w-auto px-6 py-2.5 text-white rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 shadow-md cursor-pointer bg-amber-500 hover:bg-amber-400"
             >
               <Plus className="w-4 h-4 text-slate-950 stroke-[2.2]" />
               <span>
@@ -283,7 +276,7 @@ export default function RemindersPage() {
 
         {/* Add Modal / Form */}
         {showAdd && (
-          <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl p-6 sm:p-8 border-2 border-amber-300/80 dark:border-amber-500/30 shadow-luxury space-y-5 animate-fade-in text-slate-900 dark:text-white">
+          <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-8 border border-[var(--line)] dark:border-amber-500/30 shadow-sm space-y-5 animate-fade-in text-slate-900 dark:text-white">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
               {language === "uz" ? "Yangi Shaxsiy Eslatma Yaratish" : language === "ru" ? "Создать Новое Напоминание" : "Create New Personal Reminder"}
             </h3>
@@ -303,7 +296,7 @@ export default function RemindersPage() {
                   }
                   value={form.personName}
                   onChange={(e) => setForm({ ...form, personName: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
+                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
                 />
               </div>
 
@@ -314,7 +307,7 @@ export default function RemindersPage() {
                 <select
                   value={form.eventType}
                   onChange={(e) => setForm({ ...form, eventType: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
+                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
                 >
                   <option value="birthday">
                     {language === "uz" ? "Tug'ilgan kun" : language === "ru" ? "День рождения" : "Birthday"}
@@ -342,7 +335,7 @@ export default function RemindersPage() {
                   type="date"
                   value={form.eventDate}
                   onChange={(e) => setForm({ ...form, eventDate: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
+                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
                 />
               </div>
 
@@ -355,7 +348,7 @@ export default function RemindersPage() {
                   placeholder="350000"
                   value={form.budget}
                   onChange={(e) => setForm({ ...form, budget: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
+                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
                 />
               </div>
 
@@ -374,21 +367,21 @@ export default function RemindersPage() {
                   }
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
+                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-amber-100 dark:border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--line)] dark:border-slate-800">
               <button
                 onClick={() => setShowAdd(false)}
-                className="px-5 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer active:scale-95"
+                className="px-5 py-2.5 rounded-2xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition cursor-pointer"
               >
                 {language === "uz" ? "Bekor qilish" : language === "ru" ? "Отмена" : "Cancel"}
               </button>
               <button
                 onClick={handleCreateReminder}
-                className="px-6 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black rounded-2xl text-xs transition shadow-md shadow-amber-500/25 cursor-pointer active:scale-95"
+                className="px-6 py-2.5 text-white font-bold rounded-2xl text-xs transition shadow-md cursor-pointer bg-amber-500 hover:bg-amber-400"
               >
                 {language === "uz" ? "Eslatmani Saqlash" : language === "ru" ? "Сохранить Напоминание" : "Save Reminder"}
               </button>
@@ -400,21 +393,21 @@ export default function RemindersPage() {
         {activeTab === "personal" && (
           <div className="space-y-4">
             {currentReminders.length === 0 ? (
-              <div className="text-center py-16 bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 p-8 space-y-3 shadow-luxury">
+              <div className="bg-white dark:bg-[#0b1224] text-center py-16 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 p-8 space-y-3 shadow-sm">
                 <div className="w-14 h-14 rounded-2xl icon-medallion icon-box-gold flex items-center justify-center mx-auto">
                   <Cake className="w-7 h-7 text-amber-500 stroke-[2.2]" />
                 </div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                  Hali shaxsiy eslatmalar kiritilmagan
+                  {tr("Hali shaxsiy eslatmalar kiritilmagan", "Личных напоминаний пока нет", "No personal reminders yet")}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                  Yaqinlaringizning tug'ilgan kunlarini kiriting, tizim sovg'alarni oldindan tavsiya qiladi.
+                  {tr("Yaqinlaringizning tug'ilgan kunlarini kiriting, tizim sovg'alarni oldindan tavsiya qiladi.", "Добавьте дни рождения близких — мы заранее подскажем подарки.", "Add your loved ones' birthdays and we'll suggest gifts ahead of time.")}
                 </p>
                 <button
                   onClick={() => setShowAdd(true)}
-                  className="px-6 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 text-xs font-black rounded-2xl shadow-md shadow-amber-500/25 transition cursor-pointer active:scale-95"
+                  className="px-6 py-2.5 text-white text-xs font-bold rounded-2xl shadow-md transition cursor-pointer bg-amber-500 hover:bg-amber-400"
                 >
-                  Birinchi eslatmani qo'shish
+                  {tr("Birinchi eslatmani qo'shish", "Добавить первое напоминание", "Add your first reminder")}
                 </button>
               </div>
             ) : (
@@ -423,40 +416,40 @@ export default function RemindersPage() {
                   return (
                     <div
                       key={r.id}
-                      className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl p-6 border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury flex flex-col justify-between hover:border-amber-400 dark:hover:border-amber-500/40 transition space-y-4"
+                      className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 border border-[var(--line)] dark:border-amber-500/20 shadow-sm flex flex-col justify-between hover:border-[var(--line-strong)] dark:hover:border-amber-500/40 transition space-y-4"
                     >
                       <div className="space-y-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-300 font-bold border border-amber-300/70 dark:border-amber-500/30">
+                            <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold border border-[var(--line)] bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                               {r.eventType === "birthday"
                                 ? "Tug'ilgan kun"
                                 : r.eventType === "wedding"
                                 ? "To'y"
-                                : "Muhim sana"}
+                                : tr("Muhim sana", "Важная дата", "Important date")}
                             </span>
-                            <h4 className="text-lg font-black text-slate-900 dark:text-white mt-1">
+                            <h4 className="text-lg font-bold text-slate-900 dark:text-white mt-1">
                               {r.personName}
                             </h4>
                           </div>
 
                           <button
                             onClick={() => (user ? deleteMut.mutate(r.id) : handleDeleteLocal(r.id))}
-                            className="w-8 h-8 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800 text-slate-400 hover:text-rose-600 flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-95"
-                            title="O'chirish"
+                            className="w-8 h-8 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 text-slate-400 hover:text-rose-600 flex items-center justify-center transition cursor-pointer shadow-2xs"
+                            title={tr("O'chirish", "Удалить", "Delete")}
                           >
                             <Trash2 className="w-4 h-4 stroke-[2.2]" />
                           </button>
                         </div>
 
-                        <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-amber-100 dark:border-slate-800 text-xs space-y-1">
+                        <div className="p-3.5 rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-[var(--line)] dark:border-slate-800 text-xs space-y-1">
                           <div className="flex justify-between">
-                            <span className="text-slate-400 font-medium">Sana:</span>
+                            <span className="text-slate-400 font-medium">{tr("Sana:", "Дата:", "Date:")}</span>
                             <span className="font-bold text-slate-800 dark:text-slate-200">{r.eventDate}</span>
                           </div>
                           {r.budget && (
                             <div className="flex justify-between">
-                              <span className="text-slate-400 font-medium">Rejadagi byudjet:</span>
+                              <span className="text-slate-400 font-medium">{tr("Rejadagi byudjet:", "Бюджет:", "Budget:")}</span>
                               <span className="font-bold text-amber-600 dark:text-amber-400">
                                 {formatPrice(r.budget)}
                               </span>
@@ -470,17 +463,17 @@ export default function RemindersPage() {
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-amber-100 dark:border-slate-800 flex items-center justify-between">
+                      <div className="pt-3 border-t border-[var(--line)] dark:border-slate-800 flex items-center justify-between">
                         <span className="text-[11px] text-slate-400 flex items-center gap-1">
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 stroke-[2.2]" />
-                          <span>AI qidiruvi tayyor</span>
+                          <span>{tr("AI qidiruvi tayyor", "Поиск готов", "Search ready")}</span>
                         </span>
                         <button
                           onClick={() => handleResearchForReminder(r)}
-                          className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-300 hover:text-amber-900 px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-300/70 dark:border-amber-500/30 transition cursor-pointer active:scale-95 shadow-2xs"
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-800 dark:text-amber-300 hover:text-amber-900 px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-[var(--line)] dark:border-amber-500/30 transition cursor-pointer shadow-2xs"
                         >
                           <Search className="w-3.5 h-3.5 stroke-[2.2]" />
-                          <span>Sovg'a Topish</span>
+                          <span>{tr("Sovg'a Topish", "Найти подарок", "Find a gift")}</span>
                         </button>
                       </div>
                     </div>
@@ -494,14 +487,14 @@ export default function RemindersPage() {
         {/* Tab 2: National Holidays */}
         {activeTab === "holidays" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {UZBEKISTAN_HOLIDAYS.map((h, idx) => {
+            {get_UZBEKISTAN_HOLIDAYS().map((h, idx) => {
               const daysLeft = getDaysUntilHoliday(h.date);
               const isSoon = daysLeft <= 30;
 
               return (
                 <div
                   key={idx}
-                  className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl p-6 border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury flex flex-col justify-between hover:border-amber-400 dark:hover:border-amber-500/40 transition space-y-4"
+                  className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 border border-[var(--line)] dark:border-amber-500/20 shadow-sm flex flex-col justify-between hover:border-[var(--line-strong)] dark:hover:border-amber-500/40 transition space-y-4"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
@@ -514,13 +507,13 @@ export default function RemindersPage() {
                             className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
                               isSoon
                                 ? "bg-amber-500/20 text-amber-900 dark:text-amber-200 border-amber-400/80 dark:border-amber-500/40"
-                                : "bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-amber-200/70 dark:border-slate-800"
+                                : "bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 border-[var(--line)] dark:border-slate-800"
                             }`}
                           >
                             {daysLeft} kundan so'ng
                           </span>
                         </div>
-                        <h4 className="text-lg font-black text-slate-900 dark:text-white mt-1">{h.name}</h4>
+                        <h4 className="text-lg font-bold text-slate-900 dark:text-white mt-1">{h.name}</h4>
                       </div>
 
                       <div className="w-10 h-10 rounded-2xl icon-medallion icon-box-gold flex items-center justify-center shrink-0">
@@ -528,19 +521,19 @@ export default function RemindersPage() {
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-white/80 dark:bg-slate-900/80 p-3.5 rounded-2xl border border-amber-100 dark:border-slate-800">
+                    <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-white/80 dark:bg-slate-900/80 p-3.5 rounded-2xl border border-[var(--line)] dark:border-slate-800">
                       {h.tip}
                     </p>
                   </div>
 
-                  <div className="pt-3 border-t border-amber-100 dark:border-slate-800 flex items-center justify-between">
+                  <div className="pt-3 border-t border-[var(--line)] dark:border-slate-800 flex items-center justify-between">
                     <span className="text-[11px] text-slate-400">Bozor tahlili faol</span>
                     <button
                       onClick={() => handleResearchForHoliday(h)}
-                      className="inline-flex items-center gap-1.5 text-xs font-black text-slate-950 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 transition shadow-sm active:scale-95 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-white px-4 py-2 rounded-xl transition shadow-sm cursor-pointer bg-amber-500 hover:bg-amber-400"
                     >
                       <Sparkles className="w-3.5 h-3.5 text-slate-950 stroke-[2.2]" />
-                      <span>Sovg'alarni Ko'rish</span>
+                      <span>{tr("Sovg'alarni Ko'rish", "Смотреть подарки", "See gifts")}</span>
                     </button>
                   </div>
                 </div>

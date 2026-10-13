@@ -4,10 +4,31 @@ import type {
   RegistryData, RegistryItemData, WishlistData, WishlistItemData, EventReminderData, PriceTrackerData, CatalogProductItem, SubscriptionReceiptRecord 
 } from "../shared/types.js";
 import { ensureProductUrl } from "./services/urlHelper.js";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
+
+/** Password for a seeded account: from the env var, or a random one printed once to the server log. */
+function seedPassword(envVar: string, email: string): string {
+  const fromEnv = (process.env[envVar] || "").trim();
+  if (fromEnv.length >= 8) return fromEnv;
+  const generated = crypto.randomBytes(9).toString("base64url");
+  console.warn(`[Security] Password for ${email} set to a random value: ${generated}  (set ${envVar} in .env to choose your own)`);
+  return generated;
+}
+
+/** Well-known demo passwords that must never work on a real deployment. */
+const KNOWN_DEFAULT_PASSWORDS = ["admin123", "user123"];
+import { rankByRelevance, baseProductName, displayProductName } from "./services/searchRelevance.js";
 import { mongoService } from "./db/mongo.js";
 
 const DATA_DIR = path.resolve(process.cwd(), "data");
 const DB_FILE = path.join(DATA_DIR, "database.json");
+/**
+ * The product catalog (products, offers, price history) is ~20MB and rarely changes, while user data
+ * (accounts, wishlists, orders…) is tiny and changes all the time. They are saved to separate files so a
+ * user action no longer rewrites 20MB. Old single-file databases are read as before and split on the next save.
+ */
+const CATALOG_FILE = path.join(DATA_DIR, "catalog.json");
 
 export const PROHIBITED_CONTENT_REGEX = /\b(dildo|vibrator|fleshlight|butt\s*plug|porno|porn|xxx|sex\s*toy|anal\s*toy|fuck\s*toy)\b/i;
 
@@ -132,7 +153,7 @@ const SEMANTIC_CONCEPTS: ConceptMapping[] = [
   },
 ];
 
-function extractQueryBudget(query: string): number | null {
+export function extractQueryBudget(query: string): number | null {
   const q = query.toLowerCase();
   const kMatch = q.match(/(\d+(?:[.,]\d+)?)\s*k\b/i);
   if (kMatch) return Math.round(parseFloat(kMatch[1].replace(",", ".")) * 1000);
@@ -292,20 +313,55 @@ class PersistentStorage implements IStorage {
       try {
         const raw = fs.readFileSync(DB_FILE, "utf-8");
         const parsed = JSON.parse(raw);
+        if (parsed.users && !parsed.products && fs.existsSync(CATALOG_FILE)) {
+          const cat = JSON.parse(fs.readFileSync(CATALOG_FILE, "utf-8"));
+          parsed.products = cat.products || [];
+          parsed.offers = cat.offers || [];
+          parsed.priceHistory = cat.priceHistory || [];
+          this.catalogDirty = false;
+        }
         if (parsed.users && parsed.products) {
           this.loadFromObject(parsed);
+          this.secureDefaultAccounts();
           console.log(`Loaded ${this.products.size} products from persistent database: ${DB_FILE}`);
           this.initMongo();
           return;
         }
       } catch (e) {
-        console.warn("Failed to parse database.json, re-seeding verified catalog:", e);
+        // Keep a copy of the unreadable file so user data is never silently lost by re-seeding.
+        try {
+          const backup = DB_FILE.replace(/\.json$/, `.corrupt-${Date.now()}.json`);
+          fs.copyFileSync(DB_FILE, backup);
+          console.warn(`Failed to parse database.json (backup saved to ${backup}), re-seeding verified catalog:`, e);
+        } catch {
+          console.warn("Failed to parse database.json, re-seeding verified catalog:", e);
+        }
       }
     }
 
     this.seed();
     this.persist();
     this.initMongo();
+  }
+
+  /**
+   * The demo accounts admin@sovga.uz / user@sovga.uz used to ship with the passwords "admin123" / "user123",
+   * which are visible in the source code. If an account still uses one of them, change it:
+   * to ADMIN_PASSWORD / DEMO_USER_PASSWORD from .env when set, otherwise to a random password printed in the log.
+   */
+  private secureDefaultAccounts() {
+    let changed = false;
+    for (const u of this.users.values()) {
+      if (!u?.password || typeof u.password !== "string" || !u.password.startsWith("$2")) continue;
+      const usesDefault = KNOWN_DEFAULT_PASSWORDS.some((p) => {
+        try { return bcrypt.compareSync(p, u.password); } catch { return false; }
+      });
+      if (!usesDefault) continue;
+      const envVar = u.role === "admin" || u.email === "admin@sovga.uz" ? "ADMIN_PASSWORD" : "DEMO_USER_PASSWORD";
+      u.password = bcrypt.hashSync(seedPassword(envVar, u.email || u.phone || `user #${u.id}`), 10);
+      changed = true;
+    }
+    if (changed) this.persist();
   }
 
   private async initMongo() {
@@ -320,8 +376,6 @@ class PersistentStorage implements IStorage {
               const existing = this.users.get(u.id);
               if (!u.password && existing?.password) {
                 u.password = existing.password;
-              } else if (u.email === "admin@sovga.uz" && !u.password) {
-                u.password = "$2a$10$3S0L4xuK9PqHufqbvt7KHOHtKinVwwLSuA9t4o31hsS1IOougvmjG"; // admin123
               }
               const normalizedEmail = String(u.email || "").toLowerCase().trim();
               if (normalizedEmail === "baxorasaidova@gmail.com") u.role = "admin";
@@ -332,6 +386,7 @@ class PersistentStorage implements IStorage {
               }
             });
           }
+          this.secureDefaultAccounts();
           if (remoteData.registries?.length) {
             remoteData.registries.forEach((r: any) => {
               if (isProhibitedContent(r.message) || isProhibitedContent(r.slug)) return;
@@ -402,7 +457,7 @@ class PersistentStorage implements IStorage {
 
         // 2. Sync verified baseline catalog into MongoDB
         await mongoService.syncInitialData({
-          users: [...this.users.values()],
+          users: [...this.users.values()].filter((u: any) => !u.isDemo), // test accounts stay local
           products: [...this.products.values()],
           offers: [...this.offers.values()],
           registries: [...this.registries.values()],
@@ -414,16 +469,44 @@ class PersistentStorage implements IStorage {
     }
   }
 
+  private persistTimer: ReturnType<typeof setTimeout> | null = null;
+  /** True when products/offers/price history changed since catalog.json was last written. */
+  private catalogDirty = true;
+  private exitHooksInstalled = false;
+
+  /**
+   * Schedule a save. The database file is ~25MB, so writing it synchronously on
+   * every change blocked the whole server. Writes are now batched (debounced)
+   * and flushed on shutdown.
+   */
   private persist() {
+    if (!this.exitHooksInstalled) {
+      this.exitHooksInstalled = true;
+      const flush = () => this.flushNow();
+      process.once("beforeExit", flush);
+      process.once("SIGINT", () => { flush(); process.exit(0); });
+      process.once("SIGTERM", () => { flush(); process.exit(0); });
+    }
+    if (this.persistTimer) return;
+    this.persistTimer = setTimeout(() => {
+      this.persistTimer = null;
+      this.flushNow();
+    }, 1500);
+  }
+
+  /** Write the database to disk immediately, atomically (temp file + rename). */
+  flushNow() {
+    if (this.persistTimer) {
+      clearTimeout(this.persistTimer);
+      this.persistTimer = null;
+    }
     try {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
       const data = {
+        format: 2,
         users: [...this.users.values()],
-        products: [...this.products.values()],
-        offers: [...this.offers.values()],
-        priceHistory: this.priceHistory,
         priceTrackers: [...this.priceTrackers.values()],
         registries: [...this.registries.values()],
         registryItems: [...this.registryItems.values()],
@@ -435,10 +518,26 @@ class PersistentStorage implements IStorage {
         saved: [...this.saved.values()],
         orders: [...this.orders.values()],
         receipts: [...this.receipts.values()],
+        merchantProducts: [...this.merchantProducts.values()],
         nextId: this.nextId,
         lastSaved: new Date().toISOString(),
       };
-      fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), "utf-8");
+      // Catalog first, so database.json never points at a catalog that wasn't written
+      if (this.catalogDirty || !fs.existsSync(CATALOG_FILE)) {
+        const cat = {
+          products: [...this.products.values()],
+          offers: [...this.offers.values()],
+          priceHistory: this.priceHistory,
+          lastSaved: new Date().toISOString(),
+        };
+        const ctmp = `${CATALOG_FILE}.tmp`;
+        fs.writeFileSync(ctmp, JSON.stringify(cat), "utf-8");
+        fs.renameSync(ctmp, CATALOG_FILE);
+        this.catalogDirty = false;
+      }
+      const tmp = `${DB_FILE}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify(data), "utf-8");
+      fs.renameSync(tmp, DB_FILE);
     } catch (e) {
       console.error("Error saving persistent database:", e);
     }
@@ -449,11 +548,6 @@ class PersistentStorage implements IStorage {
       const normalizedEmail = String(u.email || "").toLowerCase().trim();
       if (normalizedEmail === "baxorasaidova@gmail.com") u.role = "admin";
       else if (normalizedEmail === "oriftilavkulov@gmail.com") u.role = "user";
-      if (u.email === "admin@sovga.uz" && !u.password) {
-        u.password = "$2a$10$3S0L4xuK9PqHufqbvt7KHOHtKinVwwLSuA9t4o31hsS1IOougvmjG"; // admin123
-      } else if (u.email === "user@sovga.uz" && !u.password) {
-        u.password = "$2a$10$7OCMCkUpLVDPFPUt6VSBw.sF33XLLuuvPqKdbuhjrACwTPgM3SDF6"; // user123
-      }
       this.users.set(u.id, u);
     });
     (data.products || []).forEach((p: any) => this.products.set(p.id, p));
@@ -485,6 +579,7 @@ class PersistentStorage implements IStorage {
     (data.saved || []).forEach((s: any) => this.saved.set(s.id, s));
     (data.orders || []).forEach((o: any) => this.orders.set(o.id, o));
     (data.receipts || []).forEach((r: any) => this.receipts.set(r.id, r));
+    (data.merchantProducts || []).forEach((m: any) => this.merchantProducts.set(m.id, m));
     this.nextId = data.nextId || {};
   }
 
@@ -492,12 +587,12 @@ class PersistentStorage implements IStorage {
     // ── 1. Demo Users ────────────────────────────────────────────────────────
     const admin = {
       id: this.id("users"), email: "admin@sovga.uz",
-      password: "$2a$10$3S0L4xuK9PqHufqbvt7KHOHtKinVwwLSuA9t4o31hsS1IOougvmjG", // admin123
+      password: bcrypt.hashSync(seedPassword("ADMIN_PASSWORD", "admin@sovga.uz"), 10),
       name: "Admin", role: "admin", preferredLanguage: "uz", createdAt: new Date(), updatedAt: new Date(),
     };
     const user1 = {
       id: this.id("users"), email: "user@sovga.uz",
-      password: "$2a$10$7OCMCkUpLVDPFPUt6VSBw.sF33XLLuuvPqKdbuhjrACwTPgM3SDF6", // user123
+      password: bcrypt.hashSync(seedPassword("DEMO_USER_PASSWORD", "user@sovga.uz"), 10),
       name: "Jasur Karimov", role: "user", preferredLanguage: "uz", createdAt: new Date(), updatedAt: new Date(),
     };
     this.users.set(admin.id, admin);
@@ -957,6 +1052,7 @@ class PersistentStorage implements IStorage {
         createdAt: new Date(),
       };
       this.products.set(prodId, prod);
+      this.catalogDirty = true;
 
       // Add offers
       for (const off of item.offers) {
@@ -1130,6 +1226,83 @@ class PersistentStorage implements IStorage {
     const maxBudget = options?.maxPrice || options?.budgetMax || budgetFromQuery;
     const minBudget = options?.minPrice;
 
+    // The catalog stores many generated variants of the same product ("… Partiya-2").
+    // Collapse them and keep the cheapest offer for each real product.
+    const byBase = new Map<string, { product: any; lowestOffer: any; offers: any[]; price: number | null }>();
+    for (const p of this.products.values()) {
+      const key = baseProductName(p.name).toLowerCase();
+      const offers = this.getProductOffers(p.id);
+      const lowestOffer = offers.find((o: any) => o.isLowestPrice) || offers[0];
+      const price = lowestOffer ? lowestOffer.price : (p as any).price ?? null;
+      const prev = byBase.get(key);
+      if (!prev || (price != null && (prev.price == null || price < prev.price))) {
+        byBase.set(key, { product: p, lowestOffer, offers, price });
+      }
+    }
+
+    let candidates = [...byBase.values()];
+    if (maxBudget) candidates = candidates.filter((c) => c.price == null || c.price <= maxBudget * 1.25);
+    if (minBudget) candidates = candidates.filter((c) => c.price == null || c.price >= minBudget * 0.5);
+
+    const ranked = rankByRelevance(query, candidates, (c) => ({
+      name: c.product.name,
+      brand: c.product.brand,
+      description: c.product.description,
+      category: c.product.category,
+    }), { maxRelated: 12 });
+
+    if (ranked.length === 0) {
+      // Nothing matched by type or words: fall back to occasion/concept matching ("to'y", "yangi uy")
+      const seen = new Set<string>();
+      const out: any[] = [];
+      for (const p of this.legacySearchCatalog(query, options)) {
+        const k = baseProductName(p.name).toLowerCase();
+        if (seen.has(k)) continue;
+        seen.add(k);
+        out.push({ ...p, name: displayProductName(p.name, p.brand) });
+        if (out.length >= 60) break;
+      }
+      return out;
+    }
+
+    // Within the same relevance score, cheaper and in-budget first
+    ranked.sort((a, b) => {
+      if (a.strong !== b.strong) return a.strong ? -1 : 1;
+      if (b.score !== a.score) return b.score - a.score;
+      return (a.item.price ?? Infinity) - (b.item.price ?? Infinity);
+    });
+
+    return ranked.map(({ item }) => {
+      const { product: p, lowestOffer, offers } = item;
+      return {
+        ...p,
+        name: displayProductName(p.name, p.brand),
+        offers,
+        price: lowestOffer ? lowestOffer.price : null,
+        originalPrice: lowestOffer ? lowestOffer.originalPrice : null,
+        currency: lowestOffer ? lowestOffer.currency : "UZS",
+        store: lowestOffer ? lowestOffer.store : "Uzbekistan Store",
+        url: lowestOffer
+          ? ensureProductUrl(p.name, lowestOffer.store, lowestOffer.url, query)
+          : ensureProductUrl(p.name, "Uzum Market", null, query),
+        discount: lowestOffer ? lowestOffer.discount : null,
+        availability: lowestOffer ? lowestOffer.availability : null,
+        rating: lowestOffer ? lowestOffer.rating : null,
+        reviewCount: lowestOffer ? lowestOffer.reviewCount : null,
+        verified: lowestOffer ? lowestOffer.verified : true,
+        installment: lowestOffer ? lowestOffer.installment : null,
+      };
+    });
+  }
+
+  private legacySearchCatalog(query: string, options?: any) {
+    const qLower = (query || "").toLowerCase().trim();
+    if (!qLower) return this.getProducts(options?.limit || 20);
+
+    const budgetFromQuery = extractQueryBudget(qLower);
+    const maxBudget = options?.maxPrice || options?.budgetMax || budgetFromQuery;
+    const minBudget = options?.minPrice;
+
     // Detect matched concept keywords
     const matchedConceptKeywords = new Set<string>();
     for (const concept of SEMANTIC_CONCEPTS) {
@@ -1234,7 +1407,27 @@ class PersistentStorage implements IStorage {
         limit: params.limit || 100,
       });
     } else {
-      list = this.getProducts(params.limit || 200);
+      // Filter the whole catalog first and limit last; limiting first hid every category but phones.
+      list = this.getUniqueCatalog();
+      if (!params.sort && (!params.category || params.category === "All")) {
+        // Mix categories so the first page isn't only phones
+        const byCat = new Map<string, any[]>();
+        for (const p of list) {
+          const k = p.category || "Other";
+          if (!byCat.has(k)) byCat.set(k, []);
+          byCat.get(k)!.push(p);
+        }
+        const queues = [...byCat.values()];
+        const mixed: any[] = [];
+        for (let i = 0; mixed.length < list.length; i++) {
+          let added = false;
+          for (const q of queues) if (i < q.length) { mixed.push(q[i]); added = true; }
+          if (!added) break;
+        }
+        list = mixed;
+      } else {
+        list = [...list];
+      }
     }
 
     if (params.category && params.category !== "All") {
@@ -1270,9 +1463,43 @@ class PersistentStorage implements IStorage {
     return list.slice(0, params.limit || 50);
   }
 
+  private uniqueCatalogCache: { size: number; list: any[] } | null = null;
+
+  /** One entry per real product (generated variants collapsed), priced at its cheapest offer. */
+  private getUniqueCatalog(): any[] {
+    if (this.uniqueCatalogCache && this.uniqueCatalogCache.size === this.products.size) return this.uniqueCatalogCache.list;
+    const byBase = new Map<string, { p: any; offers: any[]; lowestOffer: any; price: number | null }>();
+    for (const p of this.products.values()) {
+      const key = baseProductName(p.name).toLowerCase();
+      const offers = this.getProductOffers(p.id);
+      const lowestOffer = offers.find((o: any) => o.isLowestPrice) || offers[0];
+      const price = lowestOffer ? lowestOffer.price : null;
+      const prev = byBase.get(key);
+      if (!prev || (price != null && (prev.price == null || price < prev.price))) byBase.set(key, { p, offers, lowestOffer, price });
+    }
+    const list = [...byBase.values()].map(({ p, offers, lowestOffer }) => ({
+      ...p,
+      name: displayProductName(p.name, p.brand),
+      offers,
+      price: lowestOffer ? lowestOffer.price : null,
+      originalPrice: lowestOffer ? lowestOffer.originalPrice : null,
+      currency: lowestOffer ? lowestOffer.currency : "UZS",
+      store: lowestOffer ? lowestOffer.store : "Uzbekistan Store",
+      url: lowestOffer ? ensureProductUrl(p.name, lowestOffer.store, lowestOffer.url) : ensureProductUrl(p.name, "Uzum Market"),
+      discount: lowestOffer ? lowestOffer.discount : null,
+      availability: lowestOffer ? lowestOffer.availability : null,
+      rating: lowestOffer ? lowestOffer.rating : null,
+      reviewCount: lowestOffer ? lowestOffer.reviewCount : null,
+      verified: lowestOffer ? lowestOffer.verified : true,
+      installment: lowestOffer ? lowestOffer.installment : null,
+    }));
+    this.uniqueCatalogCache = { size: this.products.size, list };
+    return list;
+  }
+
   getCategories(): { name: string; count: number; icon: string }[] {
     const counts: Record<string, number> = {};
-    for (const p of this.products.values()) {
+    for (const p of this.getUniqueCatalog()) {
       if (p.category) {
         counts[p.category] = (counts[p.category] || 0) + 1;
       }
@@ -1309,6 +1536,7 @@ class PersistentStorage implements IStorage {
   }
 
   recordPriceObservation(productId: number, store: string, price: number) {
+    this.catalogDirty = true;
     this.priceHistory.push({
       id: this.id("priceHistory"),
       productId,
@@ -1430,10 +1658,10 @@ class PersistentStorage implements IStorage {
     const item = this.registryItems.get(data.itemId);
     if (item) {
       if (item.isCashGoal && data.cashAmount) {
-        item.cashCollected = (item.cashCollected || 0) + data.cashAmount;
+        item.cashCollected = (Number(item.cashCollected) || 0) + (Number(data.cashAmount) || 0);
       } else {
-        item.quantityFulfilled = (item.quantityFulfilled || 0) + (data.quantity || 1);
-        if (item.quantityFulfilled >= item.quantity) item.status = "reserved";
+        item.quantityFulfilled = (Number(item.quantityFulfilled) || 0) + (Number(data.quantity) || 1);
+        if (item.quantityFulfilled >= (Number(item.quantity) || 1)) item.status = "reserved";
       }
     }
     this.persist();
@@ -1467,6 +1695,7 @@ class PersistentStorage implements IStorage {
   }
 
   // ── Wishlist Items ─────────────────────────────────────────────────────────
+  getWishlistItemById(id: number) { return this.wishlistItems.get(id) || null; }
   getWishlistItems(wishlistId: number) { return [...this.wishlistItems.values()].filter((i) => i.wishlistId === wishlistId); }
   createWishlistItem(data: any) {
     const i = { id: this.id("wishlistItems"), ...data, purchased: false, createdAt: new Date() };
@@ -1680,7 +1909,7 @@ class PersistentStorage implements IStorage {
       user.role = role;
       this.users.set(userId, user);
       this.persist();
-      mongoService.saveUser(user).catch(() => {});
+      if (!user.isDemo) mongoService.saveUser(user).catch(() => {});
     }
   }
 
@@ -1690,12 +1919,44 @@ class PersistentStorage implements IStorage {
     const updated = { ...user, ...fields, updatedAt: new Date() };
     this.users.set(userId, updated);
     this.persist();
-    mongoService.saveUser(updated).catch(() => {});
+    if (!updated.isDemo) mongoService.saveUser(updated).catch(() => {});
     return updated;
+  }
+
+  /** Test accounts for checking the admin panel. Kept only in the local file (never synced to MongoDB). */
+  createDemoUsers(rows: any[]): number {
+    for (const r of rows) {
+      const id = this.id("users");
+      this.users.set(id, { ...r, id, isDemo: true });
+    }
+    this.persist();
+    return rows.length;
+  }
+
+  deleteDemoUsers(): number {
+    let n = 0;
+    for (const [id, u] of [...this.users]) {
+      if (u.isDemo) {
+        this.users.delete(id);
+        n++;
+      }
+    }
+    if (n) this.persist();
+    return n;
   }
 
   deleteUser(userId: number): boolean {
     const existed = this.users.delete(userId);
+    if (existed) {
+      for (const r of [...this.registries.values()]) if (r.userId === userId) this.deleteRegistry(r.id);
+      for (const w of [...this.wishlists.values()]) if (w.userId === userId) this.deleteWishlist(w.id);
+      for (const [k, v] of this.reminders) if (v.userId === userId) this.reminders.delete(k);
+      for (const [k, v] of this.saved) if (v.userId === userId) this.saved.delete(k);
+      for (const [k, v] of this.priceTrackers) if (v.userId === userId) this.priceTrackers.delete(k);
+      for (const [k, v] of this.merchantProducts) if (v.userId === userId) this.merchantProducts.delete(k);
+      for (const o of this.orders.values()) if (o.userId === userId) o.userId = null;
+      for (const sRec of this.searches) if (sRec.userId === userId) sRec.userId = null;
+    }
     if (existed) {
       this.persist();
       mongoService.deleteUser(userId).catch(() => {});
@@ -1736,7 +1997,7 @@ class PersistentStorage implements IStorage {
     if (reason) record.reason = reason;
     if (status === "verified") {
       record.verifiedAt = new Date().toISOString();
-      this.updateUserRole(record.userId, "pro");
+      // the route activates the paid plan (see planService.activatePlan)
     }
     this.receipts.set(id, record);
     this.persist();

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigation, Clock, ShieldCheck, MapPin, Truck, CheckCircle2, ArrowUpRight, Zap } from "lucide-react";
+import { Navigation, Clock, ShieldCheck, MapPin, Truck, CheckCircle2, ArrowUpRight, Zap } from "../lib/icons";
 import { Link } from "wouter";
 import { useTranslation } from "../lib/i18n";
 
@@ -69,22 +69,12 @@ export default function TashkentHubRadar() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-6 border-b border-slate-100">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-bold uppercase tracking-wider mb-2">
-              <Navigation className="w-3.5 h-3.5 text-cyan-400" />
-              <span>
-                {language === "uz"
-                  ? "Toshkent Logistika & Yetkazish Radari"
-                  : language === "ru"
-                  ? "Радар Логистики и Доставки в Ташкенте"
-                  : "Tashkent Logistics & Fulfillment Radar"}
-              </span>
-            </div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 tracking-tight">
+            <h2 className="font-display font-bold text-2xl sm:text-3xl text-slate-900 tracking-tight">
               {language === "uz"
                 ? "Real Vaqt Rejimida Ombor & Kuryer Telemetriyasi"
                 : language === "ru"
                 ? "Телеметрия Складов и Курьеров в Реальном Времени"
-                : "Real-Time Warehouse & Courier Telemetry"}
+                : "Warehouses and couriers"}
             </h2>
           </div>
 
@@ -143,7 +133,7 @@ export default function TashkentHubRadar() {
         </div>
 
         {/* Selected Hub Telemetry Detail Box */}
-        <div className="p-6 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 text-white border border-slate-800 space-y-4">
+        <div className="p-6 rounded-2xl text-white border border-slate-800 space-y-4 bg-slate-900">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <div className="flex items-center gap-2">

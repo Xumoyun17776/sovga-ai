@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { cyberSound } from "./cyberSound";
 
+/** Light (default) or night mode. The choice is remembered per browser; index.html applies it before first paint. */
 export type Theme = "light" | "dark";
 
 interface ThemeState {
@@ -10,54 +10,36 @@ interface ThemeState {
   setTheme: (theme: Theme) => void;
 }
 
-function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  try {
-    const saved = localStorage.getItem("sovga_theme");
-    if (saved === "dark" || saved === "light") return saved;
-    // Fall back to system preference or default dark
-    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
-  } catch {}
-  // Default to cyber-luxury dark mode for the premium experience
-  return "dark";
-}
+const KEY = "sovga_theme";
 
-function applyThemeClass(theme: Theme) {
-  if (typeof document === "undefined") return;
-  const root = document.documentElement;
-  if (theme === "dark") {
-    root.classList.add("dark");
-  } else {
-    root.classList.remove("dark");
+function readStored(): Theme {
+  try {
+    return localStorage.getItem(KEY) === "dark" ? "dark" : "light";
+  } catch {
+    return "light";
   }
 }
 
-// Immediately execute on load
-if (typeof window !== "undefined") {
-  const initial = getInitialTheme();
-  applyThemeClass(initial);
+function apply(theme: Theme) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  root.classList.toggle("dark", theme === "dark");
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", theme === "dark" ? "#0A1020" : "#FFFFFF");
+  try {
+    localStorage.setItem(KEY, theme);
+  } catch {}
 }
 
+const initial: Theme = typeof window === "undefined" ? "light" : readStored();
+apply(initial);
+
 export const useTheme = create<ThemeState>((set, get) => ({
-  theme: getInitialTheme(),
-  isDark: getInitialTheme() === "dark",
-  setTheme: (theme: Theme) => {
-    try {
-      localStorage.setItem("sovga_theme", theme);
-    } catch {}
-    applyThemeClass(theme);
+  theme: initial,
+  isDark: initial === "dark",
+  setTheme: (theme) => {
+    apply(theme);
     set({ theme, isDark: theme === "dark" });
   },
-  toggleTheme: () => {
-    const current = get().theme;
-    const next: Theme = current === "dark" ? "light" : "dark";
-    try {
-      localStorage.setItem("sovga_theme", next);
-    } catch {}
-    applyThemeClass(next);
-    cyberSound.playClick(1400);
-    set({ theme: next, isDark: next === "dark" });
-  },
+  toggleTheme: () => get().setTheme(get().theme === "dark" ? "light" : "dark"),
 }));

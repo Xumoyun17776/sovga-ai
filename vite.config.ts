@@ -19,6 +19,17 @@ export default defineConfig({
   build: {
     outDir: path.resolve(__dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Long-lived vendor chunks: they change rarely, so returning visitors keep them cached.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/.test(id)) return "vendor-react";
+          if (id.includes("@tanstack") || id.includes("wouter") || id.includes("zustand")) return "vendor-data";
+          if (id.includes("@phosphor-icons")) return "vendor-icons";
+        },
+      },
+    },
   },
   server: {
     allowedHosts: true,

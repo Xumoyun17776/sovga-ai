@@ -17,7 +17,7 @@ import {
   Calendar,
   Gift,
   ExternalLink,
-} from "lucide-react";
+} from "../lib/icons";
 import { cyberSound } from "../lib/cyberSound";
 
 export default function PitchDeckPage() {
@@ -81,20 +81,18 @@ export default function PitchDeckPage() {
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col justify-between relative selection:bg-amber-500 selection:text-black">
       {/* Glow Effects */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Bar */}
       <header className="px-6 py-4 border-b border-slate-800/80 bg-[#090b12]/90 backdrop-blur-md sticky top-0 z-50 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-600 via-amber-400 to-yellow-300 flex items-center justify-center shadow-lg shadow-amber-500/20 font-black text-slate-950 text-base">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm font-bold text-white text-base bg-amber-600">
               🎁
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold tracking-tight text-white text-base">Sovg'a AI</span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-400 border border-amber-500/20">
+                <span className="font-semibold tracking-tight text-white text-base">Sovg'a AI</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold border bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                   Investor Deck
                 </span>
               </div>
@@ -107,7 +105,7 @@ export default function PitchDeckPage() {
         <div className="hidden md:flex items-center gap-4">
           <div className="w-48 bg-slate-800 rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-gradient-to-r from-amber-500 to-amber-300 h-full transition-all duration-300"
+              className="h-full transition-all duration-300 bg-amber-500"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -128,7 +126,7 @@ export default function PitchDeckPage() {
           </button>
           <Link
             href="/"
-            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition text-xs flex items-center gap-1"
+            className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-white font-bold transition text-xs flex items-center gap-1"
           >
             <span>Live Site</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -141,14 +139,9 @@ export default function PitchDeckPage() {
         {/* SLIDE 1: Vision */}
         {currentSlide === 1 && (
           <div className="text-center py-6 w-full max-w-4xl mx-auto space-y-8 animate-fadeIn">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Pre-Seed / Seed Round • Ask: $200,000</span>
-            </div>
-
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="lux-title text-[2.4rem] sm:text-6xl md:text-7xl text-white leading-tight">
               The Independent AI Gifting Concierge & <br />
-              <span className="bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 bg-clip-text text-transparent font-serif italic">
+              <span className="font-serif italic text-amber-700 dark:text-amber-400">
                 E-Commerce Intelligence Layer
               </span>{" "}
               for Central Asia
@@ -160,22 +153,22 @@ export default function PitchDeckPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left pt-4">
               <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 border-l-4 border-l-amber-400">
-                <div className="text-2xl font-black text-white">37M+</div>
+                <div className="text-2xl font-bold text-white">37M+</div>
                 <div className="text-xs text-slate-400 mt-1">Population in Uzbekistan</div>
                 <div className="text-[11px] text-amber-400 mt-2 font-semibold">60% under age 30</div>
               </div>
               <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 border-l-4 border-l-emerald-400">
-                <div className="text-2xl font-black text-white">$1.4B</div>
+                <div className="text-2xl font-bold text-white">$1.4B</div>
                 <div className="text-xs text-slate-400 mt-1">Retail & Gifting TAM</div>
                 <div className="text-[11px] text-emerald-400 mt-2 font-semibold">Growing 35%+ CAGR</div>
               </div>
               <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 border-l-4 border-l-blue-400">
-                <div className="text-2xl font-black text-white">100%</div>
+                <div className="text-2xl font-bold text-white">100%</div>
                 <div className="text-xs text-slate-400 mt-1">Platform Independence</div>
                 <div className="text-[11px] text-blue-400 mt-2 font-semibold">No marketplace bias</div>
               </div>
               <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 border-l-4 border-l-purple-400">
-                <div className="text-2xl font-black text-white">1-Click</div>
+                <div className="text-2xl font-bold text-white">1-Click</div>
                 <div className="text-xs text-slate-400 mt-1">White-Glove Fulfillment</div>
                 <div className="text-[11px] text-purple-400 mt-2 font-semibold">Calligraphy & boxes</div>
               </div>
@@ -188,7 +181,7 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">The Market Failure</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">Three Compounded Hurdles in Central Asian Shopping</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">Three Compounded Hurdles in Central Asian Shopping</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -245,7 +238,7 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">The Innovation</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">An Objective Fiduciary & AI Shopping Concierge</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">An Objective Fiduciary & AI Shopping Concierge</h2>
             </div>
 
             <div className="p-6 rounded-2xl bg-slate-900/80 border border-amber-500/30">
@@ -256,7 +249,7 @@ export default function PitchDeckPage() {
                   <p className="text-xs text-slate-400 mt-1 italic">"Kelin salom sovg'asi, 600 ming so'm byudjet, nafis oshxona jihozi"</p>
                 </div>
                 <div className="flex flex-col items-center justify-center text-amber-400">
-                  <ArrowRight className="w-6 h-6 animate-pulse hidden md:block" />
+                  <ArrowRight className="w-6 h-6 hidden md:block" />
                   <span className="text-[10px] uppercase font-bold tracking-wider mt-1">AI Cultural Engine</span>
                 </div>
                 <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800">
@@ -267,7 +260,7 @@ export default function PitchDeckPage() {
                     <div className="flex justify-between text-emerald-400 font-bold"><span>Texnomart:</span> <span>480k UZS (Best)</span></div>
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-amber-950/40 to-slate-950 p-4 rounded-xl border border-amber-500/30">
+                <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-950/40">
                   <span className="text-[10px] font-bold text-emerald-400 uppercase">Dual Execution</span>
                   <h4 className="text-sm font-bold text-white mt-1">1-Click Order or Redirect</h4>
                   <p className="text-xs text-slate-300 mt-1">Direct in-app fulfillment with custom calligraphy & door delivery.</p>
@@ -306,7 +299,7 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Macro Tailwinds</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">Why Now? The 4 Inflection Points</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">Why Now? The 4 Inflection Points</h2>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -355,13 +348,13 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-blue-400 uppercase tracking-wider">Opportunity</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">Realistic Market Sizing (Zero Vanity Numbers)</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">Realistic Market Sizing (Zero Vanity Numbers)</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800">
                 <div className="text-xs font-bold uppercase text-slate-400 tracking-wider">TAM</div>
-                <div className="text-3xl font-extrabold text-white mt-2">$1.4 Billion</div>
+                <div className="text-3xl font-semibold text-white mt-2">$1.4 Billion</div>
                 <div className="text-xs text-blue-400 font-medium mt-1">Total Addressable Market</div>
                 <p className="text-xs text-slate-300 mt-4 leading-relaxed">
                   Total annual consumer spending across e-commerce, gadgets, appliances, cosmetics, and gifting retail in Uzbekistan.
@@ -370,7 +363,7 @@ export default function PitchDeckPage() {
 
               <div className="p-6 rounded-2xl bg-slate-900/80 border border-indigo-500/40 border-t-2 border-t-indigo-400">
                 <div className="text-xs font-bold uppercase text-indigo-400 tracking-wider">SAM</div>
-                <div className="text-3xl font-extrabold text-white mt-2">$280 Million</div>
+                <div className="text-3xl font-semibold text-white mt-2">$280 Million</div>
                 <div className="text-xs text-indigo-300 font-medium mt-1">Serviceable Addressable Market</div>
                 <p className="text-xs text-slate-300 mt-4 leading-relaxed">
                   Online addressable gifting, wedding registries, seasonal holiday tokens, and lifestyle electronics purchased digitally.
@@ -379,7 +372,7 @@ export default function PitchDeckPage() {
 
               <div className="p-6 rounded-2xl bg-amber-950/30 border border-amber-500/40 border-t-2 border-t-amber-400">
                 <div className="text-xs font-bold uppercase text-amber-400 tracking-wider">SOM (Year 3)</div>
-                <div className="text-3xl font-extrabold text-amber-300 mt-2">$18 Million</div>
+                <div className="text-3xl font-semibold text-amber-300 mt-2">$18 Million</div>
                 <div className="text-xs text-amber-200 font-medium mt-1">Serviceable Obtainable Market</div>
                 <p className="text-xs text-slate-300 mt-4 leading-relaxed">
                   Capturing 6.4% of digital gifting GMV through affiliate referrals and white-glove direct concierge order execution.
@@ -398,7 +391,7 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Execution</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">Not A Concept — A Fully Functioning Platform</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">Not A Concept — A Fully Functioning Platform</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
@@ -427,12 +420,12 @@ export default function PitchDeckPage() {
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">24 Routes Active</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200">💎 Luxury Curated Showcase</div>
-                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200">🔍 Real-Time Price Duel</div>
-                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200">💍 Wedding Registry Rails</div>
-                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200">📜 Calligraphy Studio</div>
-                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200">📦 Packaging Studio</div>
-                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200">👥 Group Gifting Splitter</div>
+                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200"> Luxury Curated Showcase</div>
+                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200"> Real-Time Price Duel</div>
+                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200"> Wedding Registry Rails</div>
+                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200"> Calligraphy Studio</div>
+                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200"> Packaging Studio</div>
+                  <div className="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200"> Group Gifting Splitter</div>
                 </div>
                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
                   Running locally on port 3000 with 100% test coverage and zero console lints.
@@ -447,28 +440,28 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Monetization</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">3-Pillar Revenue Model & Unit Economics</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">3-Pillar Revenue Model & Unit Economics</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
                 <div className="text-xs font-bold text-blue-400">Pillar 1</div>
                 <h4 className="text-base font-bold text-white mt-1">Affiliate Referral CPA</h4>
-                <div className="text-2xl font-black text-white mt-2">3% - 6%</div>
+                <div className="text-2xl font-bold text-white mt-2">3% - 6%</div>
                 <p className="text-xs text-slate-300 mt-2">Paid by partner stores for high-intent traffic converted on their platforms.</p>
               </div>
 
               <div className="p-5 rounded-2xl bg-amber-950/30 border border-amber-500/40">
                 <div className="text-xs font-bold text-amber-400">Pillar 2 (Core GMV)</div>
                 <h4 className="text-base font-bold text-white mt-1">White-Glove Direct Order</h4>
-                <div className="text-2xl font-black text-amber-300 mt-2">10% - 18%</div>
+                <div className="text-2xl font-bold text-amber-300 mt-2">10% - 18%</div>
                 <p className="text-xs text-slate-300 mt-2">Procurement arbitrage + luxury gift box packaging + express delivery.</p>
               </div>
 
               <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800">
                 <div className="text-xs font-bold text-emerald-400">Pillar 3</div>
                 <h4 className="text-base font-bold text-white mt-1">B2B Corporate Gifting</h4>
-                <div className="text-2xl font-black text-white mt-2">$1k - $15k</div>
+                <div className="text-2xl font-bold text-white mt-2">$1k - $15k</div>
                 <p className="text-xs text-slate-300 mt-2">Turnkey employee & client gifting packages for banks, IT companies, and telecoms.</p>
               </div>
             </div>
@@ -493,7 +486,7 @@ export default function PitchDeckPage() {
                 </div>
                 <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-xl">
                   <div className="text-[10px] text-emerald-400 uppercase">Net Margin / Order</div>
-                  <div className="text-base font-extrabold text-emerald-300 mt-1">+75k UZS (11.5%)</div>
+                  <div className="text-base font-semibold text-emerald-300 mt-1">+75k UZS (11.5%)</div>
                 </div>
               </div>
             </div>
@@ -505,7 +498,7 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">Defensibility</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">Why Competitors Cannot Kill Us: The Neutrality Trap</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">Why Competitors Cannot Kill Us: The Neutrality Trap</h2>
             </div>
 
             <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 overflow-x-auto">
@@ -521,33 +514,33 @@ export default function PitchDeckPage() {
                 <tbody className="divide-y divide-slate-800 text-slate-300">
                   <tr>
                     <td className="py-2.5 font-medium">Objective cross-store price comparison</td>
-                    <td className="text-center text-rose-400">❌ Impossible</td>
-                    <td className="text-center text-rose-400">❌ Impossible</td>
-                    <td className="text-center text-emerald-400 font-bold">✅ Yes (100% Unbiased)</td>
+                    <td className="text-center text-rose-400"> Impossible</td>
+                    <td className="text-center text-rose-400"> Impossible</td>
+                    <td className="text-center text-emerald-400 font-bold"> Yes (100% Unbiased)</td>
                   </tr>
                   <tr>
                     <td className="py-2.5 font-medium">Cultural AI etiquette recommendations</td>
-                    <td className="text-center text-rose-400">❌ Keyword only</td>
-                    <td className="text-center text-rose-400">❌ Keyword only</td>
-                    <td className="text-center text-emerald-400 font-bold">✅ Yes (Deep Uzbek context)</td>
+                    <td className="text-center text-rose-400"> Keyword only</td>
+                    <td className="text-center text-rose-400"> Keyword only</td>
+                    <td className="text-center text-emerald-400 font-bold"> Yes (Deep Uzbek context)</td>
                   </tr>
                   <tr>
                     <td className="py-2.5 font-medium">Cross-provider Halol Nasiya / BNPL search</td>
-                    <td className="text-center text-slate-400">⚠️ Uzum Nasiya only</td>
-                    <td className="text-center text-slate-400">⚠️ Proprietary only</td>
-                    <td className="text-center text-emerald-400 font-bold">✅ Yes (Multi-bank comparison)</td>
+                    <td className="text-center text-slate-400"> Uzum Nasiya only</td>
+                    <td className="text-center text-slate-400"> Proprietary only</td>
+                    <td className="text-center text-emerald-400 font-bold"> Yes (Multi-bank comparison)</td>
                   </tr>
                   <tr>
                     <td className="py-2.5 font-medium">Custom calligraphy card & velvet gift box</td>
-                    <td className="text-center text-rose-400">❌ Plastic package</td>
-                    <td className="text-center text-rose-400">❌ Brown cardboard</td>
-                    <td className="text-center text-emerald-400 font-bold">✅ Yes (In-house Packaging Hub)</td>
+                    <td className="text-center text-rose-400"> Plastic package</td>
+                    <td className="text-center text-rose-400"> Brown cardboard</td>
+                    <td className="text-center text-emerald-400 font-bold"> Yes (In-house Packaging Hub)</td>
                   </tr>
                   <tr>
                     <td className="py-2.5 font-medium">Peer-to-peer wedding & wishlist sharing</td>
-                    <td className="text-center text-rose-400">❌ No social virality</td>
-                    <td className="text-center text-rose-400">❌ No social virality</td>
-                    <td className="text-center text-emerald-400 font-bold">✅ Yes (Telegram-native links)</td>
+                    <td className="text-center text-rose-400"> No social virality</td>
+                    <td className="text-center text-rose-400"> No social virality</td>
+                    <td className="text-center text-emerald-400 font-bold"> Yes (Telegram-native links)</td>
                   </tr>
                 </tbody>
               </table>
@@ -564,7 +557,7 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Growth Engine</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">GTM & The Social Registry Flywheel (K-Factor &gt; 1.2)</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">GTM & The Social Registry Flywheel (K-Factor &gt; 1.2)</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -615,7 +608,7 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-rose-400 uppercase tracking-wider">Risk Mitigation</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">Addressing The Hardest Investor Questions</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">Addressing The Hardest Investor Questions</h2>
             </div>
 
             <div className="space-y-4">
@@ -657,7 +650,7 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">Milestones</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">18-Month Execution Roadmap</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">18-Month Execution Roadmap</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -702,7 +695,7 @@ export default function PitchDeckPage() {
           <div className="w-full max-w-5xl mx-auto space-y-6">
             <div>
               <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Fundraising</span>
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white mt-1">The Ask: $200,000 for 18 Months Runway</h2>
+              <h2 className="text-2xl sm:text-4xl font-semibold text-white mt-1">The Ask: $200,000 for 18 Months Runway</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
@@ -758,21 +751,21 @@ export default function PitchDeckPage() {
                   <span className="text-xs font-bold text-amber-400 uppercase">18-Month Deliverables</span>
                   <div className="space-y-4 mt-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-xs">✓</div>
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">✓</div>
                       <div>
                         <div className="text-sm font-bold text-white">120,000+ Monthly Active Users</div>
                         <div className="text-[11px] text-slate-400">Driven by organic wedding and birthday registries</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-xs">✓</div>
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">✓</div>
                       <div>
                         <div className="text-sm font-bold text-white">$2.4M Annualized GMV Run-rate</div>
                         <div className="text-[11px] text-slate-400">Blended across affiliate redirects and direct orders</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-black flex items-center justify-center text-xs">✓</div>
+                      <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">✓</div>
                       <div>
                         <div className="text-sm font-bold text-white">$180,000 Annual Net Revenue</div>
                         <div className="text-[11px] text-slate-400">Cash-flow positive on direct order unit economics</div>
@@ -784,7 +777,7 @@ export default function PitchDeckPage() {
                 <div className="pt-4 border-t border-slate-800 text-center">
                   <Link
                     href="/"
-                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white font-bold text-xs shadow-sm transition cursor-pointer bg-amber-500 hover:bg-amber-400"
                   >
                     <span>Try Live Working Platform</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -802,7 +795,7 @@ export default function PitchDeckPage() {
           <button
             onClick={prevSlide}
             disabled={currentSlide === 1}
-            className="p-2 sm:px-4 sm:py-2 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/60 text-slate-300 hover:text-white transition cursor-pointer text-xs flex items-center gap-1.5 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-2 sm:px-4 sm:py-2 rounded-xl border border-slate-800 hover:border-slate-700 bg-slate-900/60 text-slate-300 hover:text-white transition cursor-pointer text-xs flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-4 h-4" />
             <span className="hidden sm:inline font-semibold">Previous</span>
@@ -811,7 +804,7 @@ export default function PitchDeckPage() {
           <button
             onClick={nextSlide}
             disabled={currentSlide === totalSlides}
-            className="p-2 sm:px-4 sm:py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 transition cursor-pointer text-xs flex items-center gap-1.5 font-bold shadow-md shadow-amber-500/20 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="p-2 sm:px-4 sm:py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white transition cursor-pointer text-xs flex items-center gap-1.5 font-bold shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span className="hidden sm:inline">Next Slide</span>
             <ChevronRight className="w-4 h-4" />
@@ -826,7 +819,7 @@ export default function PitchDeckPage() {
               onClick={() => goToSlide(num)}
               className={`h-2.5 sm:h-3 rounded-full transition-all duration-300 cursor-pointer ${
                 num === currentSlide
-                  ? "w-6 sm:w-8 bg-amber-400 shadow-sm shadow-amber-400/50"
+                  ? "w-6 sm:w-8 bg-amber-400 shadow-sm"
                   : "w-2.5 sm:w-3 bg-slate-700 hover:bg-slate-500"
               }`}
               title={`Slide ${num}`}

@@ -36,7 +36,7 @@ export default function GlobalLoadingBar() {
   return (
     <div className="fixed top-0 left-0 w-full h-[3px] z-[9999] pointer-events-none">
       <div 
-        className="h-full bg-gradient-to-r from-amber-400 via-rose-500 to-indigo-600 shadow-[0_0_10px_rgba(245,158,11,0.5)] transition-all ease-out"
+        className="h-full transition-all ease-out bg-amber-400"
         style={{ 
           width: `${progress}%`,
           transitionDuration: progress === 100 ? "300ms" : "150ms" 

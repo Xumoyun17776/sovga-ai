@@ -11,7 +11,7 @@ import {
   Flame,
   ShieldCheck,
   Eye,
-} from "lucide-react";
+} from "../lib/icons";
 import { useTranslation } from "../lib/i18n";
 import { formatPrice } from "../lib/api";
 import { cyberSound } from "../lib/cyberSound";
@@ -171,32 +171,29 @@ export default function PersonalizedRecommendations() {
   };
 
   return (
-    <section className="py-8 animate-fade-in">
+    <section className="reveal py-8 animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100/90 dark:bg-amber-500/10 border border-amber-300/80 dark:border-amber-500/20 text-amber-900 dark:text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>{language === "uz" ? "Shaxsiy AI Tavsiyalar" : language === "ru" ? "Персональные Рекомендации AI" : "Curated AI Recommendations"}</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-display font-black text-slate-900 dark:text-white tracking-tight">
-              {language === "uz" ? "Siz Uchun Maxsus Saralangan Top Xaridlar" : language === "ru" ? "Специально Подобрано Для Вас" : "Curated Especially For You"}
+            <span className="eyebrow mb-3">{language === "uz" ? "Bugun" : language === "ru" ? "Сегодня" : "Today"}</span>
+            <h2 className="font-display font-semibold text-[1.75rem] leading-tight sm:text-4xl tracking-[-0.035em] text-slate-900 dark:text-white">
+              {language === "uz" ? <>Bugungi <span className="text-gold-gradient">yaxshi takliflar</span></> : language === "ru" ? <>Хорошие <span className="text-gold-gradient">предложения сегодня</span></> : <>Good deals <span className="text-gold-gradient">right now</span></>}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 max-w-2xl font-normal leading-relaxed">
               {language === "uz"
-                ? "Toshkent va viloyatlar bo'yicha narxi eng ko'p tushgan, kafolatlangan va haqiqiy xaridorlar tomonidan yuqori baholangan mahsulotlar."
+                ? "Narxi sezilarli tushgan, rasmiy kafolatli va xaridorlar yaxshi baholagan mahsulotlar."
                 : language === "ru"
-                ? "Товары с максимальными скидками и официальной гарантией в магазинах Узбекистана."
-                : "Handpicked deals with the highest price drops and genuine manufacturer warranty in Uzbekistan."}
+                ? "Товары с заметной скидкой, официальной гарантией и хорошими отзывами."
+                : "Products with a real price drop, official warranty and good reviews."}
             </p>
           </div>
 
           <a
             href="/catalog"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-3.5 h-9 rounded-lg border border-[var(--line)] hover:border-[var(--line-strong)] bg-white dark:bg-white/[0.03] transition"
           >
-            <span>{language === "uz" ? "Barcha 10,000+ mahsulotlar" : language === "ru" ? "Весь каталог 10 000+" : "Browse 10,000+ items"}</span>
+            <span>{language === "uz" ? "Katalogga o'tish" : language === "ru" ? "Открыть каталог" : "Browse the catalog"}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </a>
         </div>
@@ -206,19 +203,19 @@ export default function PersonalizedRecommendations() {
           {curatedCatalog.map((item) => (
             <div
               key={item.id}
-              className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#11131f] dark:to-[#080a11] rounded-3xl border-2 border-amber-200/80 dark:border-slate-800 p-4 shadow-luxury hover:shadow-2xl hover:border-amber-400 dark:hover:border-amber-500/60 transition-all duration-300 flex flex-col justify-between group"
+              className="bg-white dark:bg-[#0b1224] rounded-2xl border border-[var(--line)] dark:border-slate-800 p-4 shadow-sm hover:shadow-md hover:border-[var(--line-strong)] dark:hover:border-amber-500/60 transition-all duration-300 flex flex-col justify-between group"
             >
               <div className="space-y-3">
                 {/* Image Container with Badges */}
-                <div className="relative aspect-square rounded-2xl overflow-hidden bg-amber-50 dark:bg-slate-800/80 border border-amber-100 dark:border-slate-800">
+                <div className="relative aspect-square rounded-2xl overflow-hidden bg-amber-50 dark:bg-slate-800/80 border border-[var(--line)] dark:border-slate-800">
                   <img
                     src={item.imageUrl}
                     alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover transition-transform duration-200"
                     loading="lazy"
                   />
                   <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-lg bg-rose-500 text-white font-mono font-black text-[10px] shadow-sm">
+                    <span className="px-2 py-0.5 rounded-lg bg-rose-500 text-white font-mono font-bold text-[10px] shadow-sm">
                       {item.discount}
                     </span>
                     <span className="px-2 py-0.5 rounded-lg bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold">
@@ -226,12 +223,6 @@ export default function PersonalizedRecommendations() {
                     </span>
                   </div>
 
-                  <div className="absolute bottom-2.5 right-2.5">
-                    <span className="px-2 py-0.5 rounded-lg bg-emerald-600/90 text-white font-mono text-[10px] font-bold flex items-center gap-1 shadow-xs">
-                      <Zap className="w-3 h-3 text-amber-300" />
-                      <span>{item.matchScore}% Match</span>
-                    </span>
-                  </div>
                 </div>
 
                 {/* Rating & Brand */}
@@ -240,7 +231,7 @@ export default function PersonalizedRecommendations() {
                     {item.brand} • {item.category}
                   </span>
                   <div className="flex items-center gap-1 text-amber-500 font-bold text-xs">
-                    <Star className="w-3.5 h-3.5 fill-amber-500" />
+                    <Star className="w-3.5 h-3.5 fill-yellow-400" />
                     <span>{item.rating}</span>
                     <span className="text-slate-400 font-normal text-[10px]">({item.reviewsCount})</span>
                   </div>
@@ -256,17 +247,17 @@ export default function PersonalizedRecommendations() {
                 </h3>
 
                 {/* AI Reason Insight */}
-                <div className="p-2.5 rounded-xl bg-amber-50/80 dark:bg-slate-800/60 border border-amber-200/60 dark:border-slate-800 text-[11px] text-amber-950 dark:text-slate-300 line-clamp-2">
-                  <span className="font-semibold text-amber-700 dark:text-amber-400">AI Xulosasi: </span>
+                <div className="p-2.5 rounded-xl bg-amber-50/80 dark:bg-slate-800/60 border border-[var(--line)] dark:border-slate-800 text-[11px] text-amber-950 dark:text-slate-300 line-clamp-2">
+                  
                   <span>{item.aiReason[language] || item.aiReason.uz}</span>
                 </div>
               </div>
 
               {/* Price & Actions */}
-              <div className="pt-3 border-t border-amber-200/60 dark:border-slate-800/80 mt-3 space-y-2.5">
+              <div className="pt-3 border-t border-[var(--line)] dark:border-slate-800/80 mt-3 space-y-2.5">
                 <div className="flex items-baseline justify-between">
                   <div>
-                    <span className="text-lg font-black font-display text-slate-900 dark:text-white block">
+                    <span className="text-lg font-bold font-display text-slate-900 dark:text-white block">
                       {formatPrice(item.price)}
                     </span>
                     <span className="text-xs text-slate-400 line-through">
@@ -276,24 +267,24 @@ export default function PersonalizedRecommendations() {
 
                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-0.5">
                     <CheckCircle2 className="w-3 h-3" />
-                    <span>Jonli Narx</span>
+                    <span>{language === "uz" ? "Narx tekshirilgan" : language === "ru" ? "Цена проверена" : "Price checked"}</span>
                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => handleCompare(item.name)}
-                    className="py-2.5 px-3 rounded-xl bg-amber-100/70 hover:bg-amber-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 border border-amber-200/80 dark:border-slate-700 text-amber-950 dark:text-slate-200 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
+                    className="py-2.5 px-3 rounded-xl bg-amber-100/70 hover:bg-amber-200/70 dark:bg-slate-800 dark:hover:bg-slate-700 border border-[var(--line)] dark:border-slate-700 text-amber-950 dark:text-slate-200 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1 shadow-2xs"
                   >
-                    <span>Solishtirish</span>
+                    <span>{language === "uz" ? "Solishtirish" : language === "ru" ? "Сравнить" : "Compare"}</span>
                   </button>
 
                   <button
                     onClick={() => handleQuickView(item)}
-                    className="py-2.5 px-3 rounded-xl btn-luxury-gold text-amber-200 hover:text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1 shadow-md hover:scale-102"
+                    className="py-2.5 px-3 rounded-xl btn-luxury-gold text-amber-200 hover:text-white font-bold text-xs transition cursor-pointer flex items-center justify-center gap-1 shadow-md"
                   >
                     <Eye className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Ko'rish</span>
+                    <span>{language === "uz" ? "Ko'rish" : language === "ru" ? "Смотреть" : "View"}</span>
                   </button>
                 </div>
               </div>

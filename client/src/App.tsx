@@ -44,16 +44,15 @@ import { useTranslation } from "./lib/i18n";
 function LoadingFallback() {
   const { language } = useTranslation();
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#fcfbf9] dark:bg-[#07080c] text-slate-900 dark:text-white transition-colors relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-400/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex flex-col items-center justify-center text-slate-900 dark:text-white transition-colors relative overflow-hidden">
       <div className="relative w-20 h-20 flex items-center justify-center mb-6">
-        <div className="absolute inset-0 bg-amber-400/20 dark:bg-amber-400/10 rounded-full blur-xl animate-pulse" />
+        
         <div className="absolute inset-0 border-t-2 border-l-2 border-amber-500 rounded-full animate-spin" />
-        <div className="w-10 h-10 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-2xl flex items-center justify-center font-black text-slate-950 text-xs shadow-md">
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-white text-xs shadow-md bg-amber-400">
           AI
         </div>
       </div>
-      <h2 className="text-xl font-display font-black tracking-tight mb-2 text-slate-900 dark:text-white">
+      <h2 className="text-xl font-display font-bold tracking-tight mb-2 text-slate-900 dark:text-white">
         {language === "uz" ? "Yuklanmoqda..." : language === "ru" ? "Загрузка..." : "Loading..."}
       </h2>
       <p className="text-xs text-slate-600 dark:text-slate-400 max-w-[260px] text-center font-normal">

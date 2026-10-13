@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
-import { AlertCircle, RefreshCw, Home } from "lucide-react";
+import { AlertCircle, RefreshCw, Home } from "../lib/icons";
 import { Link } from "wouter";
 
 interface Props {
@@ -28,16 +28,15 @@ export default class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-[#08090d] text-white">
+        <div className="min-h-screen flex items-center justify-center p-4 text-white">
           <div className="relative max-w-lg w-full text-center space-y-6 z-10">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-rose-500/10 rounded-full blur-[80px] pointer-events-none"></div>
             
-            <div className="w-20 h-20 rounded-3xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(225,29,72,0.15)] animate-pulse">
+            <div className="w-20 h-20 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto animate-pulse">
               <AlertCircle className="w-10 h-10" />
             </div>
 
             <div className="space-y-3">
-              <h2 className="font-display font-black text-3xl tracking-tight">
+              <h2 className="font-display font-bold text-3xl tracking-tight">
                 Tizim Xatosi (Kernel Panic)
               </h2>
               <p className="text-sm text-slate-400 max-w-sm mx-auto leading-relaxed">
@@ -60,7 +59,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                   this.setState({ hasError: false, error: null });
                   window.location.reload();
                 }}
-                className="px-6 py-3 bg-white text-slate-900 hover:bg-slate-200 rounded-2xl text-xs font-bold transition flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95"
+                className="px-6 py-3 bg-white text-slate-900 hover:bg-slate-200 rounded-2xl text-xs font-bold transition flex items-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>Qayta yuklash (Reboot)</span>

@@ -11,7 +11,8 @@ import {
   Copy,
   Sparkles,
   Building2,
-} from "lucide-react";
+} from "../lib/icons";
+import { copyText } from "../lib/clipboard";
 
 interface CurrencyConverterModalProps {
   isOpen: boolean;
@@ -73,7 +74,7 @@ export default function CurrencyConverterModal({ isOpen, onClose }: CurrencyConv
       activeDirection === "usd_to_uzs"
         ? `${uzsAmount} UZS`
         : `$${usdAmount} USD`;
-    navigator.clipboard.writeText(textToCopy);
+    copyText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -84,16 +85,15 @@ export default function CurrencyConverterModal({ isOpen, onClose }: CurrencyConv
       onClick={onClose}
     >
       <div
-        className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-5 sm:p-8 max-w-md w-full max-h-[92dvh] overflow-y-auto border-2 border-amber-300/80 dark:border-amber-500/25 shadow-luxury relative space-y-6 animate-scale-in"
+        className="bg-white dark:bg-[#0b1224] rounded-2xl p-5 sm:p-8 max-w-md w-full max-h-[92dvh] overflow-y-auto border border-[var(--line)] dark:border-amber-500/25 shadow-sm relative space-y-6 animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Ambient Top Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-12 bg-amber-400/15 dark:bg-amber-400/10 blur-2xl pointer-events-none rounded-full" />
 
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-amber-200/60 dark:border-slate-700/80 flex items-center justify-center transition cursor-pointer active:scale-95 shadow-2xs"
+          className="absolute top-5 right-5 w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800/80 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white border border-[var(--line)] dark:border-slate-700/80 flex items-center justify-center transition cursor-pointer shadow-2xs"
           aria-label="Yopish"
         >
           <X className="w-4 h-4 stroke-[2.2]" />
@@ -115,7 +115,7 @@ export default function CurrencyConverterModal({ isOpen, onClose }: CurrencyConv
                   : "OFFICIAL CBU RATE"}
               </span>
             </div>
-            <h3 className="font-display font-extrabold text-xl text-slate-900 dark:text-white mt-1">
+            <h3 className="font-display font-semibold text-xl text-slate-900 dark:text-white mt-1">
               {language === "uz"
                 ? "Valyuta & Narx Konvertori"
                 : language === "ru"
@@ -133,7 +133,7 @@ export default function CurrencyConverterModal({ isOpen, onClose }: CurrencyConv
               {language === "uz" ? "1 USD kursi:" : language === "ru" ? "Курс 1 USD:" : "1 USD rate:"}
             </span>
           </div>
-          <span className="font-mono font-extrabold text-slate-900 dark:text-amber-400 text-sm">
+          <span className="font-mono font-semibold text-slate-900 dark:text-amber-400 text-sm">
             {exchangeRate.toLocaleString()} UZS
           </span>
         </div>
@@ -197,10 +197,10 @@ export default function CurrencyConverterModal({ isOpen, onClose }: CurrencyConv
               <button
                 key={preset}
                 onClick={() => handleQuickPreset(preset)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition border cursor-pointer active:scale-95 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition border cursor-pointer ${
                   parseFloat(usdAmount) === preset
-                    ? "bg-slate-900 dark:bg-amber-400 text-white dark:text-slate-950 border-transparent shadow-xs"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-amber-400"
+                    ? "bg-slate-900 dark:bg-amber-400 text-white dark:text-white border-transparent shadow-xs"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-[var(--line-strong)]"
                 }`}
               >
                 ${preset}
@@ -213,7 +213,7 @@ export default function CurrencyConverterModal({ isOpen, onClose }: CurrencyConv
         <div className="pt-2 flex items-center gap-3">
           <button
             onClick={handleCopy}
-            className="flex-1 py-3 rounded-xl btn-luxury-gold text-xs font-bold transition flex items-center justify-center gap-2 shadow-md cursor-pointer active:scale-95"
+            className="flex-1 py-3 rounded-xl btn-luxury-gold text-xs font-bold transition flex items-center justify-center gap-2 shadow-md cursor-pointer"
           >
             {copied ? <Check className="w-4 h-4 stroke-[2.2]" /> : <Copy className="w-4 h-4 stroke-[2.2]" />}
             <span>
@@ -224,7 +224,7 @@ export default function CurrencyConverterModal({ isOpen, onClose }: CurrencyConv
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer active:scale-95"
+            className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition cursor-pointer"
           >
             {language === "uz" ? "Yopish" : language === "ru" ? "Закрыть" : "Close"}
           </button>

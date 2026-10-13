@@ -29,7 +29,7 @@ import {
   Flame,
   Grid,
   Heart,
-} from "lucide-react";
+} from "../lib/icons";
 import { cyberSound } from "../lib/cyberSound";
 import { useCurrency } from "../lib/currency";
 import { useTranslation } from "../lib/i18n";
@@ -84,20 +84,8 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
 
   const defaultItems: CommandItem[] = [
     {
-      id: "toggle-dark-mode",
-      title: isDark ? "Switch to Light Mode" : "Switch to Cyber Dark Mode",
-      category: "action",
-      subtitle: isDark ? "Daylight illumination for high-brightness viewing" : "Obsidian dark mode with neon luminescence (Key: D)",
-      badge: "THEME",
-      icon: isDark ? Sun : Moon,
-      action: () => {
-        toggleTheme();
-        onClose();
-      },
-    },
-    {
       id: "toggle-sound-fx",
-      title: cyberSound.isEnabled() ? "Mute Cybernetic Audio FX" : "Enable Cybernetic Audio FX",
+      title: cyberSound.isEnabled() ? "Turn sound off" : "Turn sound on",
       category: "action",
       subtitle: "Native Web Audio haptic feedback on clicks and transitions",
       badge: "AUDIO",
@@ -133,7 +121,7 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
     },
     {
       id: "ai-search",
-      title: language === "uz" ? "AI Qidiruv & Narx Tahlili" : language === "ru" ? "AI Поиск и Анализ Цен" : "AI Shopping Radar & Price Telemetry",
+      title: language === "uz" ? "AI Qidiruv & Narx Tahlili" : language === "ru" ? "AI Поиск и Анализ Цен" : "Search products and prices",
       category: "feature",
       subtitle: language === "uz" ? "Uzum, Texnomart, MediaPark bo'yicha eng past narxni topish" : language === "ru" ? "Поиск лучшей цены на Uzum, Texnomart, MediaPark" : "Find lowest verified prices across Uzum, Texnomart, and MediaPark",
       badge: "AI v3.8",
@@ -197,7 +185,7 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
           ? "Barcha 16 ta Xizmatlar Markazi"
           : language === "ru"
           ? "Центр Всех 16 Услуг (Command Hub)"
-          : "All 16 Services Hub (Command Center)",
+          : "All tools",
       category: "feature",
       subtitle:
         language === "uz"
@@ -371,7 +359,7 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
     },
     {
       id: "duel",
-      title: language === "uz" ? "Kiber Duel & Taqqoslagich" : language === "ru" ? "Кибер-Дуэль и Сравнение" : "Cyber Duel & Spec Simulator",
+      title: language === "uz" ? "Kiber Duel & Taqqoslagich" : language === "ru" ? "Кибер-Дуэль и Сравнение" : "Compare two products",
       category: "feature",
       subtitle: language === "uz" ? "2 ta mahsulotni yuzma-yuz solishtirish (AirPods vs Sony)" : language === "ru" ? "Сравнение 2 товаров лицом к лицу" : "Head-to-head AI product duel & spec comparison",
       badge: "LIVE DUEL",
@@ -395,7 +383,7 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
     },
     {
       id: "card",
-      title: language === "uz" ? "Sovereign 3D Golografik VIP Karta" : language === "ru" ? "Sovereign 3D VIP Black Карта" : "Sovereign 3D VIP Holographic Black Card",
+      title: language === "uz" ? "Sovg'a Pro" : language === "ru" ? "Sovg'a Pro" : "Sovg'a Pro",
       category: "feature",
       subtitle: language === "uz" ? "Shaxsiy giroskopik konsyerj kartasini ochish" : language === "ru" ? "Открыть карту персонального консьержа" : "Open your personalized gyroscopic luxury concierge pass",
       badge: "BLACK CARD",
@@ -410,7 +398,7 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
     },
     {
       id: "logistics",
-      title: language === "uz" ? "Toshkent Logistika Radari" : language === "ru" ? "Радар Логистики Ташкента" : "Tashkent Logistics Hubs & Telemetry",
+      title: language === "uz" ? "Toshkent Logistika Radari" : language === "ru" ? "Радар Логистики Ташкента" : "Delivery hubs in Tashkent",
       category: "feature",
       subtitle: language === "uz" ? "Sergeli Hub, Chilonzor va Malika omborlari monitoringi" : language === "ru" ? "Мониторинг хабов Сергели, Чиланзар и Малика" : "Live telemetry for Sergeli Hub, Chilonzor & Malika warehouses",
       badge: "35 MIN",
@@ -598,15 +586,14 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 sm:pt-16 p-3 sm:px-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto" onClick={onClose}>
       <div
-        className="w-full max-w-2xl bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] border-2 border-amber-300/80 dark:border-amber-500/25 rounded-3xl shadow-luxury overflow-hidden text-slate-900 dark:text-slate-100 flex flex-col max-h-[85vh] max-h-[85dvh] relative animate-scale-in"
+        className="bg-white dark:bg-[#0b1224] w-full max-w-2xl border border-[var(--line)] dark:border-amber-500/25 rounded-2xl shadow-sm overflow-hidden text-slate-900 dark:text-slate-100 flex flex-col max-h-[85vh] max-h-[85dvh] relative animate-scale-in"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDownModal}
       >
         {/* Top ambient glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-16 bg-gradient-to-b from-amber-400/20 to-transparent blur-2xl pointer-events-none" />
 
         {/* Header Search Field */}
-        <div className="relative flex items-center px-5 py-4 border-b border-amber-200/70 dark:border-slate-800/80 bg-white/70 dark:bg-slate-950/40 backdrop-blur-md">
+        <div className="relative flex items-center px-5 py-4 border-b border-[var(--line)] dark:border-slate-800/80 bg-white/70 dark:bg-slate-950/40 backdrop-blur-md">
           <Search className="w-5 h-5 text-amber-500 dark:text-amber-400 mr-3 shrink-0 stroke-[2.2]" />
           <input
             ref={inputRef}
@@ -628,12 +615,12 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
           {query ? (
             <button
               onClick={() => setQuery("")}
-              className="p-1 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-amber-100/60 dark:hover:bg-slate-800 transition cursor-pointer active:scale-95"
+              className="p-1 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-amber-100/60 dark:hover:bg-slate-800 transition cursor-pointer"
             >
               <X className="w-4 h-4 stroke-[2.2]" />
             </button>
           ) : (
-            <div className="flex items-center gap-1 text-[11px] font-mono text-slate-600 dark:text-slate-400 bg-amber-50 dark:bg-slate-800/80 px-2 py-0.5 rounded-lg border border-amber-200/80 dark:border-slate-700 shadow-2xs">
+            <div className="flex items-center gap-1 text-[11px] text-slate-600 dark:text-slate-400 dark:bg-slate-800/80 px-2 py-0.5 rounded-lg border border-[var(--line)] dark:border-slate-700 bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
               <span>ESC</span>
             </div>
           )}
@@ -652,7 +639,7 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
                   navigate(`/search?q=${encodeURIComponent(query)}`);
                   onClose();
                 }}
-                className="mt-3 px-4 py-2 btn-luxury-gold text-slate-950 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+                className="mt-3 px-4 py-2 btn-luxury-gold text-slate-950 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
               >
                 {language === "uz" ? `“${query}” bo'yicha AI qidiruvni boshlash →` : language === "ru" ? `Запустить AI поиск для «${query}» →` : `Launch AI search for “${query}” →`}
               </button>
@@ -669,7 +656,7 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
                     item.action();
                   }}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`flex items-center justify-between p-3 rounded-2xl cursor-pointer transition-all duration-150 active:scale-95 ${
+                  className={`flex items-center justify-between p-3 rounded-2xl cursor-pointer transition-all duration-150 ${
                     isSelected
                       ? "bg-amber-100/80 dark:bg-slate-800/90 text-slate-900 dark:text-white border border-amber-400/60 dark:border-amber-500/30 shadow-xs"
                       : "text-slate-700 dark:text-slate-300 hover:bg-amber-50/60 dark:hover:bg-slate-800/40"
@@ -680,7 +667,7 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
                       className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border transition ${
                         isSelected
                           ? "bg-amber-400/25 border-amber-400/60 text-amber-700 dark:text-amber-300 shadow-2xs"
-                          : "bg-white/80 dark:bg-slate-800/80 border-amber-200/60 dark:border-slate-700 text-slate-500 dark:text-slate-400"
+                          : "bg-white/80 dark:bg-slate-800/80 border-[var(--line)] dark:border-slate-700 text-slate-500 dark:text-slate-400"
                       }`}
                     >
                       <Icon className="w-4 h-4 stroke-[2.2]" />
@@ -692,8 +679,8 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
                           <span
                             className={`text-[9px] font-mono px-1.5 py-0.5 rounded-md font-bold uppercase ${
                               isSelected
-                                ? "bg-amber-400 text-slate-950 font-black shadow-2xs"
-                                : "bg-amber-50 dark:bg-slate-800 text-amber-800 dark:text-slate-400 border border-amber-200/60 dark:border-slate-700"
+                                ? "bg-amber-400 text-white font-bold shadow-2xs"
+                                : "bg-amber-50 dark:bg-slate-800 text-amber-800 dark:text-slate-400 border border-[var(--line)] dark:border-slate-700"
                             }`}
                           >
                             {item.badge}
@@ -717,14 +704,14 @@ export default function CyberCommandPalette({ isOpen, onClose }: CyberCommandPal
         </div>
 
         {/* Footer Indicator */}
-        <div className="px-5 py-3 border-t border-amber-200/70 dark:border-slate-800 bg-amber-50/50 dark:bg-slate-950/70 text-slate-600 dark:text-slate-400 text-xs flex items-center justify-between">
+        <div className="px-5 py-3 border-t border-[var(--line)] dark:border-slate-800 bg-amber-50/50 dark:bg-slate-950/70 text-slate-600 dark:text-slate-400 text-xs flex items-center justify-between">
           <div className="flex items-center gap-3 text-[11px] font-mono">
             <span>
-              <kbd className="bg-white dark:bg-slate-800 border border-amber-200/60 dark:border-slate-700 px-1.5 py-0.5 rounded-md text-slate-700 dark:text-slate-300 shadow-2xs font-bold">↑</kbd>{" "}
-              <kbd className="bg-white dark:bg-slate-800 border border-amber-200/60 dark:border-slate-700 px-1.5 py-0.5 rounded-md text-slate-700 dark:text-slate-300 shadow-2xs font-bold">↓</kbd> {language === "uz" ? "Harakat" : language === "ru" ? "Навигация" : "Navigate"}
+              <kbd className="bg-white dark:bg-slate-800 border border-[var(--line)] dark:border-slate-700 px-1.5 py-0.5 rounded-md text-slate-700 dark:text-slate-300 shadow-2xs font-bold">↑</kbd>{" "}
+              <kbd className="bg-white dark:bg-slate-800 border border-[var(--line)] dark:border-slate-700 px-1.5 py-0.5 rounded-md text-slate-700 dark:text-slate-300 shadow-2xs font-bold">↓</kbd> {language === "uz" ? "Harakat" : language === "ru" ? "Навигация" : "Navigate"}
             </span>
             <span>
-              <kbd className="bg-white dark:bg-slate-800 border border-amber-200/60 dark:border-slate-700 px-1.5 py-0.5 rounded-md text-slate-700 dark:text-slate-300 shadow-2xs font-bold">↵</kbd> {language === "uz" ? "Tanlash" : language === "ru" ? "Выбрать" : "Select"}
+              <kbd className="bg-white dark:bg-slate-800 border border-[var(--line)] dark:border-slate-700 px-1.5 py-0.5 rounded-md text-slate-700 dark:text-slate-300 shadow-2xs font-bold">↵</kbd> {language === "uz" ? "Tanlash" : language === "ru" ? "Выбрать" : "Select"}
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] text-amber-700 dark:text-amber-400 font-bold">

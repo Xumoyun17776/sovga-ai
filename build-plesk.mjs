@@ -31,13 +31,14 @@ await esbuild.build({
     "@google/generative-ai", 
     "uuid",
     "express-rate-limit",
+    "node-cache",
     "vite",
     "lightningcss"
   ],
 });
 
 console.log("Creating start.js for Plesk...");
-fs.writeFileSync("start.js", `import './dist/server/index.js';\n`);
+fs.writeFileSync("start.js", `process.env.NODE_ENV = 'production';\nawait import('./dist/server/index.js');\n`);
 
 console.log("Build complete! To deploy to Plesk:");
 console.log("1. Zip the following files/folders: dist, package.json, .env, start.js");

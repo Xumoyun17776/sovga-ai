@@ -1,5 +1,7 @@
 import type { ResearchProduct } from "../../shared/types.js";
-import { loadRealStoreProducts, ensureProductUrl, findBestRealProductMatch, findBestRealProductMatchDetail } from "./urlHelper.js";
+import { searchStores, type StoreItem } from "./liveStores.js";
+import { rememberProducts, searchIndex } from "./webIndex.js";
+import { storeSearchQueries } from "./searchRelevance.js";
 
 export interface LiveScrapedItem {
   title: string;
@@ -12,6 +14,20 @@ export interface LiveScrapedItem {
   reviewCount?: number | null;
   availability?: string | null;
   discount?: string | null;
+  oldPrice?: number | null;
+  installment?: string | null;
+  monthlyPayment?: number | null;
+  inStock?: boolean | null;
+  /** The store's own category, e.g. "Ayollar uchun parfyumeriya" */
+  category?: string | null;
+  /** store-api = live store search; ai-web = found by AI web search; web-index = seen in an earlier live search */
+  source?: "store-api" | "ai-web" | "web-index" | "web";
+  /** Price confirmed on the store's page/API */
+  verified?: boolean;
+  /** Found by an AI-suggested store search */
+  guided?: boolean;
+  /** When the price was last seen (web-index items) */
+  lastSeen?: number;
 }
 
 // Clean raw titles scraped from web search
@@ -42,73 +58,64 @@ export function extractPriceFromText(text: string): number | null {
  * 3. Fallback search engine scan for unindexed items
  * Guarantees 100% authentic, live product page URLs with ZERO redirects to store homepages.
  */
+const recentLive = new Map<string, { at: number; items: LiveScrapedItem[] }>();
+
+function fromStoreItem(it: StoreItem & { verified?: boolean; lastSeen?: number }): LiveScrapedItem {
+  const seen = it.lastSeen ? new Date(it.lastSeen).toLocaleDateString("uz-UZ") : null;
+  return {
+    title: it.title,
+    store: it.store,
+    url: it.url,
+    price: it.price,
+    oldPrice: it.oldPrice ?? null,
+    imageUrl: it.imageUrl ?? null,
+    rating: it.rating ?? null,
+    reviewCount: it.reviewCount ?? null,
+    discount: it.discount ?? null,
+    installment: it.installment ?? null,
+    monthlyPayment: it.monthlyPayment ?? null,
+    inStock: it.inStock ?? null,
+    category: it.category ?? null,
+    availability:
+      it.source === "web-index"
+        ? `Narx ${seen} kuni tekshirilgan`
+        : it.inStock === false
+          ? "Hozircha mavjud emas"
+          : "Do'konda mavjud",
+    snippet: it.category ? `${it.category} — ${it.store}` : `${it.store} do'konidagi mahsulot`,
+    source: it.source,
+    verified: it.source === "store-api" ? true : !!it.verified,
+    lastSeen: it.lastSeen,
+  };
+}
+
+/**
+ * Live search across Uzbek online stores for what the shopper typed.
+ * 1. The stores' own search APIs (Olcha, Texnomart) — real listings and prices right now
+ * 2. If they return nothing: real products seen in earlier live searches (last 14 days)
+ * 3. If still nothing: a web search for direct product pages
+ */
 export async function searchLiveMarketplaces(query: string): Promise<LiveScrapedItem[]> {
   const items: LiveScrapedItem[] = [];
   const cleanQ = query.trim();
   if (!cleanQ) return [];
 
-  // 1. Live Online Scan: Olcha.uz (1,000,000+ live products)
+  const cacheKey = cleanQ.toLowerCase();
+  const hit = recentLive.get(cacheKey);
+  if (hit && Date.now() - hit.at < 2 * 60 * 1000) return hit.items;
+
+  // 1. Store search APIs
   try {
-    const res = await fetch(`https://mobile.olcha.uz/api/v2/products?q=${encodeURIComponent(cleanQ)}`, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
-      signal: AbortSignal.timeout(3500),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const prods = data.data?.products || [];
-      for (const p of prods.slice(0, 10)) {
-        const title = cleanTitle(p.name_oz || p.name_uz || p.name_ru || p.name || "");
-        const alias = p.alias || p.slug;
-        const url = alias ? `https://olcha.uz/oz/product/view/${alias}` : null;
-        const price = p.total_price || p.discount_price || null;
-        if (title && url && price && !items.some((it) => it.url === url)) {
-          items.push({
-            title,
-            store: "Olcha",
-            url,
-            price,
-            imageUrl: p.main_image || null,
-            snippet: p.short_description_oz || p.short_description_ru || `${title} — rasmiy kafolatlangan O'zbekiston dileri taklifi`,
-            rating: p.comments_rating || 4.8,
-            reviewCount: p.comments_count || 35,
-            availability: p.inStock || p.in_stock ? "Do'konda mavjud" : "Buyurtma asosida",
-            discount: p.discount ? `${p.discount}% chegirma` : null,
-          });
-        }
-      }
-    }
-  } catch (err: any) {
-    // Graceful fallback if network times out
+    const found = await searchStores(storeSearchQueries(cleanQ));
+    rememberProducts(found);
+    items.push(...found.map(fromStoreItem));
+  } catch {
+    // stores unreachable; fall through
   }
 
-  // 2. Cross-Store Inventory Scan: 73,686 items (Asaxiy, Uzum Market, Texnomart, MediaPark)
-  try {
-    const targetStores = ["Olcha", "Uzum Market", "Texnomart", "Asaxiy", "MediaPark"];
-    const refPrice = items.length > 0 && items[0].price ? items[0].price : null;
-
-    for (const st of targetStores) {
-      const bestMatch = findBestRealProductMatchDetail(cleanQ, st);
-      if (bestMatch && !items.some((it) => it.url === bestMatch.url)) {
-        const estPrice = refPrice
-          ? Math.round(refPrice * (st === "Uzum Market" ? 0.96 : st === "Texnomart" ? 1.02 : 1.0))
-          : null;
-
-        items.push({
-          title: bestMatch.name || cleanQ,
-          store: st,
-          url: bestMatch.url,
-          price: estPrice,
-          snippet: `${bestMatch.name || cleanQ} — ${st} rasmiy tovar kartasi`,
-          rating: 4.8,
-          reviewCount: 45,
-          availability: st === "Uzum Market" ? "Toshkent omborida mavjud (1 kun)" : "Do'konda mavjud",
-        });
-      }
-    }
-  } catch (err: any) {
-    // Continue
+  // 2. Recently seen real products
+  if (items.length === 0) {
+    items.push(...searchIndex(cleanQ).map(fromStoreItem));
   }
 
   // 3. Fallback DuckDuckGo Scan (ONLY IF 0 items found, timeout 1800ms)
@@ -169,5 +176,7 @@ export async function searchLiveMarketplaces(query: string): Promise<LiveScraped
   } catch (err) {}
   }
 
+  recentLive.set(cacheKey, { at: Date.now(), items });
+  if (recentLive.size > 300) recentLive.delete(recentLive.keys().next().value as string);
   return items;
 }

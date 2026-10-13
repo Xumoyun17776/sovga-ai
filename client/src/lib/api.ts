@@ -1,9 +1,12 @@
+import { useTranslation, tr } from "./i18n";
 const API = "";
 
 async function request<T>(method: string, url: string, body?: any): Promise<T> {
+  // Tell the server which language to answer in (search summaries, price notes…)
+  const lang = useTranslation.getState().language;
   const res = await fetch(`${API}${url}`, {
     method,
-    headers: body ? { "Content-Type": "application/json" } : {},
+    headers: body ? { "Content-Type": "application/json", "X-Lang": lang } : { "X-Lang": lang },
     body: body ? JSON.stringify(body) : undefined,
     credentials: "include",
   });
@@ -11,10 +14,19 @@ async function request<T>(method: string, url: string, body?: any): Promise<T> {
   try {
     json = await res.json();
   } catch {
-    throw new Error(`Tarmoq xatoligi (${res.status}): Serverdan noto'g'ri javob qaytdi`);
+    throw new Error(tr(`Tarmoq xatoligi (${res.status}). Qayta urinib ko'ring.`, `Ошибка сети (${res.status}). Попробуйте ещё раз.`, `Network error (${res.status}). Please try again.`));
   }
-  if (!json.success) throw new Error(json.error || "Request failed");
-  return json.data;
+  if (!json.success) {
+    // Plan limit reached: let the app show the upgrade sheet.
+    if (json.code === "PLAN_LIMIT" && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("plan-limit", { detail: { error: json.error, ...(json.data || {}) } }));
+    }
+    const err: any = new Error(json.error || "Request failed");
+    if (json.code) err.code = json.code;
+    throw err;
+  }
+  // Some endpoints answer with { success, message, user } instead of { data } — hand those back whole.
+  return (json.data !== undefined ? json.data : json) as T;
 }
 
 // Auth
@@ -30,7 +42,7 @@ export const auth = {
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     request<any>("POST", "/api/auth/change-password", data),
   sendOtp: (phone: string) =>
-    request<{ success: boolean; message: string; demoCode?: string }>("POST", "/api/auth/send-otp", { phone }),
+    request<{ demoCode?: string } | undefined>("POST", "/api/auth/send-otp", { phone }),
   verifyOtp: (data: { phone: string; code: string; name?: string }) =>
     request<any>("POST", "/api/auth/verify-otp", data),
   exportData: () => request<any>("GET", "/api/auth/export-data"),
@@ -38,6 +50,15 @@ export const auth = {
     request<any>("POST", "/api/auth/privacy-settings", settings),
   terminateAllSessions: () => request<any>("POST", "/api/auth/sessions/terminate-all"),
   deleteAccount: (password?: string) => request<any>("DELETE", "/api/auth/account", { password }),
+};
+
+// Live price board (homepage proof card, price-drop strip)
+export interface LiveBoardOffer { store: string; title: string; price: number; oldPrice: number | null; url: string }
+export interface LiveBoardProduct { id: string; name: string; short: string; image: string | null; offers: LiveBoardOffer[]; lowest: number; highest: number; savings: number; savingsPct: number }
+export interface LiveBoardDrop { store: string; title: string; price: number; oldPrice: number; pct: number; url: string; image: string | null; category: string | null }
+export interface LivePriceBoard { live: boolean; checkedAt: string | null; storesChecked: string[]; listingsScanned: number; products: LiveBoardProduct[]; drops: LiveBoardDrop[] }
+export const prices = {
+  liveBoard: () => request<LivePriceBoard>("GET", "/api/prices/live-board"),
 };
 
 // Research
@@ -65,6 +86,10 @@ export const research = {
     request<any>("GET", region ? `/api/research/delivery-info?region=${encodeURIComponent(region)}` : "/api/research/delivery-info"),
   compareDuel: (data: { productA: string; productB: string }) =>
     request<any>("POST", "/api/research/compare-duel", data),
+  duelVotes: (a: string, b: string) =>
+    request<{ a: number; b: number; voted: "A" | "B" | null }>("GET", `/api/research/duel-votes?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`),
+  voteDuel: (data: { productA: string; productB: string; option: "A" | "B" }) =>
+    request<{ a: number; b: number; voted: "A" | "B" | null }>("POST", "/api/research/duel-votes", data),
   bargain: (data: { productName: string; store?: string; price?: number; language?: string }) =>
     request<any>("POST", "/api/research/bargain", data),
 };
@@ -137,8 +162,9 @@ export const tracking = {
 
 // Catalog
 export const catalog = {
+  meta: () => request<{ live: boolean; checkedAt: string | null; stores: string[]; total: number }>("GET", "/api/catalog/meta"),
   list: (q?: string) => request<any[]>("GET", q ? `/api/catalog?q=${encodeURIComponent(q)}` : "/api/catalog"),
-  categories: () => request<{ name: string; count: number; icon: string }[]>("GET", "/api/catalog/categories"),
+  categories: () => request<{ name: string; count: number; icon: string; labelUz?: string; labelRu?: string; labelEn?: string }[]>("GET", "/api/catalog/categories"),
   filter: (params: { q?: string; category?: string; store?: string; minPrice?: number; maxPrice?: number; sort?: string; limit?: number }) => {
     const qs = new URLSearchParams();
     if (params.q) qs.set("q", params.q);
@@ -156,10 +182,15 @@ export const catalog = {
 // Admin
 export const admin = {
   stats: () => request<any>("GET", "/api/admin/stats"),
-  getUsers: (params?: { q?: string; role?: string }) => {
+  getUsers: (params?: { q?: string; role?: string; plan?: string; demo?: string; page?: number; pageSize?: number; limit?: number }) => {
     const searchParams = new URLSearchParams();
+    if (params?.demo) searchParams.set("demo", params.demo);
+    if (params?.page) searchParams.set("page", String(params.page));
+    if (params?.pageSize) searchParams.set("pageSize", String(params.pageSize));
+    if (params?.limit) searchParams.set("limit", String(params.limit));
     if (params?.q) searchParams.set("q", params.q);
     if (params?.role) searchParams.set("role", params.role);
+    if (params?.plan) searchParams.set("plan", params.plan);
     const qs = searchParams.toString();
     return request<any>("GET", `/api/admin/users${qs ? `?${qs}` : ""}`);
   },
@@ -168,6 +199,12 @@ export const admin = {
   getReceipts: () => request<{ receipts: any[]; stats: any }>("GET", "/api/admin/receipts"),
   updateReceiptStatus: (id: number, status: "verified" | "rejected" | "manual_review", reason?: string) =>
     request<any>("PATCH", `/api/admin/receipts/${id}`, { status, reason }),
+  setUserPlan: (id: number, plan: string, days?: number, opts?: { fromNow?: boolean; note?: string }) =>
+    request<any>("PATCH", `/api/admin/users/${id}/plan`, { plan, days, ...opts }),
+  addDemoUsers: (count = 1500) => request<any>("POST", "/api/admin/demo-users", { count }),
+  deleteDemoUsers: () => request<any>("DELETE", "/api/admin/demo-users"),
+  grantPlan: (identifier: string, plan: string, days: number, opts?: { fromNow?: boolean; note?: string }) =>
+    request<any>("POST", "/api/admin/grant-plan", { identifier, plan, days, ...opts }),
 };
 
 // Analytics
@@ -206,9 +243,13 @@ export const promocodesApi = {
 // Subscription & AI Receipt Verification
 export const subscription = {
   upgrade: () => request<any>("POST", "/api/subscription/upgrade"),
-  verifyReceipt: (data: { receiptImage: string; plan?: "pro_monthly" | "pro_annual" }) =>
+  verifyReceipt: (data: { receiptImage: string; plan?: string }) =>
     request<any>("POST", "/api/subscription/verify-receipt", data),
   getReceipts: () => request<any>("GET", "/api/subscription/receipts"),
+  plans: () =>
+    request<{ plans: any[]; payment: { cards: { type: string; number: string }[]; holder: string } }>("GET", "/api/subscription/plans"),
+  status: () =>
+    request<{ signedIn: boolean; plan: string; expiresAt: string | null; searchesToday: number; searchLimit: number; trackers: number; trackerLimit: number; registry: boolean }>("GET", "/api/subscription/status"),
 };
 
 // Subscription

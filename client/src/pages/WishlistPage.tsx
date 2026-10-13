@@ -20,7 +20,8 @@ import {
   Gift,
   Coins,
   Search,
-} from "lucide-react";
+} from "../lib/icons";
+import { copyText } from "../lib/clipboard";
 
 export default function WishlistPage() {
   const { t, language } = useTranslation();
@@ -91,7 +92,7 @@ export default function WishlistPage() {
 
   const handleShareWishlist = (wl: any) => {
     const url = `${window.location.origin}/wishlist/${wl.id}`;
-    navigator.clipboard.writeText(url);
+    copyText(url);
     toast.success(
       language === "uz" ? "Istaklar ro'yxati ommaviy havolasi nusxalandi!" : language === "ru" ? "Публичная ссылка на список желаний скопирована!" : "Public wishlist link copied!",
       language === "uz" ? "Ulashish" : language === "ru" ? "Поделиться" : "Share"
@@ -119,17 +120,13 @@ export default function WishlistPage() {
       <div className="relative min-h-[60vh] max-w-lg mx-auto px-4 py-16 text-center space-y-6 animate-fade-in text-slate-900 dark:text-white">
         {/* Ambient background vignette glow */}
         <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-amber-500/10 via-amber-400/5 to-transparent rounded-full blur-3xl opacity-70" />
         </div>
 
-        <div className="w-20 h-20 bg-gradient-to-tr from-amber-500/20 via-amber-400/10 to-slate-100 dark:to-slate-900 rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-amber-300/80 dark:border-amber-500/30">
-          <Star className="w-10 h-10 text-amber-500 fill-amber-400/30 stroke-[2.2]" />
+        <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto shadow-inner border border-[var(--line)] dark:border-amber-500/30 bg-amber-500/20">
+          <Star className="w-10 h-10 text-yellow-400 fill-yellow-400/30 stroke-[2.2]" />
         </div>
         <div className="space-y-2">
-          <span className="inline-block px-3.5 py-1 bg-amber-500/15 border border-amber-300/70 dark:border-amber-500/30 rounded-full text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider shadow-xs">
-            {language === "uz" ? "Sovg'a AI Istaklar Ro'yxati" : language === "ru" ? "Список желаний Sovg'a AI" : "Sovg'a AI Wishlist"}
-          </span>
-          <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 dark:text-white tracking-tight">
+          <h1 className="lux-title text-[2.15rem] sm:text-[3.2rem] text-slate-900 dark:text-white leading-[1.05]">
             {t("wishlist.title")}
           </h1>
           <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-sm mx-auto leading-relaxed font-normal">
@@ -144,7 +141,7 @@ export default function WishlistPage() {
         <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
           <button
             onClick={() => setShowAuthModal(true)}
-            className="px-6 py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black rounded-2xl text-xs sm:text-sm transition shadow-md shadow-amber-500/25 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+            className="px-6 py-3.5 text-white font-bold rounded-2xl text-xs sm:text-sm transition shadow-md flex items-center justify-center gap-2 cursor-pointer bg-amber-500 hover:bg-amber-400"
           >
             <Sparkles className="w-4 h-4 text-slate-950 stroke-[2.2]" />
             <span>
@@ -153,7 +150,7 @@ export default function WishlistPage() {
           </button>
           <Link
             href="/auth?redirect=/wishlists"
-            className="px-6 py-3.5 bg-white/90 dark:bg-slate-900/90 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-800 dark:text-amber-200 font-bold rounded-2xl text-xs sm:text-sm border border-amber-200/80 dark:border-slate-800 transition shadow-2xs flex items-center justify-center active:scale-95"
+            className="px-6 py-3.5 bg-white/90 dark:bg-slate-900/90 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-800 dark:text-amber-200 font-bold rounded-2xl text-xs sm:text-sm border border-[var(--line)] dark:border-slate-800 transition shadow-2xs flex items-center justify-center"
           >
             <span>
               {language === "uz" ? "To'liq sahifada ochish" : language === "ru" ? "Открыть на отдельной странице" : "Open in full page"}
@@ -176,13 +173,12 @@ export default function WishlistPage() {
     <div className="relative min-h-[calc(100vh-4rem)] max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8 animate-fade-in text-slate-900 dark:text-white">
       {/* Ambient background vignette glow */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-gradient-to-tr from-amber-500/10 via-amber-400/5 to-transparent rounded-full blur-3xl opacity-70" />
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display font-black text-2xl sm:text-4xl text-slate-900 dark:text-white flex items-center gap-2.5 tracking-tight">
-            <Star className="w-7 h-7 text-amber-500 fill-amber-500 stroke-[2.2]" />
+          <h1 className="lux-title text-[2.15rem] sm:text-[3.2rem] text-slate-900 dark:text-white flex items-center gap-2.5 leading-[1.05]">
+            <Star className="w-7 h-7 text-yellow-400 fill-yellow-400 stroke-[2.2]" />
             <span>{t("wishlist.title")}</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 font-normal">
@@ -196,7 +192,7 @@ export default function WishlistPage() {
 
         <button
           onClick={() => setShowCreate(!showCreate)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black rounded-2xl transition shadow-md shadow-amber-500/25 text-xs sm:text-sm self-start sm:self-auto cursor-pointer active:scale-95"
+          className="flex items-center gap-2 px-6 py-3 text-white font-bold rounded-2xl transition shadow-md text-xs sm:text-sm self-start sm:self-auto cursor-pointer bg-amber-500 hover:bg-amber-400"
         >
           <Plus className="w-4 h-4 stroke-[2.2]" />
           <span>{t("wishlist.create")}</span>
@@ -205,8 +201,8 @@ export default function WishlistPage() {
 
       {/* Create Wishlist Form */}
       {showCreate && (
-        <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl p-6 sm:p-7 shadow-luxury border-2 border-amber-200/80 dark:border-amber-500/25 animate-fade-in space-y-4">
-          <h3 className="font-display font-black text-base sm:text-lg text-slate-900 dark:text-white">
+        <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-7 shadow-sm border border-[var(--line)] dark:border-amber-500/25 animate-fade-in space-y-4">
+          <h3 className="font-display font-bold text-base sm:text-lg text-slate-900 dark:text-white">
             {language === "uz" ? "Yangi istaklar ro'yxatini yaratish" : language === "ru" ? "Создать новый список желаний" : "Create a new wishlist"}
           </h3>
           <div className="space-y-3 text-xs sm:text-sm">
@@ -220,7 +216,7 @@ export default function WishlistPage() {
               }
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full px-4 py-3 bg-white/95 dark:bg-slate-950 border border-amber-200/80 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-semibold shadow-2xs"
+              className="w-full px-4 py-3 bg-white/95 dark:bg-slate-950 border border-[var(--line)] dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white font-semibold shadow-2xs"
             />
             <input
               placeholder={
@@ -232,12 +228,12 @@ export default function WishlistPage() {
               }
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full px-4 py-3 bg-white/95 dark:bg-slate-950 border border-amber-200/80 dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
+              className="w-full px-4 py-3 bg-white/95 dark:bg-slate-950 border border-[var(--line)] dark:border-slate-800 rounded-xl outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
             />
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value })}
-              className="w-full px-4 py-3 border border-amber-200/80 dark:border-slate-800 rounded-xl outline-none bg-white/95 dark:bg-slate-950 font-semibold text-slate-800 dark:text-slate-200 shadow-2xs"
+              className="w-full px-4 py-3 border border-[var(--line)] dark:border-slate-800 rounded-xl outline-none bg-white/95 dark:bg-slate-950 font-semibold text-slate-800 dark:text-slate-200 shadow-2xs"
             >
               <option value="general">{language === "uz" ? "Umumiy" : language === "ru" ? "Общий" : "General"}</option>
               <option value="birthday">{language === "uz" ? "Tug'ilgan kun" : language === "ru" ? "День рождения" : "Birthday"}</option>
@@ -246,17 +242,17 @@ export default function WishlistPage() {
               <option value="fashion">{language === "uz" ? "Kiyim va Aksessuarlar" : language === "ru" ? "Одежда и аксессуары" : "Fashion & Accessories"}</option>
             </select>
           </div>
-          <div className="flex justify-end gap-2.5 pt-2 border-t border-amber-100 dark:border-slate-800">
+          <div className="flex justify-end gap-2.5 pt-2 border-t border-[var(--line)] dark:border-slate-800">
             <button
               onClick={() => setShowCreate(false)}
-              className="px-4 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer active:scale-95"
+              className="px-4 py-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
             >
               {t("common.cancel")}
             </button>
             <button
               onClick={() => createMut.mutate(form)}
               disabled={!form.title}
-              className="px-6 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 text-xs font-black rounded-xl disabled:opacity-30 transition shadow-md shadow-amber-500/25 cursor-pointer active:scale-95"
+              className="px-6 py-2.5 text-white text-xs font-bold rounded-xl disabled:opacity-30 transition shadow-md cursor-pointer bg-amber-500 hover:bg-amber-400"
             >
               {t("common.save")}
             </button>
@@ -277,19 +273,19 @@ export default function WishlistPage() {
           return (
             <div
               key={wl.id}
-              className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl shadow-luxury border-2 border-amber-200/80 dark:border-amber-500/20 overflow-hidden transition"
+              className="bg-white dark:bg-[#0b1224] rounded-2xl shadow-sm border border-[var(--line)] dark:border-amber-500/20 overflow-hidden transition"
             >
               {/* Card Header */}
-              <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-amber-100 dark:border-slate-800">
+              <div className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--line)] dark:border-slate-800">
                 <div
                   onClick={() => setExpandedWl(isExpanded ? null : wl.id)}
                   className="cursor-pointer space-y-1 flex-1"
                 >
                   <div className="flex items-center gap-2">
-                    <h2 className="font-display font-black text-lg sm:text-xl text-slate-900 dark:text-white hover:text-amber-600 transition">
+                    <h2 className="font-display font-bold text-lg sm:text-xl text-slate-900 dark:text-white hover:text-amber-600 transition">
                       {wl.title}
                     </h2>
-                    <span className="text-[11px] bg-amber-500/15 border border-amber-300/70 dark:border-amber-500/30 text-amber-900 dark:text-amber-300 px-2.5 py-0.5 rounded-full font-bold shadow-2xs">
+                    <span className="text-[11px] border border-[var(--line)] px-2.5 py-0.5 rounded-full font-bold bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                       {items.length} {language === "uz" ? "ta sovg'a" : language === "ru" ? "подарков" : "gifts"}
                     </span>
                   </div>
@@ -299,7 +295,7 @@ export default function WishlistPage() {
                   {totalSum > 0 && (
                     <p className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1 pt-1">
                       <Coins className="w-3.5 h-3.5 text-amber-500 stroke-[2.2]" />
-                      <span>{language === "uz" ? "Jami qiymati" : language === "ru" ? "Общая стоимость" : "Total value"}: <strong className="text-amber-600 dark:text-amber-400 font-black">{formatPrice(totalSum)}</strong></span>
+                      <span>{language === "uz" ? "Jami qiymati" : language === "ru" ? "Общая стоимость" : "Total value"}: <strong className="text-amber-600 dark:text-amber-400 font-bold">{formatPrice(totalSum)}</strong></span>
                       {completedCount > 0 && (
                         <span className="text-emerald-600 dark:text-emerald-400 font-bold text-[11px]">
                           ({completedCount} {language === "uz" ? "ta band qilingan" : language === "ru" ? "забронировано" : "claimed"})
@@ -314,7 +310,7 @@ export default function WishlistPage() {
                   {/* Research with AI */}
                   <button
                     onClick={() => handleResearchForWishlist(wl)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-300/70 dark:border-amber-500/30 text-amber-900 dark:text-amber-300 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-amber-500/15 hover:bg-amber-500/25 border border-[var(--line)] dark:border-amber-500/30 text-amber-900 dark:text-amber-300 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer"
                     title={language === "uz" ? "Ushbu mavzuda AI tadqiqotini ishga tushirish" : language === "ru" ? "Запустить AI поиск по этой теме" : "Run AI search for this wishlist"}
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-500 stroke-[2.2]" />
@@ -324,7 +320,7 @@ export default function WishlistPage() {
                   {/* Share Link */}
                   <button
                     onClick={() => handleShareWishlist(wl)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 bg-white/90 dark:bg-slate-900/90 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-amber-200/80 dark:border-slate-800 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer active:scale-95"
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-white/90 dark:bg-slate-900/90 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-[var(--line)] dark:border-slate-800 rounded-xl text-xs font-bold transition shadow-2xs cursor-pointer"
                     title={language === "uz" ? "Ommaviy havolani nusxalash" : language === "ru" ? "Скопировать публичную ссылку" : "Copy public link"}
                   >
                     <Copy className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -334,7 +330,7 @@ export default function WishlistPage() {
                   {/* Telegram */}
                   <button
                     onClick={() => handleShareTelegram(wl)}
-                    className="p-2 bg-[#2AABEE] hover:bg-[#229ED9] text-white rounded-xl transition shadow-2xs cursor-pointer active:scale-95"
+                    className="p-2 bg-[#2AABEE] hover:bg-[#229ED9] text-white rounded-xl transition shadow-2xs cursor-pointer"
                     title={language === "uz" ? "Telegram orqali ulashish" : language === "ru" ? "Поделиться в Telegram" : "Share via Telegram"}
                   >
                     <Send className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -352,7 +348,7 @@ export default function WishlistPage() {
                         deleteWishlistMut.mutate(wl.id);
                       }
                     }}
-                    className="p-2 text-slate-400 hover:text-rose-500 rounded-xl transition cursor-pointer active:scale-95"
+                    className="p-2 text-slate-400 hover:text-rose-500 rounded-xl transition cursor-pointer"
                     title={language === "uz" ? "Ro'yxatni o'chirish" : language === "ru" ? "Удалить список" : "Delete wishlist"}
                   >
                     <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -369,7 +365,7 @@ export default function WishlistPage() {
                       className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl transition border ${
                         item.purchased
                           ? "bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-300/80 dark:border-emerald-500/30"
-                          : "bg-white/90 dark:bg-slate-900/90 border-amber-200/70 dark:border-slate-800 hover:border-amber-400 dark:hover:border-slate-700 shadow-2xs"
+                          : "bg-white/90 dark:bg-slate-900/90 border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)] dark:hover:border-slate-700 shadow-2xs"
                       }`}
                     >
                       <div className="flex items-center gap-3.5 flex-1 min-w-0">
@@ -377,10 +373,10 @@ export default function WishlistPage() {
                           onClick={() =>
                             togglePurchased.mutate({ itemId: item.id, purchased: !item.purchased })
                           }
-                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition flex-shrink-0 cursor-pointer active:scale-95 ${
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center transition flex-shrink-0 cursor-pointer ${
                             item.purchased
                               ? "bg-emerald-500 border-emerald-500 text-white shadow-2xs"
-                              : "border-slate-300 dark:border-slate-600 hover:border-amber-500"
+                              : "border-slate-300 dark:border-slate-600 hover:border-[var(--line-strong)]"
                           }`}
                         >
                           {item.purchased && <Check className="w-3 h-3 stroke-[2.2]" />}
@@ -396,7 +392,7 @@ export default function WishlistPage() {
                           </p>
                           <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
                             {item.price && (
-                              <span className="font-black text-amber-600 dark:text-amber-400">
+                              <span className="font-bold text-amber-600 dark:text-amber-400">
                                 {formatPrice(item.price, item.currency)}
                               </span>
                             )}
@@ -417,7 +413,7 @@ export default function WishlistPage() {
                             href={item.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-2 text-slate-500 hover:text-amber-600 rounded-xl hover:bg-amber-50 dark:hover:bg-slate-800 transition cursor-pointer active:scale-95"
+                            className="p-2 text-slate-500 hover:text-amber-600 rounded-xl hover:bg-amber-50 dark:hover:bg-slate-800 transition cursor-pointer"
                             title={language === "uz" ? "Do'konda ko'rish" : language === "ru" ? "Посмотреть в магазине" : "View in store"}
                           >
                             <ExternalLink className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -427,7 +423,7 @@ export default function WishlistPage() {
                         {/* Gift Dedication Card */}
                         <button
                           onClick={() => setSelectedGiftCardItem(item)}
-                          className="p-2 text-amber-600 hover:text-amber-700 dark:text-amber-400 rounded-xl hover:bg-amber-50 dark:hover:bg-slate-800 transition cursor-pointer active:scale-95"
+                          className="p-2 text-amber-600 hover:text-amber-700 dark:text-amber-400 rounded-xl hover:bg-amber-50 dark:hover:bg-slate-800 transition cursor-pointer"
                           title={language === "uz" ? "Tabriknoma / Sertifikat chop etish" : language === "ru" ? "Распечатать открытку / сертификат" : "Print postcard / certificate"}
                         >
                           <Gift className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -435,7 +431,7 @@ export default function WishlistPage() {
 
                         <button
                           onClick={() => deleteItemMut.mutate(item.id)}
-                          className="p-2 text-slate-400 hover:text-rose-500 rounded-xl hover:bg-rose-50 dark:hover:bg-slate-800 transition cursor-pointer active:scale-95"
+                          className="p-2 text-slate-400 hover:text-rose-500 rounded-xl hover:bg-rose-50 dark:hover:bg-slate-800 transition cursor-pointer"
                           title={language === "uz" ? "O'chirish" : language === "ru" ? "Удалить" : "Delete"}
                         >
                           <Trash2 className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -447,7 +443,7 @@ export default function WishlistPage() {
 
                 {/* Add Item Form or Button */}
                 {showAddItem === wl.id ? (
-                  <div className="mt-3 p-4.5 bg-white/95 dark:bg-slate-950 rounded-2xl animate-fade-in space-y-3 border-2 border-amber-300/80 dark:border-amber-500/30 shadow-inner">
+                  <div className="mt-3 p-4.5 bg-white/95 dark:bg-slate-950 rounded-2xl animate-fade-in space-y-3 border border-[var(--line)] dark:border-amber-500/30 shadow-inner">
                     <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       {language === "uz" ? "Yangi sovg'a qo'shish:" : language === "ru" ? "Добавить новый подарок:" : "Add a new gift:"}
                     </h4>
@@ -461,7 +457,7 @@ export default function WishlistPage() {
                       }
                       value={itemForm.name}
                       onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
                     />
                     <div className="grid grid-cols-2 gap-2">
                       <input
@@ -469,25 +465,25 @@ export default function WishlistPage() {
                         placeholder={language === "uz" ? "Narxi (UZS)" : language === "ru" ? "Цена (UZS)" : "Price (UZS)"}
                         value={itemForm.price}
                         onChange={(e) => setItemForm({ ...itemForm, price: e.target.value })}
-                        className="px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
+                        className="px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
                       />
                       <input
                         placeholder={language === "uz" ? "Do'kon (masalan: Uzum Market)" : language === "ru" ? "Магазин (например: Uzum Market)" : "Store (e.g. Uzum Market)"}
                         value={itemForm.store}
                         onChange={(e) => setItemForm({ ...itemForm, store: e.target.value })}
-                        className="px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
+                        className="px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
                       />
                     </div>
                     <input
                       placeholder={language === "uz" ? "Havola / URL (ixtiyoriy)" : language === "ru" ? "Ссылка / URL (необязательно)" : "Link / URL (optional)"}
                       value={itemForm.url}
                       onChange={(e) => setItemForm({ ...itemForm, url: e.target.value })}
-                      className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
+                      className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-800 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-amber-500/40 text-slate-900 dark:text-white shadow-2xs"
                     />
-                    <div className="flex justify-end gap-2 pt-1 border-t border-amber-100 dark:border-slate-800">
+                    <div className="flex justify-end gap-2 pt-1 border-t border-[var(--line)] dark:border-slate-800">
                       <button
                         onClick={() => setShowAddItem(null)}
-                        className="px-3.5 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer active:scale-95"
+                        className="px-3.5 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                       >
                         {t("common.cancel")}
                       </button>
@@ -502,7 +498,7 @@ export default function WishlistPage() {
                           })
                         }
                         disabled={!itemForm.name}
-                        className="px-5 py-2 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 text-xs font-black rounded-xl disabled:opacity-30 transition shadow-md shadow-amber-500/25 cursor-pointer active:scale-95"
+                        className="px-5 py-2 text-white text-xs font-bold rounded-xl disabled:opacity-30 transition shadow-md cursor-pointer bg-amber-500 hover:bg-amber-400"
                       >
                         {t("common.save")}
                       </button>
@@ -511,7 +507,7 @@ export default function WishlistPage() {
                 ) : (
                   <button
                     onClick={() => setShowAddItem(wl.id)}
-                    className="mt-2 flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition cursor-pointer active:scale-95"
+                    className="mt-2 flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 transition cursor-pointer"
                   >
                     <Plus className="w-4 h-4 stroke-[2.2]" />
                     <span>{language === "uz" ? "Sovg'a qo'shish" : language === "ru" ? "Добавить подарок" : "Add gift"}</span>
@@ -524,9 +520,9 @@ export default function WishlistPage() {
       </div>
 
       {lists?.length === 0 && !isLoading && (
-        <div className="text-center py-16 bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury space-y-3">
+        <div className="bg-white dark:bg-[#0b1224] text-center py-16 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 shadow-sm space-y-3">
           <ShoppingBag className="w-12 h-12 mx-auto text-amber-500/60 stroke-[2.2]" />
-          <h3 className="font-display font-black text-slate-900 dark:text-white text-base sm:text-lg">
+          <h3 className="font-display font-bold text-slate-900 dark:text-white text-base sm:text-lg">
             {language === "uz" ? "Hozircha istaklar ro'yxati mavjud emas" : language === "ru" ? "Списков желаний пока нет" : "No wishlists yet"}
           </h3>
           <p className="text-xs text-slate-600 dark:text-slate-300 max-w-sm mx-auto font-normal">
@@ -538,7 +534,7 @@ export default function WishlistPage() {
           </p>
           <button
             onClick={() => setShowCreate(true)}
-            className="px-6 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black rounded-xl text-xs transition shadow-md shadow-amber-500/25 cursor-pointer active:scale-95"
+            className="px-6 py-2.5 text-white font-bold rounded-xl text-xs transition shadow-md cursor-pointer bg-amber-500 hover:bg-amber-400"
           >
             {language === "uz" ? "Yangi ro'yxat tuzish" : language === "ru" ? "Создать новый список" : "Create new list"}
           </button>

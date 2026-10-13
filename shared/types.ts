@@ -279,6 +279,16 @@ export interface ComparisonResult {
   researchSummary: string;
   verifiedCount: number;
   lastChecked: string;
+  /** Whether the store's advertised discount matches the price history we collected */
+  discountCheck?: {
+    claimedPercent: number | null;
+    storeOldPrice: number | null;
+    historyDays: number;
+    verdict: "genuine" | "suspicious" | "unknown" | "none";
+    note: string;
+  };
+  /** true = prices come from live store search */
+  liveData?: boolean;
 }
 
 // ─── Image Search Types ─────────────────────────────────────────────────
@@ -394,7 +404,7 @@ export interface SubscriptionReceiptRecord {
   userId: number;
   userEmail?: string;
   userName?: string;
-  plan: "pro_monthly" | "pro_annual";
+  plan: string; // "start" | "plus" | "premium" (older records: "pro_monthly" | "pro_annual")
   amount: number;
   expectedAmount: number;
   currency: string;

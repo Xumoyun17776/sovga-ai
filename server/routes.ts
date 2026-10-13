@@ -3,7 +3,19 @@ import bcrypt from "bcryptjs";
 import { storage, isProhibitedContent } from "./storage.js";
 import { mongoService } from "./db/mongo.js";
 import { aiResearchService } from "./services/aiResearchService.js";
-import { buildGiftQuery } from "./services/giftEngine.js";
+import { buildGiftQuery, applyAvoidList } from "./services/giftEngine.js";
+import { matchesAllWords, rankByRelevance, storeSearchQueries } from "./services/searchRelevance.js";
+import { searchStores } from "./services/liveStores.js";
+import { getLivePriceBoard } from "./services/livePriceBoard.js";
+import { buildDemoUsers } from "./services/demoUsers.js";
+import { countSearch, trackerLimitError, registryLimitError, planStatus, activatePlan, effectivePlan, isAdminUser, paymentCards } from "./services/planService.js";
+import { PLANS, PAID_PLANS, normalizePlanId } from "../shared/plans.js";
+import { liveCatalogReady, filterLiveCatalog, liveCategories, liveCatalogById, liveCatalogMeta } from "./services/liveCatalog.js";
+import { getDuelVotes, addDuelVote } from "./services/duelVotes.js";
+import { langOf } from "./services/lang.js";
+import { aiSearchStatus } from "./services/aiWebSearch.js";
+import { webIndexStats, rememberProducts } from "./services/webIndex.js";
+import { smsStatus, smsConfigured, sendSms, otpMessage } from "./services/smsService.js";
 import { researchLimiter, apiLimiter, authLimiter } from "./middleware/rateLimit.js";
 import { providerRegistry } from "./providers/baseProvider.js";
 import { ensureProductUrl } from "./services/urlHelper.js";
@@ -17,7 +29,6 @@ import {
   findSmartAlternatives,
   analyzeMarketPriceTrend,
   verifyStoreReputation,
-  getTrendingDeals,
   generateCalligraphyCards,
   getRegionalDeliveryInfo,
   compareProductsDuel,
@@ -36,6 +47,41 @@ function requireAuth(req: Request, res: Response, next: Function) {
 
 const SUPER_ADMIN_EMAIL = "baxorasaidova@gmail.com";
 
+function isSuperAdmin(user: any): boolean {
+  return !!user && String(user.email || "").toLowerCase().trim() === SUPER_ADMIN_EMAIL;
+}
+
+/** Return a shallow copy of `body` containing only the listed keys. */
+function pick(body: any, keys: string[]): Record<string, any> {
+  const out: Record<string, any> = {};
+  if (!body || typeof body !== "object") return out;
+  for (const k of keys) if (body[k] !== undefined) out[k] = body[k];
+  return out;
+}
+
+function normalizeUzPhone(raw: unknown): string | null {
+  const digits = String(raw || "").replace(/[^0-9]/g, "");
+  if (digits.length < 9) return null;
+  return digits.startsWith("998") && digits.length >= 12 ? `+${digits.slice(0, 12)}` : `+998${digits.slice(-9)}`;
+}
+
+function slugify(text: string): string {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/['ʻʼ`]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
+}
+
+const REGISTRY_EDITABLE = ["partnerName1", "partnerName2", "weddingDate", "message", "isPublic", "revealPurchasers", "coverImageUrl", "venue", "theme"];
+const REGISTRY_ITEM_EDITABLE = ["name", "description", "imageUrl", "price", "currency", "url", "store", "priority", "quantity", "category", "isCashGoal", "cashGoalAmount", "notes", "status"];
+const WISHLIST_EDITABLE = ["title", "description", "type", "isPublic", "eventDate", "theme"];
+const WISHLIST_ITEM_EDITABLE = ["name", "description", "imageUrl", "price", "currency", "url", "store", "priority", "notes", "purchased"];
+const REMINDER_EDITABLE = ["title", "personName", "eventType", "eventDate", "recurring", "budget", "currency", "notes"];
+
 async function requireAdmin(req: Request, res: Response, next: Function) {
   if (!req.session.userId) return res.status(401).json({ success: false, error: "Authentication required" });
   const user = storage.getUserById(req.session.userId);
@@ -49,13 +95,8 @@ async function requireAdmin(req: Request, res: Response, next: Function) {
 }
 
 export function registerRoutes(app: Express) {
-  // Automatic Pageview & Visit Tracker Middleware
-  app.use((req, _res, next) => {
-    if (req.method === "GET" && !req.path.startsWith("/api") && !req.path.startsWith("/assets")) {
-      analyticsService.recordVisit(req, req.path);
-    }
-    next();
-  });
+  // Page views are recorded by the client (App.tsx → /api/analytics/track) on every route change,
+  // so the server no longer counts raw GETs too (that double-counted visits and logged files like /favicon.ico).
 
   // Apply rate limiting
   app.use("/api/", apiLimiter);
@@ -68,7 +109,7 @@ export function registerRoutes(app: Express) {
     res.json({ success: true, data: { link } });
   });
 
-  const otpStore = new Map<string, { code: string; expires: number }>();
+  const otpStore = new Map<string, { code: string; expires: number; attempts?: number; sentAt?: number }>();
 
   app.post("/api/auth/send-otp", authLimiter, async (req: Request, res: Response) => {
     try {
@@ -78,15 +119,45 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ success: false, error: "To'g'ri telefon raqam kiriting" });
       }
       const formattedPhone = digits.startsWith("998") ? `+${digits}` : `+998${digits.slice(-9)}`;
-      
-      const code = String(Math.floor(1000 + Math.random() * 9000));
-      otpStore.set(formattedPhone, { code, expires: Date.now() + 2 * 60 * 1000 });
 
-      console.log(`[SMS Gateway] Sent OTP code "${code}" to ${formattedPhone}`);
+      // One code per minute per number (each SMS costs money)
+      const prev = otpStore.get(formattedPhone);
+      if (prev?.sentAt && Date.now() - prev.sentAt < 60 * 1000) {
+        const wait = Math.ceil((60 * 1000 - (Date.now() - prev.sentAt)) / 1000);
+        return res.status(429).json({ success: false, error: `Yangi kodni ${wait} soniyadan keyin so'rashingiz mumkin` });
+      }
+
+      const code = String(Math.floor(1000 + Math.random() * 9000));
+      otpStore.set(formattedPhone, { code, expires: Date.now() + 3 * 60 * 1000, sentAt: Date.now() });
+
+      // Real SMS when Eskiz.uz is configured (see server/services/smsService.ts)
+      if (smsConfigured()) {
+        try {
+          await sendSms(formattedPhone, otpMessage(code));
+          return res.json({ success: true, message: "Tasdiqlash kodi telefoningizga SMS orqali yuborildi", data: {} });
+        } catch (e: any) {
+          console.error("[SMS] send failed:", e?.message);
+          otpStore.delete(formattedPhone);
+          return res.status(502).json({ success: false, error: "SMS yuborib bo'lmadi. Birozdan keyin qayta urinib ko'ring yoki parol bilan kiring." });
+        }
+      }
+
+      // No SMS provider: the code may only be shown on screen outside production (or with OTP_DEMO_MODE=true);
+      // otherwise anyone could log into any phone-number account.
+      const demoMode = process.env.NODE_ENV !== "production" || process.env.OTP_DEMO_MODE === "true";
+      if (!demoMode) {
+        otpStore.delete(formattedPhone);
+        return res.status(503).json({
+          success: false,
+          error: "SMS orqali kirish vaqtincha mavjud emas. Iltimos, email/telefon va parol bilan kiring.",
+        });
+      }
+      console.log(`[SMS Gateway] (demo) OTP for ${formattedPhone}: ${code}`);
 
       res.json({
         success: true,
         message: "Tasdiqlash kodi telefoningizga SMS orqali yuborildi",
+        data: { demoCode: code },
         demoCode: code,
       });
     } catch (err: any) {
@@ -101,8 +172,12 @@ export function registerRoutes(app: Express) {
       const formattedPhone = digits.startsWith("998") ? `+${digits}` : `+998${digits.slice(-9)}`;
       const cleanCode = String(code || "").trim();
 
-      const record = otpStore.get(formattedPhone);
+      const record = otpStore.get(formattedPhone) as { code: string; expires: number; attempts?: number } | undefined;
       if (!record || record.expires < Date.now() || record.code !== cleanCode) {
+        if (record) {
+          record.attempts = (record.attempts || 0) + 1;
+          if (record.attempts >= 5) otpStore.delete(formattedPhone);
+        }
         return res.status(400).json({ success: false, error: "Tasdiqlash kodi noto'g'ri yoki muddati tugagan" });
       }
 
@@ -289,6 +364,8 @@ export function registerRoutes(app: Express) {
           phone: user.phone,
           name: user.name,
           role: user.email?.toLowerCase().trim() === SUPER_ADMIN_EMAIL ? "admin" : user.role,
+          plan: effectivePlan(user).plan.id,
+          planExpiresAt: effectivePlan(user).expiresAt,
         },
       });
     } catch (e: any) {
@@ -306,9 +383,22 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ success: false, error: "Ism kamida 2 ta harfdan iborat bo'lishi kerak" });
       }
 
+      let normalizedPhone: string | undefined = undefined;
+      if (cleanPhone) {
+        const np = normalizeUzPhone(cleanPhone);
+        if (!np) {
+          return res.status(400).json({ success: false, error: "To'g'ri telefon raqam kiriting" });
+        }
+        const owner = storage.getUserByIdentifier(np);
+        if (owner && owner.id !== req.session.userId) {
+          return res.status(409).json({ success: false, error: "Bu telefon raqami boshqa hisobga biriktirilgan" });
+        }
+        normalizedPhone = np;
+      }
+
       const updated = storage.updateUser(req.session.userId!, {
-        name: cleanName,
-        phone: cleanPhone || undefined,
+        name: cleanName.slice(0, 80),
+        ...(normalizedPhone ? { phone: normalizedPhone } : {}),
       });
 
       if (!updated) {
@@ -333,7 +423,11 @@ export function registerRoutes(app: Express) {
   app.post("/api/auth/change-password", requireAuth, async (req: Request, res: Response) => {
     try {
       const { currentPassword, newPassword } = req.body;
-      if (!currentPassword || !newPassword) {
+      if (!newPassword || typeof newPassword !== "string") {
+        return res.status(400).json({ success: false, error: "Joriy va yangi parolni kiriting" });
+      }
+      const currentUser = storage.getUserById(req.session.userId!);
+      if (currentUser?.password && !currentPassword) {
         return res.status(400).json({ success: false, error: "Joriy va yangi parolni kiriting" });
       }
       if (newPassword.length < 6) {
@@ -343,7 +437,7 @@ export function registerRoutes(app: Express) {
       const user = storage.getUserById(req.session.userId!);
       if (!user) return res.status(404).json({ success: false, error: "Foydalanuvchi topilmadi" });
 
-      const matches = await bcrypt.compare(currentPassword, user.password);
+      const matches = user.password ? await bcrypt.compare(String(currentPassword), user.password) : true;
       if (!matches) {
         return res.status(400).json({ success: false, error: "Hozirgi parolingiz xato kiritildi" });
       }
@@ -462,9 +556,10 @@ export function registerRoutes(app: Express) {
   });
 
   // ─── AI Research ──────────────────────────────────────────
-  app.post("/api/research/search", async (req: Request, res: Response) => {
+  app.post("/api/research/search", countSearch, async (req: Request, res: Response) => {
     try {
-      const { query, occasion, budget, budgetMax, currency, language } = req.body;
+      const { query, occasion, budget, budgetMax, currency } = req.body;
+      const language = langOf(req, req.body.language);
       if (!query) return res.status(400).json({ success: false, error: "Query is required" });
       if (isProhibitedContent(query)) {
         return res.status(400).json({
@@ -493,7 +588,7 @@ export function registerRoutes(app: Express) {
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
 
-  app.post("/api/research/gift", async (req: Request, res: Response) => {
+  app.post("/api/research/gift", countSearch, async (req: Request, res: Response) => {
     try {
       const criteria = req.body;
       if (!criteria.occasion) return res.status(400).json({ success: false, error: "Occasion is required" });
@@ -504,7 +599,9 @@ export function registerRoutes(app: Express) {
           error: "Ushbu so'rov bo'yicha qidiruv ruxsat etilmagan.",
         });
       }
-      const result = await aiResearchService.research(query, { budget: criteria.budgetMin, budgetMax: criteria.budgetMax, currency: criteria.currency, occasion: criteria.occasion });
+      const result = await aiResearchService.research(query, { budget: criteria.budgetMin, budgetMax: criteria.budgetMax, currency: criteria.currency, occasion: criteria.occasion, language: langOf(req, criteria.language) });
+      const filtered = applyAvoidList(result.products || [], criteria.avoid);
+      const giftResult = filtered.length > 0 ? { ...result, products: filtered } : result;
       try {
         storage.createSearchRecord({
           userId: req.session.userId || null,
@@ -521,7 +618,7 @@ export function registerRoutes(app: Express) {
       } catch (logErr: any) {
         console.warn("[Analytics] createSearchRecord failed:", logErr?.message);
       }
-      res.json({ success: true, data: result });
+      res.json({ success: true, data: giftResult });
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
 
@@ -535,12 +632,12 @@ export function registerRoutes(app: Express) {
           error: "Ushbu mahsulot bo'yicha taqqoslash ruxsat etilmagan.",
         });
       }
-      const result = await aiResearchService.comparePrice(productName, currentPrice, currentStore, currency);
+      const result = await aiResearchService.comparePrice(productName, currentPrice, currentStore, currency, langOf(req, req.body.language));
       res.json({ success: true, data: result });
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
 
-  app.post("/api/research/image", async (req: Request, res: Response) => {
+  app.post("/api/research/image", countSearch, async (req: Request, res: Response) => {
     try {
       const { image, hint } = req.body;
       if (!image) return res.status(400).json({ success: false, error: "Image data or URL is required" });
@@ -564,7 +661,7 @@ export function registerRoutes(app: Express) {
   });
 
   // ─── AI Neural Gift Detective & Psychological Persona Profiler ────
-  app.post("/api/gift-detective", async (req: Request, res: Response) => {
+  app.post("/api/gift-detective", countSearch, async (req: Request, res: Response) => {
     try {
       const {
         targetPerson = "Do'stim",
@@ -646,10 +743,31 @@ export function registerRoutes(app: Express) {
   });
 
   // ─── New Advanced Shopping Sub-Functions ──────────────────
-  app.get("/api/research/trending", (_req: Request, res: Response) => {
+  // Real store discounts only (from the live price board). Empty when stores can't be reached.
+  app.get("/api/research/trending", async (_req: Request, res: Response) => {
     try {
-      const deals = getTrendingDeals();
+      const board = await getLivePriceBoard();
+      const deals = board.drops.map((d) => ({
+        name: d.title,
+        category: d.category,
+        store: d.store,
+        originalPrice: d.oldPrice,
+        salePrice: d.price,
+        discountPercent: d.pct,
+        url: d.url,
+        image: d.image,
+        checkedAt: board.checkedAt,
+      }));
       res.json({ success: true, data: deals });
+    } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // Homepage proof card: same model, cheapest in-stock price per store, with the time of the check.
+  app.get("/api/prices/live-board", async (_req: Request, res: Response) => {
+    try {
+      const board = await getLivePriceBoard();
+      res.set("Cache-Control", "public, max-age=60");
+      res.json({ success: true, data: board });
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
 
@@ -701,20 +819,99 @@ export function registerRoutes(app: Express) {
   app.get("/api/research/delivery-info", (req: Request, res: Response) => {
     try {
       const region = req.query.region as string | undefined;
-      const data = getRegionalDeliveryInfo(region);
+      const data = getRegionalDeliveryInfo(region, langOf(req));
       res.json({ success: true, data });
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
 
-  app.post("/api/research/compare-duel", (req: Request, res: Response) => {
+  app.post("/api/research/compare-duel", countSearch, async (req: Request, res: Response) => {
     try {
       const { productA, productB } = req.body;
       if (!productA || !productB) {
         return res.status(400).json({ success: false, error: "Both productA and productB are required" });
       }
-      const data = compareProductsDuel(productA, productB);
+      if (typeof productA !== "string" || typeof productB !== "string" || productA.length > 200 || productB.length > 200) {
+        return res.status(400).json({ success: false, error: "Invalid product names" });
+      }
+      // Live store prices first (Olcha, Texnomart); the sample catalog only if the stores don't have it
+      const liveLookup = async (q: string) => {
+        try {
+          const found = await searchStores(storeSearchQueries(q));
+          rememberProducts(found);
+          const strong = rankByRelevance(q, found, (x) => ({ name: x.title, description: x.category || null }), { maxRelated: 0 }).map((r) => r.item);
+          let matches = strong.filter((x) => matchesAllWords(q, x.title));
+          if (!matches.length) matches = strong.filter((x) => matchesAllWords(q, x.title, 0.6));
+          if (!matches.length) return null;
+          matches.sort((x, y) => x.price - y.price);
+          const best = matches[0];
+          return {
+            name: best.title,
+            price: best.price,
+            store: best.store,
+            url: best.url,
+            rating: best.rating ?? null,
+            reviewCount: best.reviewCount ?? null,
+            offers: matches.slice(0, 6).map((m) => ({ store: m.store, price: m.price, installment: m.installment || null })),
+            specs: best.warrantyMonths ? { Kafolat: `${best.warrantyMonths} oy` } : {},
+            category: best.category ?? null,
+          };
+        } catch {
+          return null;
+        }
+      };
+      const catalogLookup = (q: string) => {
+        const hits = storage.searchCatalog(q, {}).slice(0, 15);
+        return hits.find((h: any) => matchesAllWords(q, h.name)) || hits.find((h: any) => matchesAllWords(q, h.name, 0.6)) || null;
+      };
+      const [liveA, liveB] = await Promise.all([liveLookup(productA), liveLookup(productB)]);
+      const resolved: Record<string, any> = {
+        [productA]: liveA || catalogLookup(productA),
+        [productB]: liveB || catalogLookup(productB),
+      };
+      const lookup = (q: string) => resolved[q] || null;
+      const data = compareProductsDuel(productA, productB, lookup, langOf(req));
       res.json({ success: true, data });
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
+  });
+
+  // Health: which live sources work right now (no secrets). Useful after changing API keys.
+  app.get("/api/health", (_req: Request, res: Response) => {
+    res.json({
+      success: true,
+      data: {
+        ok: true,
+        time: new Date().toISOString(),
+        aiWebSearch: aiSearchStatus(),
+        liveProductIndex: webIndexStats(),
+        sms: smsStatus(),
+      },
+    });
+  });
+
+  // Real votes for a pair of products (one vote per visitor session per pair)
+  app.get("/api/research/duel-votes", (req: Request, res: Response) => {
+    const a = String(req.query.a || "");
+    const b = String(req.query.b || "");
+    if (!a || !b) return res.status(400).json({ success: false, error: "a and b are required" });
+    const key = `${a.toLowerCase().trim()}||${b.toLowerCase().trim()}`;
+    const voted = ((req.session as any).duelVotes || {})[key] || null;
+    res.json({ success: true, data: { ...getDuelVotes(a, b), voted } });
+  });
+
+  app.post("/api/research/duel-votes", (req: Request, res: Response) => {
+    const { productA, productB, option } = req.body || {};
+    if (typeof productA !== "string" || typeof productB !== "string" || !productA || !productB || productA.length > 200 || productB.length > 200 || (option !== "A" && option !== "B")) {
+      return res.status(400).json({ success: false, error: "Invalid vote" });
+    }
+    const key = `${productA.toLowerCase().trim()}||${productB.toLowerCase().trim()}`;
+    const sess = req.session as any;
+    sess.duelVotes = sess.duelVotes || {};
+    if (sess.duelVotes[key]) {
+      return res.json({ success: true, data: { ...getDuelVotes(productA, productB), voted: sess.duelVotes[key] } });
+    }
+    sess.duelVotes[key] = option;
+    const tally = addDuelVote(productA, productB, option);
+    res.json({ success: true, data: { ...tally, voted: option } });
   });
 
   // ─── Wedding Registries ───────────────────────────────────
@@ -731,17 +928,31 @@ export function registerRoutes(app: Express) {
   app.post("/api/registries", requireAuth as any, (req: Request, res: Response) => {
     try {
       const { partnerName1, partnerName2, weddingDate, message, slug } = req.body;
+      const regErr = registryLimitError(req);
+      if (regErr) return res.status(403).json(regErr);
       if (!partnerName1 || !partnerName2) return res.status(400).json({ success: false, error: "Both partner names required" });
       if (isProhibitedContent(partnerName1) || isProhibitedContent(partnerName2) || isProhibitedContent(message)) {
         return res.status(400).json({ success: false, error: "Nomaqbul yoki odob-axloq me'yorlariga zid ma'lumot kiritish taqiqlanadi" });
       }
-      let finalSlug = slug || `${partnerName1}-${partnerName2}`.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      if (!slug && storage.getRegistryBySlug(finalSlug)) {
+      const requestedSlug = slug ? slugify(slug) : "";
+      let finalSlug = requestedSlug || slugify(`${partnerName1}-${partnerName2}`) || `toy-${Date.now().toString(36)}`;
+      if (!requestedSlug && storage.getRegistryBySlug(finalSlug)) {
         finalSlug = `${finalSlug}-${Date.now().toString(36)}`;
       } else if (storage.getRegistryBySlug(finalSlug)) {
         return res.status(409).json({ success: false, error: "This registry URL is already taken" });
       }
-      const registry = storage.createRegistry({ userId: req.session.userId!, slug: finalSlug, partnerName1, partnerName2, weddingDate: weddingDate ? new Date(weddingDate) : null, message, isPublic: true, revealPurchasers: false });
+      const parsedDate = weddingDate ? new Date(weddingDate) : null;
+      const registry = storage.createRegistry({
+        ...pick(req.body, REGISTRY_EDITABLE),
+        userId: req.session.userId!,
+        slug: finalSlug,
+        partnerName1: String(partnerName1).trim(),
+        partnerName2: String(partnerName2).trim(),
+        weddingDate: parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate : null,
+        message,
+        isPublic: true,
+        revealPurchasers: false,
+      });
       res.json({ success: true, data: registry });
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
@@ -781,7 +992,7 @@ export function registerRoutes(app: Express) {
       if (isProhibitedContent(req.body.partnerName1) || isProhibitedContent(req.body.partnerName2) || isProhibitedContent(req.body.message)) {
         return res.status(400).json({ success: false, error: "Nomaqbul yoki odob-axloq me'yorlariga zid ma'lumot kiritish taqiqlanadi" });
       }
-      const updated = storage.updateRegistry(id, req.body);
+      const updated = storage.updateRegistry(id, pick(req.body, REGISTRY_EDITABLE));
       res.json({ success: true, data: updated });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e?.message });
@@ -810,7 +1021,18 @@ export function registerRoutes(app: Express) {
       if (isProhibitedContent(req.body.name) || isProhibitedContent(req.body.description)) {
         return res.status(400).json({ success: false, error: "Nomaqbul yoki odob-axloq me'yorlariga zid mahsulot kiritish taqiqlanadi" });
       }
-      const item = storage.createRegistryItem({ registryId, ...req.body, currency: req.body.currency || "UZS" });
+      if (!req.body?.name || !String(req.body.name).trim()) {
+        return res.status(400).json({ success: false, error: "Mahsulot nomini kiriting" });
+      }
+      const fields = pick(req.body, REGISTRY_ITEM_EDITABLE);
+      delete fields.status;
+      const item = storage.createRegistryItem({
+        ...fields,
+        registryId,
+        price: fields.price === undefined || fields.price === null || fields.price === "" ? null : Number(fields.price) || 0,
+        quantity: Math.max(1, parseInt(fields.quantity) || 1),
+        currency: fields.currency || "UZS",
+      });
       res.json({ success: true, data: item });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e?.message });
@@ -824,7 +1046,12 @@ export function registerRoutes(app: Express) {
       if (isProhibitedContent(req.body.name) || isProhibitedContent(req.body.description)) {
         return res.status(400).json({ success: false, error: "Nomaqbul yoki odob-axloq me'yorlariga zid mahsulot kiritish taqiqlanadi" });
       }
-      const updated = storage.updateRegistryItem(itemId, req.body);
+      const existingItem = storage.getRegistryItemById(itemId);
+      const parentRegistry = existingItem ? storage.getRegistryById(existingItem.registryId) : null;
+      if (!existingItem || !parentRegistry || parentRegistry.userId !== req.session.userId) {
+        return res.status(404).json({ success: false, error: "Item not found" });
+      }
+      const updated = storage.updateRegistryItem(itemId, pick(req.body, REGISTRY_ITEM_EDITABLE));
       if (!updated) return res.status(404).json({ success: false, error: "Item not found" });
       res.json({ success: true, data: updated });
     } catch (e: any) {
@@ -836,6 +1063,11 @@ export function registerRoutes(app: Express) {
     try {
       const itemId = parseInt(req.params.itemId as string);
       if (isNaN(itemId)) return res.status(400).json({ success: false, error: "Noto'g'ri mahsulot ID" });
+      const existingItem = storage.getRegistryItemById(itemId);
+      const parentRegistry = existingItem ? storage.getRegistryById(existingItem.registryId) : null;
+      if (!existingItem || !parentRegistry || parentRegistry.userId !== req.session.userId) {
+        return res.status(404).json({ success: false, error: "Item not found" });
+      }
       storage.deleteRegistryItem(itemId);
       res.json({ success: true });
     } catch (e: any) {
@@ -846,11 +1078,35 @@ export function registerRoutes(app: Express) {
   app.post("/api/registries/items/:itemId/reserve", (req: Request, res: Response) => {
     try {
       const itemId = parseInt(req.params.itemId as string);
+      if (isNaN(itemId)) return res.status(400).json({ success: false, error: "Noto'g'ri mahsulot ID" });
       const item = storage.getRegistryItemById(itemId);
       if (!item) return res.status(404).json({ success: false, error: "Item not found" });
-      const { guestName, guestEmail, guestPhone, quantity, cashAmount, message } = req.body;
-      if (!guestName) return res.status(400).json({ success: false, error: "Guest name is required" });
-      const reservation = storage.createReservation({ itemId, guestName, guestEmail, guestPhone, quantity: quantity || 1, cashAmount, message });
+      const { guestName, guestEmail, guestPhone, quantity, cashAmount, message } = req.body || {};
+      if (!guestName || !String(guestName).trim()) return res.status(400).json({ success: false, error: "Ismingizni kiriting" });
+      const qty = Math.max(1, parseInt(quantity) || 1);
+      const cash = cashAmount !== undefined && cashAmount !== null && cashAmount !== "" ? Number(cashAmount) : undefined;
+      if (item.isCashGoal) {
+        if (!cash || !isFinite(cash) || cash <= 0) {
+          return res.status(400).json({ success: false, error: "To'g'ri summa kiriting" });
+        }
+      } else {
+        const remaining = (Number(item.quantity) || 1) - (Number(item.quantityFulfilled) || 0);
+        if (item.status === "reserved" || remaining <= 0) {
+          return res.status(409).json({ success: false, error: "Bu sovg'a allaqachon band qilingan" });
+        }
+        if (qty > remaining) {
+          return res.status(409).json({ success: false, error: `Faqat ${remaining} dona qoldi` });
+        }
+      }
+      storage.createReservation({
+        itemId,
+        guestName: String(guestName).trim().slice(0, 80),
+        guestEmail,
+        guestPhone,
+        quantity: qty,
+        cashAmount: item.isCashGoal ? cash : undefined,
+        message: message ? String(message).slice(0, 500) : undefined,
+      });
       res.json({ success: true, data: { reserved: true } });
     } catch (e: any) { res.status(500).json({ success: false, error: e.message }); }
   });
@@ -870,8 +1126,8 @@ export function registerRoutes(app: Express) {
     try {
       const { title, description, type, isPublic } = req.body;
       if (!title) return res.status(400).json({ success: false, error: "Title required" });
-      const slug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-      const wl = storage.createWishlist({ userId: req.session.userId!, title, description, type: type || "general", isPublic: isPublic || false, slug });
+      const slug = slugify(title) || `list-${Date.now().toString(36)}`;
+      const wl = storage.createWishlist({ ...pick(req.body, WISHLIST_EDITABLE), userId: req.session.userId!, title, description, type: type || "general", isPublic: Boolean(isPublic), slug });
       res.json({ success: true, data: wl });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e?.message });
@@ -883,7 +1139,9 @@ export function registerRoutes(app: Express) {
       const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ success: false, error: "Noto'g'ri istaklar ro'yxati ID" });
       const wl = storage.getWishlistById(id);
-      if (!wl) return res.status(404).json({ success: false, error: "Wishlist not found" });
+      if (!wl || (!wl.isPublic && wl.userId !== req.session.userId)) {
+        return res.status(404).json({ success: false, error: "Wishlist not found" });
+      }
       const items = storage.getWishlistItems(wl.id);
       res.json({ success: true, data: { ...wl, items } });
     } catch (e: any) {
@@ -896,7 +1154,9 @@ export function registerRoutes(app: Express) {
       const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ success: false, error: "Noto'g'ri istaklar ro'yxati ID" });
       const wl = storage.getWishlistById(id);
-      if (!wl) return res.status(404).json({ success: false, error: "Wishlist not found" });
+      if (!wl || (!wl.isPublic && wl.userId !== req.session.userId)) {
+        return res.status(404).json({ success: false, error: "Wishlist not found" });
+      }
       const owner = storage.getUserById(wl.userId);
       const items = storage.getWishlistItems(wl.id);
       res.json({
@@ -917,9 +1177,14 @@ export function registerRoutes(app: Express) {
       const { guestName, claimed } = req.body;
       const itemId = parseInt(req.params.itemId as string);
       if (isNaN(itemId)) return res.status(400).json({ success: false, error: "Noto'g'ri mahsulot ID" });
+      const claimItem = storage.getWishlistItemById(itemId);
+      const claimList = claimItem ? storage.getWishlistById(claimItem.wishlistId) : null;
+      if (!claimItem || !claimList || (!claimList.isPublic && claimList.userId !== req.session.userId)) {
+        return res.status(404).json({ success: false, error: "Item not found" });
+      }
       const updated = storage.updateWishlistItem(itemId, {
-        purchased: claimed !== undefined ? claimed : true,
-        claimedBy: guestName || "Mehmon",
+        purchased: claimed !== undefined ? Boolean(claimed) : true,
+        claimedBy: guestName ? String(guestName).trim().slice(0, 80) : "Mehmon",
       });
       if (!updated) return res.status(404).json({ success: false, error: "Item not found" });
       res.json({ success: true, data: updated });
@@ -933,7 +1198,7 @@ export function registerRoutes(app: Express) {
       const id = parseInt(req.params.id as string);
       const wl = storage.getWishlistById(id);
       if (!wl || wl.userId !== req.session.userId) return res.status(404).json({ success: false, error: "Istaklar ro'yxati topilmadi" });
-      const updated = storage.updateWishlist(id, req.body);
+      const updated = storage.updateWishlist(id, pick(req.body, WISHLIST_EDITABLE));
       res.json({ success: true, data: updated });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e.message });
@@ -957,7 +1222,11 @@ export function registerRoutes(app: Express) {
       const wishlistId = parseInt(req.params.id as string);
       const wl = storage.getWishlistById(wishlistId);
       if (!wl || wl.userId !== req.session.userId) return res.status(404).json({ success: false, error: "Istaklar ro'yxati topilmadi" });
-      const item = storage.createWishlistItem({ wishlistId, ...req.body, currency: req.body.currency || "UZS" });
+      if (!req.body?.name || !String(req.body.name).trim()) {
+        return res.status(400).json({ success: false, error: "Mahsulot nomini kiriting" });
+      }
+      const fields = pick(req.body, WISHLIST_ITEM_EDITABLE);
+      const item = storage.createWishlistItem({ ...fields, wishlistId, currency: fields.currency || "UZS" });
       res.json({ success: true, data: item });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e.message });
@@ -966,7 +1235,13 @@ export function registerRoutes(app: Express) {
 
   app.put("/api/wishlists/items/:itemId", requireAuth as any, (req: Request, res: Response) => {
     try {
-      const updated = storage.updateWishlistItem(parseInt(req.params.itemId as string), req.body);
+      const itemId = parseInt(req.params.itemId as string);
+      const existing = storage.getWishlistItemById(itemId);
+      const parent = existing ? storage.getWishlistById(existing.wishlistId) : null;
+      if (!existing || !parent || parent.userId !== req.session.userId) {
+        return res.status(404).json({ success: false, error: "Mahsulot topilmadi" });
+      }
+      const updated = storage.updateWishlistItem(itemId, pick(req.body, WISHLIST_ITEM_EDITABLE));
       res.json({ success: true, data: updated });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e.message });
@@ -975,7 +1250,13 @@ export function registerRoutes(app: Express) {
 
   app.delete("/api/wishlists/items/:itemId", requireAuth as any, (req: Request, res: Response) => {
     try {
-      storage.deleteWishlistItem(parseInt(req.params.itemId as string));
+      const itemId = parseInt(req.params.itemId as string);
+      const existing = storage.getWishlistItemById(itemId);
+      const parent = existing ? storage.getWishlistById(existing.wishlistId) : null;
+      if (!existing || !parent || parent.userId !== req.session.userId) {
+        return res.status(404).json({ success: false, error: "Mahsulot topilmadi" });
+      }
+      storage.deleteWishlistItem(itemId);
       res.json({ success: true });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e.message });
@@ -1013,7 +1294,11 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/reminders", requireAuth as any, (req: Request, res: Response) => {
     try {
-      const reminder = storage.createReminder({ userId: req.session.userId!, ...req.body, eventDate: new Date(req.body.eventDate) });
+      const eventDate = new Date(req.body?.eventDate);
+      if (isNaN(eventDate.getTime())) {
+        return res.status(400).json({ success: false, error: "To'g'ri sana kiriting" });
+      }
+      const reminder = storage.createReminder({ ...pick(req.body, REMINDER_EDITABLE), userId: req.session.userId!, eventDate });
       res.json({ success: true, data: reminder });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e.message });
@@ -1025,7 +1310,13 @@ export function registerRoutes(app: Express) {
       const id = parseInt(req.params.id as string);
       const existing = storage.getRemindersByUser(req.session.userId!).find((r) => r.id === id);
       if (!existing) return res.status(404).json({ success: false, error: "Eslatma topilmadi" });
-      const updated = storage.updateReminder(id, req.body);
+      const fields = pick(req.body, REMINDER_EDITABLE);
+      if (fields.eventDate !== undefined) {
+        const d = new Date(fields.eventDate);
+        if (isNaN(d.getTime())) return res.status(400).json({ success: false, error: "To'g'ri sana kiriting" });
+        fields.eventDate = d;
+      }
+      const updated = storage.updateReminder(id, fields);
       res.json({ success: true, data: updated });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e.message });
@@ -1055,6 +1346,7 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/saved", requireAuth as any, (req: Request, res: Response) => {
     try {
+      if (!req.body?.productData) return res.status(400).json({ success: false, error: "Mahsulot ma'lumotlari yo'q" });
       const saved = storage.createSaved({ userId: req.session.userId!, productData: req.body.productData, searchQuery: req.body.searchQuery });
       res.json({ success: true, data: saved });
     } catch (e: any) {
@@ -1089,10 +1381,12 @@ export function registerRoutes(app: Express) {
       if (!productName || !targetPrice) {
         return res.status(400).json({ success: false, error: "Product name and target price required" });
       }
+      const limitErr = trackerLimitError(req, storage.getPriceTrackers(req.session.userId!).length);
+      if (limitErr) return res.status(403).json(limitErr);
       const tracker = storage.createPriceTracker({
         userId: req.session.userId!,
         productName,
-        targetPrice: parseFloat(targetPrice),
+        targetPrice: parseFloat(targetPrice) || 0,
         currentPrice: parseFloat(currentPrice) || parseFloat(targetPrice),
         store,
         url,
@@ -1143,7 +1437,13 @@ export function registerRoutes(app: Express) {
 
       const cleanPhone = String(customerPhone).trim();
       const numPrice = Number(productPrice);
-      const qty = Number(quantity) || 1;
+      const qty = Math.min(99, Math.max(1, parseInt(quantity) || 1));
+      if (!isFinite(numPrice) || numPrice <= 0) {
+        return res.status(400).json({ success: false, error: "Mahsulot narxi noto'g'ri" });
+      }
+      if (cleanPhone.replace(/[^0-9]/g, "").length < 9) {
+        return res.status(400).json({ success: false, error: "To'g'ri telefon raqam kiriting" });
+      }
       const packagingCost = giftPackaging ? 25000 : 0;
       const totalAmount = numPrice * qty + packagingCost;
 
@@ -1165,6 +1465,10 @@ export function registerRoutes(app: Express) {
         totalAmount,
       });
 
+      // Remember guest orders in the session so the buyer (and only the buyer) can view them.
+      const sessOrders: number[] = ((req.session as any).orderIds as number[]) || [];
+      (req.session as any).orderIds = [...sessOrders, order.id].slice(-50);
+
       res.json({
         success: true,
         message: "Buyurtmangiz muvaffaqiyatli qabul qilindi!",
@@ -1182,7 +1486,7 @@ export function registerRoutes(app: Express) {
         return res.json({ success: true, data: [] });
       }
       const user = storage.getUserById(req.session.userId);
-      const orders = user?.role === "admin"
+      const orders = isSuperAdmin(user)
         ? storage.getOrders()
         : storage.getOrders(req.session.userId);
       res.json({ success: true, data: orders });
@@ -1196,7 +1500,12 @@ export function registerRoutes(app: Express) {
       const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ success: false, error: "Noto'g'ri buyurtma ID" });
       const order = storage.getOrderById(id);
-      if (!order) return res.status(404).json({ success: false, error: "Buyurtma topilmadi" });
+      const viewer = req.session.userId ? storage.getUserById(req.session.userId) : null;
+      const sessOrders: number[] = ((req.session as any).orderIds as number[]) || [];
+      const canView =
+        !!order &&
+        ((order.userId && order.userId === req.session.userId) || sessOrders.includes(order.id) || isSuperAdmin(viewer));
+      if (!order || !canView) return res.status(404).json({ success: false, error: "Buyurtma topilmadi" });
       res.json({ success: true, data: order });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e?.message });
@@ -1204,17 +1513,38 @@ export function registerRoutes(app: Express) {
   });
 
   // ─── Direct Catalog Access ────────────────────────────────
-  app.get("/api/catalog/categories", (req: Request, res: Response) => {
+  app.get("/api/catalog/meta", async (_req: Request, res: Response) => {
+    await liveCatalogReady();
+    res.json({ success: true, data: liveCatalogMeta() });
+  });
+
+  app.get("/api/catalog/categories", async (req: Request, res: Response) => {
     try {
+      if (await liveCatalogReady()) return res.json({ success: true, data: liveCategories() });
       res.json({ success: true, data: storage.getCategories() });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e?.message });
     }
   });
 
-  app.get(["/api/catalog", "/api/catalog/products"], (req: Request, res: Response) => {
+  app.get(["/api/catalog", "/api/catalog/products"], async (req: Request, res: Response) => {
     try {
       const { q, category, store, minPrice, maxPrice, sort, limit } = req.query as any;
+      // Real store listings first; the built-in sample catalog is only a fallback when the stores can't be reached.
+      if (await liveCatalogReady()) {
+        return res.json({
+          success: true,
+          data: filterLiveCatalog({
+            q,
+            category,
+            store,
+            minPrice: minPrice ? parseFloat(minPrice) : undefined,
+            maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
+            sort,
+            limit: limit ? Math.min(parseInt(limit), 300) : undefined,
+          }),
+        });
+      }
       const items = storage.filterCatalog({
         q,
         category,
@@ -1234,6 +1564,8 @@ export function registerRoutes(app: Express) {
     try {
       const id = parseInt(req.params.id as string);
       if (isNaN(id)) return res.status(400).json({ success: false, error: "Noto'g'ri mahsulot ID" });
+      const live = liveCatalogById(id);
+      if (live) return res.json({ success: true, data: live });
       const item = storage.getProductWithOffers(id);
       if (!item) return res.status(404).json({ success: false, error: "Product not found" });
       res.json({ success: true, data: item });
@@ -1351,10 +1683,23 @@ export function registerRoutes(app: Express) {
 
       const allUsers = storage.getAllUsers();
       const totalUsers = allUsers.length;
-      const proUsers = allUsers.filter((u: any) => u.role === "pro").length;
-      const adminUsers = allUsers.filter((u: any) => u.role === "admin").length;
-      const standardUsers = allUsers.filter((u: any) => !u.role || u.role === "user").length;
+      const isAdm = (u: any) => isAdminUser(u);
+      const planCounts: Record<string, number> = { start: 0, plus: 0, premium: 0 };
+      let estimatedMRRFromPlans = 0;
+      let expiringSoon = 0;
+      const soon = Date.now() + 3 * 86_400_000;
+      for (const u of allUsers) {
+        if (isAdm(u)) continue;
+        const ep = effectivePlan(u);
+        if (ep.plan.id === "free") continue;
+        planCounts[ep.plan.id] = (planCounts[ep.plan.id] || 0) + 1;
+        estimatedMRRFromPlans += ep.plan.price;
+        if (ep.expiresAt && new Date(ep.expiresAt).getTime() < soon) expiringSoon++;
+      }
+      const proUsers = planCounts.start + planCounts.plus + planCounts.premium;
+      const adminUsers = allUsers.filter((u: any) => isAdm(u)).length;
       const merchantUsers = allUsers.filter((u: any) => u.role === "merchant").length;
+      const standardUsers = Math.max(0, totalUsers - proUsers - adminUsers - merchantUsers);
 
       const now = new Date().getTime();
       const oneDayAgo = now - 24 * 60 * 60 * 1000;
@@ -1366,7 +1711,7 @@ export function registerRoutes(app: Express) {
       const allOrders = storage.getOrders();
       const totalRevenueUZS = allOrders.reduce((acc: number, o: any) => acc + (o.totalPrice || o.totalAmount || 0), 0);
       const ordersByStatus = {
-        pending: allOrders.filter((o: any) => o.status === "pending").length,
+        pending: allOrders.filter((o: any) => o.status === "pending" || o.status === "new").length,
         processing: allOrders.filter((o: any) => o.status === "processing" || o.status === "confirmed").length,
         delivered: allOrders.filter((o: any) => o.status === "delivered" || o.status === "completed").length,
         cancelled: allOrders.filter((o: any) => o.status === "cancelled").length,
@@ -1383,7 +1728,10 @@ export function registerRoutes(app: Express) {
         newUsersToday,
         newUsersWeek,
         proConversionRate: totalUsers > 0 ? parseFloat(((proUsers / totalUsers) * 100).toFixed(1)) : 0,
-        estimatedMRR: proUsers * 49000,
+        estimatedMRR: estimatedMRRFromPlans,
+        planCounts,
+        expiringSoon,
+        demoUsers: allUsers.filter((u: any) => u.isDemo).length,
         totalSearches: totalRequests,
         totalRegistries: storage.getRegistryCount(),
         totalWishlists: storage.getWishlistCount(),
@@ -1414,10 +1762,24 @@ export function registerRoutes(app: Express) {
       const q = typeof req.query.q === "string" ? req.query.q.toLowerCase().trim() : "";
       const roleFilter = typeof req.query.role === "string" ? req.query.role.toLowerCase().trim() : "";
 
+      const planFilter = typeof req.query.plan === "string" ? req.query.plan.toLowerCase().trim() : "";
       let users = storage.getAllUsers();
+      if (req.query.demo === "only") users = users.filter((u: any) => u.isDemo);
+      if (req.query.demo === "hide") users = users.filter((u: any) => !u.isDemo);
 
       if (roleFilter && roleFilter !== "all") {
-        users = users.filter((u: any) => (u.role || "user") === roleFilter);
+        users = users.filter((u: any) =>
+          roleFilter === "admin" ? isAdminUser(u) : roleFilter === "pro" ? !isAdminUser(u) && effectivePlan(u).plan.id !== "free" : (u.role || "user") === roleFilter
+        );
+      }
+      if (planFilter && planFilter !== "all") {
+        users = users.filter((u: any) => {
+          if (isAdminUser(u)) return false;
+          const id = effectivePlan(u).plan.id;
+          if (planFilter === "paid") return id !== "free";
+          if (planFilter === "expired") return id === "free" && !!u.plan && u.plan !== "free";
+          return id === planFilter;
+        });
       }
 
       if (q) {
@@ -1435,12 +1797,27 @@ export function registerRoutes(app: Express) {
         return timeB - timeA;
       });
 
+      // page mode (admin table): ?page=1&pageSize=50 → { items, total }; otherwise the plain list (optionally ?limit=)
+      const page = Math.max(1, parseInt(String(req.query.page || "0")) || 0);
+      const pageSize = Math.min(200, Math.max(1, parseInt(String(req.query.pageSize || "50")) || 50));
+      const total = users.length;
+      if (page) users = users.slice((page - 1) * pageSize, page * pageSize);
+      else if (req.query.limit) users = users.slice(0, Math.min(500, Math.max(1, parseInt(String(req.query.limit)) || 20)));
+
       const enrichedUsers = users.map((u: any) => ({
+        isDemo: !!u.isDemo,
         id: u.id,
         name: u.name,
         email: u.email,
         phone: u.phone,
         role: u.role || "user",
+        isAdmin: isAdminUser(u),
+        isSuperAdmin: u.email?.toLowerCase().trim() === SUPER_ADMIN_EMAIL,
+        plan: effectivePlan(u).plan.id,
+        planExpiresAt: effectivePlan(u).expiresAt,
+        lastPlan: u.plan || null,
+        lastPlanExpiresAt: u.planExpiresAt || null,
+        planHistory: Array.isArray(u.planHistory) ? u.planHistory.slice(-10).reverse() : [],
         createdAt: u.createdAt,
         updatedAt: u.updatedAt,
         wishlistsCount: storage.getWishlistsByUser(u.id).length,
@@ -1449,7 +1826,51 @@ export function registerRoutes(app: Express) {
         trackersCount: storage.getPriceTrackers(u.id).length,
       }));
 
-      res.json({ success: true, data: enrichedUsers });
+      res.json({ success: true, data: page ? { items: enrichedUsers, total, page, pageSize } : enrichedUsers });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e?.message });
+    }
+  });
+
+  const grantPlan = (userId: number, body: any) => {
+    const plan = normalizePlanId(body.plan);
+    if (!plan) return { status: 400, json: { success: false, error: "Yaroqsiz tarif" } };
+    const target = storage.getUserById(userId);
+    if (!target) return { status: 404, json: { success: false, error: "Foydalanuvchi topilmadi" } };
+    if (isAdminUser(target)) return { status: 400, json: { success: false, error: "Admin hisobida barcha imkoniyatlar allaqachon ochiq" } };
+    const days = Math.min(Math.max(parseInt(body.days) || 30, 1), 3660);
+    const note = String(body.note || "").slice(0, 200);
+    const user = activatePlan(userId, plan, days, { fromNow: !!body.fromNow, source: "admin", note });
+    const until = user?.planExpiresAt ? new Date(user.planExpiresAt).toLocaleDateString("ru-RU", { timeZone: "Asia/Tashkent" }) : "";
+    return {
+      status: 200,
+      json: {
+        success: true,
+        message: plan === "free" ? `${target.name || target.email}: tarif bekor qilindi` : `${target.name || target.email}: ${PLANS[plan].name.uz} — ${until} gacha`,
+        user: { id: user.id, name: user.name, email: user.email, phone: user.phone, plan: user.plan, planExpiresAt: user.planExpiresAt },
+      },
+    };
+  };
+
+  app.patch("/api/admin/users/:id/plan", requireAdmin as any, async (req: Request, res: Response) => {
+    try {
+      const r = grantPlan(parseInt(String(req.params.id)), req.body || {});
+      res.status(r.status).json(r.json);
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e?.message });
+    }
+  });
+
+  /** Give a plan by e-mail, phone or #id — for users who paid outside the site. */
+  app.post("/api/admin/grant-plan", requireAdmin as any, async (req: Request, res: Response) => {
+    try {
+      const raw = String(req.body?.identifier || "").trim();
+      if (!raw) return res.status(400).json({ success: false, error: "Email, telefon yoki ID kiriting" });
+      const idMatch = raw.match(/^#?(\d{1,7})$/);
+      const target = (idMatch && storage.getUserById(parseInt(idMatch[1]))) || storage.getUserByIdentifier(raw);
+      if (!target) return res.status(404).json({ success: false, error: `"${raw}" bo'yicha foydalanuvchi topilmadi` });
+      const r = grantPlan(target.id, req.body || {});
+      res.status(r.status).json(r.json);
     } catch (e: any) {
       res.status(500).json({ success: false, error: e?.message });
     }
@@ -1459,14 +1880,23 @@ export function registerRoutes(app: Express) {
     try {
       const userId = parseInt(String(req.params.id));
       const { role } = req.body;
-      const validRoles = ["user", "pro", "admin", "merchant"];
+      const validRoles = ["user", "merchant"];
       if (!validRoles.includes(role)) {
-        return res.status(400).json({ success: false, error: "Yaroqsiz rol. Ruxsat etilgan: user, pro, admin, merchant" });
+        return res.status(400).json({ success: false, error: "Yaroqsiz rol. Tarif berish uchun “Tarif berish” tugmasidan foydalaning; admin faqat bitta." });
       }
 
       const targetUser = storage.getUserById(userId);
       if (!targetUser) {
         return res.status(404).json({ success: false, error: "Foydalanuvchi topilmadi" });
+      }
+      if (targetUser.email?.toLowerCase().trim() === SUPER_ADMIN_EMAIL) {
+        return res.status(400).json({ success: false, error: "Asosiy admin rolini o'zgartirib bo'lmaydi" });
+      }
+      // keep the paid-plan badge if the user still has an active plan
+      const stillPaid = targetUser.plan && targetUser.plan !== "free" && targetUser.planExpiresAt && new Date(targetUser.planExpiresAt).getTime() > Date.now();
+      if (role === "user" && stillPaid) {
+        storage.updateUserRole(userId, "pro");
+        return res.json({ success: true, message: "Admin huquqi olib tashlandi (tarif saqlandi)", user: storage.getUserById(userId) });
       }
 
       storage.updateUserRole(userId, role);
@@ -1487,6 +1917,28 @@ export function registerRoutes(app: Express) {
         return res.status(404).json({ success: false, error: "Foydalanuvchi topilmadi" });
       }
       res.json({ success: true, message: "Foydalanuvchi muvaffaqiyatli o'chirildi" });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e?.message });
+    }
+  });
+
+  // ─── Test accounts for checking the admin panel ───────────
+  app.post("/api/admin/demo-users", requireAdmin as any, async (req: Request, res: Response) => {
+    try {
+      const count = Math.min(3000, Math.max(1, parseInt(req.body?.count) || 1500));
+      const existing = storage.getAllUsers().filter((u: any) => u.isDemo).length;
+      if (existing + count > 5000) return res.status(400).json({ success: false, error: `Test foydalanuvchilar juda ko'p (${existing}). Avval o'chiring.` });
+      const n = storage.createDemoUsers(buildDemoUsers(count));
+      res.json({ success: true, message: `${n} ta test foydalanuvchi qo'shildi`, count: n });
+    } catch (e: any) {
+      res.status(500).json({ success: false, error: e?.message });
+    }
+  });
+
+  app.delete("/api/admin/demo-users", requireAdmin as any, async (_req: Request, res: Response) => {
+    try {
+      const n = storage.deleteDemoUsers();
+      res.json({ success: true, message: `${n} ta test foydalanuvchi o'chirildi`, count: n });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e?.message });
     }
@@ -1529,14 +1981,27 @@ export function registerRoutes(app: Express) {
         return res.status(400).json({ success: false, error: "Yaroqsiz status" });
       }
 
+      // read the old status as a value: the storage hands back the same object it mutates
+      const prevStatus = storage.getReceipts().find((r) => r.id === receiptId)?.status;
       const updated = storage.updateReceiptStatus(receiptId, status, reason);
       if (!updated) {
         return res.status(404).json({ success: false, error: "Chek yozuvi topilmadi" });
       }
+      let revoked = false;
+      if (status === "verified" && prevStatus !== "verified") {
+        activatePlan(updated.userId, normalizePlanId(updated.plan) || "plus", undefined, { source: "receipt", note: `Chek #${updated.id}` });
+      } else if (status === "rejected" && prevStatus === "verified") {
+        // a receipt that had been approved turns out to be fake: take back the plan it gave
+        const owner = storage.getUserById(updated.userId);
+        if (owner && owner.plan === (normalizePlanId(updated.plan) || "plus")) {
+          activatePlan(updated.userId, "free", 0, { source: "receipt", note: `Chek #${updated.id} rad etildi` });
+          revoked = true;
+        }
+      }
 
       res.json({
         success: true,
-        message: status === "verified" ? "Chek tasdiqlandi va a'zolik PRO ga o'tkazildi" : "Chek holati yangilandi",
+        message: status === "verified" ? "Chek tasdiqlandi va tarif 30 kunga yoqildi" : revoked ? "Chek rad etildi, berilgan tarif bekor qilindi" : "Chek holati yangilandi",
         data: updated,
       });
     } catch (e: any) {
@@ -1545,7 +2010,7 @@ export function registerRoutes(app: Express) {
   });
 
   // ─── Database Engine & MongoDB API ─────────────────────────
-  app.get("/api/database/status", async (_req: Request, res: Response) => {
+  app.get("/api/database/status", requireAdmin as any, async (_req: Request, res: Response) => {
     try {
       const mongoStatus = mongoService.getStatus();
       const collections = await mongoService.getCollectionCounts();
@@ -1576,7 +2041,7 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  app.post("/api/database/connect", async (req: Request, res: Response) => {
+  app.post("/api/database/connect", requireAdmin as any, async (req: Request, res: Response) => {
     try {
       const { uri } = req.body;
       const ok = await mongoService.connect(uri);
@@ -1618,7 +2083,11 @@ export function registerRoutes(app: Express) {
 
   app.post("/api/merchants/products", requireAuth as any, (req: Request, res: Response) => {
     try {
-      const product = storage.createMerchantProduct({ userId: req.session.userId!, ...req.body });
+      const { userId: _ignored, id: _ignoredId, ...fields } = req.body || {};
+      if (!fields.name || !String(fields.name).trim()) {
+        return res.status(400).json({ success: false, error: "Mahsulot nomini kiriting" });
+      }
+      const product = storage.createMerchantProduct({ ...fields, userId: req.session.userId! });
       res.json({ success: true, data: product });
     } catch (e: any) {
       res.status(500).json({ success: false, error: e.message });
@@ -1649,7 +2118,8 @@ export function registerRoutes(app: Express) {
   });
 
   // ─── Pro Subscription & AI Receipt Verification ──────────
-  app.post("/api/subscription/upgrade", requireAuth as any, (req: Request, res: Response) => {
+  // Free self-upgrade is disabled: PRO is granted only after a verified receipt or by the admin.
+  app.post("/api/subscription/upgrade", requireAdmin as any, (req: Request, res: Response) => {
     try {
       storage.updateUserRole(req.session.userId!, "pro");
       res.json({ success: true, message: "Successfully upgraded to Pro" });
@@ -1658,9 +2128,27 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Plans, prices and where to pay. Card details come from .env (PAYMENT_CARD / PAYMENT_CARD_VISA / _UZCARD / _HUMO, PAYMENT_CARD_HOLDER).
+  app.get("/api/subscription/plans", (_req: Request, res: Response) => {
+    const cards = paymentCards();
+    res.json({
+      success: true,
+      data: {
+        plans: ["free", ...PAID_PLANS].map((id) => PLANS[id as keyof typeof PLANS]),
+        payment: { cards, holder: (process.env.PAYMENT_CARD_HOLDER || "").trim() || null },
+      },
+    });
+  });
+
+  app.get("/api/subscription/status", (req: Request, res: Response) => {
+    res.json({ success: true, data: planStatus(req) });
+  });
+
   app.post("/api/subscription/verify-receipt", requireAuth as any, async (req: Request, res: Response) => {
     try {
-      const { receiptImage, plan = "pro_monthly" } = req.body;
+      const { receiptImage } = req.body;
+      const plan = normalizePlanId(req.body.plan);
+      if (!plan || plan === "free") return res.status(400).json({ success: false, error: "Tarif noto'g'ri tanlangan" });
       if (!receiptImage) {
         return res.status(400).json({ success: false, error: "To'lov cheki rasmi taqdim etilmadi" });
       }

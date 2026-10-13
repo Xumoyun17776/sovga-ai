@@ -26,7 +26,7 @@ import {
   KeyRound,
   RotateCcw,
   Smartphone,
-} from "lucide-react";
+} from "../lib/icons";
 
 interface Props {
   isOpen: boolean;
@@ -195,7 +195,7 @@ export default function AuthModal({
     onSuccess: (res: any) => {
       setOtpStep("code");
       setOtpTimer(60);
-      if (res.demoCode) {
+      if (res?.demoCode) {
         setDemoHint(res.demoCode);
       }
       toast.info(
@@ -417,7 +417,7 @@ export default function AuthModal({
       )}
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in overflow-y-auto">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full max-h-[92vh] max-h-[92dvh] overflow-y-auto p-6 sm:p-8 shadow-2xl relative border border-slate-100 dark:border-slate-800 my-auto transition-all">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full max-h-[92vh] max-h-[92dvh] overflow-y-auto p-6 sm:p-8 shadow-sm relative border border-slate-100 dark:border-slate-800 my-auto transition-all">
           {/* Close Button */}
           <button
             onClick={onClose}
@@ -429,10 +429,10 @@ export default function AuthModal({
 
           {/* Modal Header */}
           <div className="text-center mb-5">
-            <div className="w-14 h-14 bg-gradient-to-tr from-slate-950 via-slate-900 to-amber-500/80 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-amber-500/10 border border-amber-400/20">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm border border-amber-400/20 bg-slate-950">
               <Gift className="w-7 h-7 text-amber-400" />
             </div>
-            <h2 className="font-display font-black text-2xl text-slate-900 dark:text-white tracking-tight">
+            <h2 className="font-display font-bold text-2xl text-slate-900 dark:text-white tracking-tight">
               {customTitle ||
                 (forgotPasswordActive
                   ? language === "uz"
@@ -496,7 +496,7 @@ export default function AuthModal({
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                     onPaste={handleOtpPaste}
-                    className="w-13 h-14 text-center text-2xl font-mono font-bold bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-slate-900 dark:text-white transition"
+                    className="w-13 h-14 text-center text-2xl font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-slate-900 dark:text-white transition"
                   />
                 ))}
               </div>
@@ -611,7 +611,7 @@ export default function AuthModal({
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <span>
                       {language === "uz"
@@ -679,7 +679,7 @@ export default function AuthModal({
                   onClick={() => {
                     window.location.href = "https://t.me/SovgaUzBot?start=auth_" + Date.now();
                   }}
-                  className="w-full py-2.5 px-4 bg-[#2AABEE] hover:bg-[#229ED9] text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-95"
+                  className="w-full py-2.5 px-4 btn-telegram text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>
@@ -717,7 +717,7 @@ export default function AuthModal({
                   }}
                   className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
                     method === "phone"
-                      ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-slate-950 border-slate-900 dark:border-amber-500 shadow-xs"
+                      ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-white border-slate-900 dark:border-amber-500 shadow-xs"
                       : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100"
                   }`}
                 >
@@ -733,7 +733,7 @@ export default function AuthModal({
                   }}
                   className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
                     method === "email"
-                      ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-slate-950 border-slate-900 dark:border-amber-500 shadow-xs"
+                      ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-white border-slate-900 dark:border-amber-500 shadow-xs"
                       : "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100"
                   }`}
                 >
@@ -744,7 +744,7 @@ export default function AuthModal({
 
               {/* Phone Login Sub-mode: Password VS SMS OTP */}
               {method === "phone" && (
-                <div className="flex items-center justify-between p-2 mb-3 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-900/40 text-xs">
+                <div className="flex items-center justify-between p-2 mb-3 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl border border-[var(--line)] dark:border-amber-900/40 text-xs">
                   <span className="font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
                     <Smartphone className="w-3.5 h-3.5 text-amber-600" />
                     <span>
@@ -966,7 +966,7 @@ export default function AuthModal({
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="w-full py-3 bg-gradient-to-r from-slate-950 via-slate-900 to-amber-900/90 hover:from-black hover:to-amber-800 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-lg shadow-slate-950/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer border border-amber-500/20 active:scale-95"
+                  className="w-full py-3 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-sm disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer border border-amber-500/20 bg-slate-950 hover:bg-black"
                 >
                   <span>
                     {isPending

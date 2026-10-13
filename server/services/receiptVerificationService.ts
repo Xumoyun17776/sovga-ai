@@ -1,15 +1,20 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { storage } from "../storage.js";
 import type { SubscriptionReceiptRecord } from "../../shared/types.js";
+import { PLANS, normalizePlanId, type PlanId } from "../../shared/plans.js";
+import { activatePlan, paymentCards } from "./planService.js";
 
 export interface ReceiptVerificationInput {
   userId: number;
   receiptImageBase64: string;
-  plan?: "pro_monthly" | "pro_annual";
+  plan?: string;
 }
 
 export interface ReceiptVerificationResult {
   verified: boolean;
+  pending?: boolean;
+  plan?: string;
+  expiresAt?: string | null;
   role?: string;
   message: string;
   reason?: string;
@@ -24,16 +29,47 @@ export class ReceiptVerificationService {
   }
 
   public async verifyAndActivate(input: ReceiptVerificationInput): Promise<ReceiptVerificationResult> {
-    const { userId, receiptImageBase64, plan = "pro_monthly" } = input;
+    const { userId, receiptImageBase64 } = input;
+    const planId: PlanId = normalizePlanId(input.plan) || "plus";
+    const plan = planId;
     const user = storage.getUserById(userId);
     if (!user) {
       return { verified: false, message: "Foydalanuvchi topilmadi", reason: "User not found" };
     }
 
-    const expectedAmount = plan === "pro_annual" ? 450000 : 49000;
-    const planNameUz = plan === "pro_annual" ? "VIP Yillik (450,000 UZS)" : "Pro Oylik (49,000 UZS)";
+    if (planId === "free") {
+      return { verified: false, message: "Bepul tarif uchun to'lov kerak emas", reason: "Free plan" };
+    }
+    const expectedAmount = PLANS[planId].price;
+    const planNameUz = `${PLANS[planId].name.uz} (${expectedAmount.toLocaleString("en-US")} UZS / oy)`;
 
     const geminiKey = this.getGeminiKey();
+    // The money has to land on one of our cards: receipts show the recipient card masked, e.g. "4466 **** **** 8688".
+    const ourLast4 = paymentCards().map((c) => c.number.slice(-4));
+    const recipientRule = ourLast4.length
+      ? `\n- Recipient card MUST end in: ${ourLast4.join(" or ")}`
+      : "";
+
+    const queueForAdmin = (why: string, extra: Record<string, any> = {}) => {
+      const rec = storage.saveReceiptRecord({
+        userId,
+        userEmail: user.email,
+        userName: user.name,
+        plan,
+        amount: expectedAmount,
+        expectedAmount,
+        currency: "UZS",
+        bankOrApp: "—",
+        transactionId: null,
+        paymentDate: null,
+        verificationConfidence: "low",
+        ...extra,
+        status: "manual_review",
+        reason: why,
+        receiptImage: receiptImageBase64.length <= 3_000_000 ? receiptImageBase64 : receiptImageBase64.slice(0, 3_000_000),
+      } as any);
+      return { verified: false, pending: true, message: "Chek tekshiruvga yuborildi", reason: why, receipt: rec } as any;
+    };
 
     let analysisResult: {
       isValidReceipt: boolean;
@@ -43,6 +79,7 @@ export class ReceiptVerificationService {
       transactionId: string | null;
       date: string | null;
       recipient: string | null;
+      recipientLast4?: string | null;
       confidence: "high" | "medium" | "low";
       reason: string;
     } | null = null;
@@ -67,7 +104,7 @@ Analyze this payment receipt screenshot carefully.
 
 EXPECTED PAYMENT:
 - Plan: ${planNameUz}
-- Target Expected Amount: ${expectedAmount} UZS (or more)
+- Target Expected Amount: ${expectedAmount} UZS (or more)${recipientRule}
 
 VERIFICATION RULES:
 1. Is this a genuine electronic payment transfer receipt or successful banking transaction confirmation?
@@ -76,7 +113,7 @@ VERIFICATION RULES:
 4. Extract bank or application name (e.g., "Payme", "Click", "Uzum Bank", "Anorbank", "Apelsin", "Infinbank").
 5. Extract transaction ID / chek raqami (or null if not found).
 6. Extract transaction date / time (or null if not found).
-7. Extract recipient card or name (or null if not found).
+7. Extract recipient card or name (or null if not found). Put the LAST 4 DIGITS of the recipient (receiver) card into "recipientLast4" — only digits that are actually visible on the receipt, never the sender's card; null if not shown.
 8. If the extracted amount is at least ${expectedAmount} UZS and the status is SUCCESS, set isValidReceipt to true.
 9. Provide a clear, polite explanation in Uzbek in "reason" (e.g., "49,000 UZS to'lov Payme orqali muvaffaqiyatli o'tkazilganligi tasdiqlandi").
 
@@ -89,6 +126,7 @@ Return ONLY a valid JSON object matching this schema:
   "transactionId": string | null,
   "date": string | null,
   "recipient": string | null,
+  "recipientLast4": string | null,
   "confidence": "high" | "medium" | "low",
   "reason": string
 }`;
@@ -118,28 +156,17 @@ Return ONLY a valid JSON object matching this schema:
     }
   }
 
-    // Heuristic fallback if Gemini not reachable or failed
+    // AI couldn't read the receipt (no key / service down): never auto-approve — queue it for the admin.
     if (!analysisResult) {
-      const isBase64Valid = receiptImageBase64.startsWith("data:image/") && receiptImageBase64.length > 500;
-      if (isBase64Valid) {
-        analysisResult = {
-          isValidReceipt: true,
-          amount: expectedAmount,
-          status: "success",
-          bankOrApp: "Click / Payme / Uzum",
-          transactionId: "TRX-" + Math.floor(10000000 + Math.random() * 90000000),
-          date: new Date().toLocaleString(),
-          recipient: "Sovg'a AI (Xumoyun R.)",
-          confidence: "medium",
-          reason: "To'lov cheki skanerlandi va tasdiqlandi. Tranzaksiya qabul qilindi.",
-        };
-      } else {
+      const isImage = receiptImageBase64.startsWith("data:image/") && receiptImageBase64.length > 500;
+      if (!isImage) {
         return {
           verified: false,
           message: "Yuklangan fayl yaroqli to'lov cheki tasviri emas",
           reason: "Iltimos, Click, Payme yoki bank ilovasidan olingan to'lov cheki skrinshotini (PNG, JPG) yuklang.",
         };
       }
+      return queueForAdmin("Chek qabul qilindi va admin tomonidan tekshirilmoqda. Odatda bir necha soat ichida tarif yoqiladi.");
     }
 
     const {
@@ -243,9 +270,43 @@ Return ONLY a valid JSON object matching this schema:
       };
     }
 
+    // ─── RECIPIENT CHECK: the transfer must have gone to our card ───
+    if (ourLast4.length) {
+      const seen = String(analysisResult.recipientLast4 || "").replace(/[^0-9]/g, "").slice(-4);
+      if (seen.length === 4 && !ourLast4.includes(seen)) {
+        const wrongReason = `To'lov boshqa kartaga o'tkazilgan (…${seen}). Iltimos, saytda ko'rsatilgan kartaga o'tkazing.`;
+        storage.saveReceiptRecord({
+          userId,
+          userEmail: user.email,
+          userName: user.name,
+          plan,
+          amount,
+          expectedAmount,
+          currency: "UZS",
+          bankOrApp,
+          transactionId: transactionId || null,
+          paymentDate: paymentDate || null,
+          status: "rejected",
+          verificationConfidence: confidence,
+          reason: wrongReason,
+          receiptImage: receiptImageBase64.slice(0, 800),
+        });
+        return { verified: false, message: "To'lov cheki tasdiqlanmadi", reason: wrongReason, receipt: { amount, bankOrApp, status: "rejected", reason: wrongReason }, rawAnalysis: analysisResult };
+      }
+      if (seen.length !== 4) {
+        return queueForAdmin("Chekda qabul qiluvchi karta ko'rinmadi — admin tekshiradi. Odatda bir necha soat ichida tarif yoqiladi.", {
+          amount,
+          bankOrApp,
+          transactionId: transactionId || null,
+          paymentDate: paymentDate || null,
+          verificationConfidence: confidence,
+        });
+      }
+    }
+
     // ─── VERIFICATION SUCCESS ───
-    // 1. Upgrade user role to PRO
-    storage.updateUserRole(userId, "pro");
+    // 1. Switch the plan on (30 days, stacking on any time left)
+    const updatedUser = activatePlan(userId, planId, undefined, { source: "receipt", note: "AI chek tekshiruvi" });
 
     // 2. Save approved receipt record
     const savedRecord = storage.saveReceiptRecord({
@@ -262,13 +323,15 @@ Return ONLY a valid JSON object matching this schema:
       status: "verified",
       verificationConfidence: confidence,
       reason: reason || "AI tomonidan to'lov to'liq tasdiqlandi",
-      receiptImage: receiptImageBase64.slice(0, 1000), // preserve preview
+      receiptImage: receiptImageBase64.length <= 3_000_000 ? receiptImageBase64 : receiptImageBase64.slice(0, 1000),
     });
 
     return {
       verified: true,
       role: "pro",
-      message: "Tabriklaymiz! To'lov cheki AI tomonidan tasdiqlandi va sizga PRO obuna faollashtirildi!",
+      plan: planId,
+      expiresAt: updatedUser?.planExpiresAt || null,
+      message: `Tabriklaymiz! To'lov tasdiqlandi — ${PLANS[planId].name.uz} tarifi 30 kunga yoqildi.`,
       receipt: savedRecord,
       rawAnalysis: analysisResult,
     };

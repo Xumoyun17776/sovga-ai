@@ -19,7 +19,8 @@ import {
   Baby,
   Briefcase,
   Cake,
-} from "lucide-react";
+} from "../lib/icons";
+import { copyText } from "../lib/clipboard";
 
 interface EtiquetteRule {
   relationId: string;
@@ -186,7 +187,7 @@ export default function CulturalEtiquettePage() {
   };
 
   const handleCopyBlessing = (text: string, idx: number) => {
-    navigator.clipboard.writeText(text);
+    copyText(text);
     setCopiedIndex(idx);
     toast.success(
       language === "uz"
@@ -210,10 +211,10 @@ export default function CulturalEtiquettePage() {
         status: "warning",
         title:
           language === "uz"
-            ? "⚠️ O'tkir buyumlar odobi"
+            ? "O'tkir buyumlar odobi"
             : language === "ru"
-            ? "⚠️ Этикет острых предметов"
-            : "⚠️ Sharp Objects Etiquette",
+            ? "Этикет острых предметов"
+            : "Sharp Objects Etiquette",
         explanation:
           language === "uz"
             ? "O'zbek madaniyatida pichoq yoki o'tkir buyum sovg'a qilinganda munosabatlar 'kesilmasligi' uchun oluvchi ramziy ma'noda 1 tanga yoki 1000 so'm berib, buyumni 'sotib olgan' hisoblanadi. Shuningdek, pichoq albatta qinida va ehtirom bilan topshiriladi."
@@ -244,10 +245,10 @@ export default function CulturalEtiquettePage() {
         status: "good",
         title:
           language === "uz"
-            ? "✦ Yuksak qadrlanadigan an'anaviy sovg'a"
+            ? "Yuksak qadrlanadigan an'anaviy sovg'a"
             : language === "ru"
-            ? "✦ Высокочтимый традиционный подарок"
-            : "✦ Highly Treasured Heritage Gift",
+            ? "Высокочтимый традиционный подарок"
+            : "Highly Treasured Heritage Gift",
         explanation:
           language === "uz"
             ? "Milliy matolar, ipak ro'mol va adras — o'zbek oilalarida onalar, qizlar va kelinlar uchun eng fayzli, oq niyatli va hurmatga to'la sovg'a hisoblanadi. Hech qanday taboolarga ega emas."
@@ -261,10 +262,10 @@ export default function CulturalEtiquettePage() {
         status: "info",
         title:
           language === "uz"
-            ? "✉️ Pul sovg'a qilish odobi"
+            ? "Pul sovg'a qilish odobi"
             : language === "ru"
-            ? "✉️ Этикет дарения денег"
-            : "✉️ Cash Envelope Etiquette",
+            ? "Этикет дарения денег"
+            : "Cash Envelope Etiquette",
         explanation:
           language === "uz"
             ? "O'zbek to'ylari va marosimlarida pul sovg'a qilish odatiy hol. Lekin uni ochiq bermasdan, toza oq yoki tilla hoshiyali maxsus tabriknoma konvertiga solib, ikki qo'llab topshirish yuksak ehtirom belgisidir."
@@ -278,10 +279,10 @@ export default function CulturalEtiquettePage() {
         status: "good",
         title:
           language === "uz"
-            ? "🌸 Xushbo'y ifor & Parfyumeriya"
+            ? "Xushbo'y ifor & Parfyumeriya"
             : language === "ru"
-            ? "🌸 Благовония и Парфюмерия"
-            : "🌸 Fragrance & Fine Perfumery",
+            ? "Благовония и Парфюмерия"
+            : "Fragrance & Fine Perfumery",
         explanation:
           language === "uz"
             ? "Sunnat va an'analarga ko'ra, xushbo'ylik sovg'a qilish eng maqtovli amallardan biridir. O'zbek xonadonlarida mushk, ud va xushbo'y atirlar barcha yoshdagilar tomonidan minnatdorlik bilan qabul qilinadi."
@@ -295,10 +296,10 @@ export default function CulturalEtiquettePage() {
         status: "good",
         title:
           language === "uz"
-            ? "✓ Munosib va maqbul tanlov"
+            ? "Munosib va maqbul tanlov"
             : language === "ru"
-            ? "✓ Достойный и уместный выбор"
-            : "✓ Appropriate & Suitable Selection",
+            ? "Достойный и уместный выбор"
+            : "Appropriate & Suitable Selection",
         explanation:
           language === "uz"
             ? `"${rawQuery}" o'zbek xalqining mehmondo'stlik va samimiyat tamoyillariga to'liq mos keladi. Eng muhimi — pok niyat, ko'rkam qadoqlash va ehtirom bilan topshirish.`
@@ -315,36 +316,17 @@ export default function CulturalEtiquettePage() {
   };
 
   return (
-    <div className="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 transition-colors bg-[#fcfbf9] dark:bg-[#07080c] relative overflow-hidden">
+    <div className="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 transition-colors relative overflow-hidden">
       {/* Ambient luxury glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[360px] bg-gradient-to-b from-amber-500/10 via-amber-400/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-6xl mx-auto space-y-10 animate-fade-in">
         {/* Page Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-amber-400/25 to-amber-500/15 border-2 border-amber-300/80 dark:border-amber-500/40 text-amber-900 dark:text-amber-300 text-xs font-black uppercase tracking-widest shadow-sm">
-            <BookOpen className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-            <span>
-              {language === "uz"
-                ? "Madaniy Intellekt & Sharqona Sovg'a Odobi"
-                : language === "ru"
-                ? "Культурный Интеллект & Восточный Этикет"
-                : "Cultural Intelligence & Eastern Gifting Etiquette"}
-            </span>
-          </div>
-          <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 dark:text-white tracking-tight">
-            {language === "uz"
-              ? "O'zbek Sovg'a Odobi & Urf-odat AI"
-              : language === "ru"
-              ? "Узбекский Этикет Подарков & Традиции AI"
-              : "Uzbek Gifting Etiquette & Heritage AI"}
+          <h1 className="lux-title text-[2.4rem] sm:text-[3.2rem] text-slate-900 dark:text-white leading-[1.05]">
+            {language === "uz" ? "Sovg'a odobi" : language === "ru" ? "Этикет подарков" : "Gift etiquette"}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-            {language === "uz"
-              ? "O'zbek xonadonlaridagi nozik munosabatlar, kelin-kuyov odoblari va an'anaviy taboolarni inobatga olgan holda sovg'a tanlang. Kimga nima yarashadi va nimalardan saqlanish kerakligini bilib oling."
-              : language === "ru"
-              ? "Подбирайте подарки с учетом тонкостей семейных отношений в Узбекистане, свадебных традиций и культурных правил. Узнайте, что дарить подобает, а чего избегать."
-              : "Curate meaningful gifts aligned with Uzbek family traditions, respect for elders, wedding customs, and cultural guidelines."}
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-3 max-w-2xl mx-auto leading-relaxed">
+            {language === "uz" ? "Qaynona-qaynotaga, kelin salomga, yangi uyga va boshqa holatlarda nima sovg'a qilish odat ekanini va nimadan qochish kerakligini bilib oling." : language === "ru" ? "Что принято дарить родителям супруга, на келин салом, новоселье и в других случаях — и чего лучше избегать." : "What's customary to give in-laws, at a kelin salom, a housewarming and other occasions, and what to avoid."}
           </p>
         </div>
 
@@ -357,10 +339,10 @@ export default function CulturalEtiquettePage() {
               <button
                 key={key}
                 onClick={() => setSelectedRelation(key)}
-                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer active:scale-95 ${
+                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition flex items-center gap-2 cursor-pointer ${
                   isSelected
-                    ? "bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 text-slate-950 font-black shadow-md shadow-amber-500/25 border-2 border-amber-400 scale-102"
-                    : "bg-white/90 dark:bg-slate-900/80 hover:bg-amber-50/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border-2 border-amber-200/60 dark:border-slate-800"
+                    ? "text-white font-bold shadow-md border border-amber-400 scale-102 bg-amber-500"
+                    : "bg-white/90 dark:bg-slate-900/80 hover:bg-amber-50/70 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-[var(--line)] dark:border-slate-800"
                 }`}
               >
                 <Heart className={`w-3.5 h-3.5 stroke-[2.2] ${isSelected ? "text-slate-950 fill-slate-950" : "text-amber-500"}`} />
@@ -375,9 +357,9 @@ export default function CulturalEtiquettePage() {
           {/* Left Column: Recommended vs Taboos */}
           <div className="lg:col-span-7 space-y-6">
             {/* Approved & Recommended Box */}
-            <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-6 sm:p-7 border-2 border-emerald-300/80 dark:border-emerald-500/30 shadow-luxury space-y-4">
+            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-7 border border-emerald-300/80 dark:border-emerald-500/30 shadow-sm space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center border-2 border-emerald-300 dark:border-emerald-800 shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 flex items-center justify-center border border-emerald-300 dark:border-emerald-800 shadow-xs">
                   <CheckCircle2 className="w-4.5 h-4.5 stroke-[2.2]" />
                 </div>
                 <div>
@@ -396,7 +378,7 @@ export default function CulturalEtiquettePage() {
                 {current.recommendedIdeas.map((idea, idx) => (
                   <div
                     key={idx}
-                    className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 border-2 border-emerald-200/60 dark:border-emerald-500/20 text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center justify-between gap-3 group hover:border-emerald-400 dark:hover:border-emerald-500 transition shadow-2xs"
+                    className="p-3.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 border border-emerald-200/60 dark:border-emerald-500/20 text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center justify-between gap-3 group hover:border-emerald-400 dark:hover:border-emerald-500 transition shadow-2xs"
                   >
                     <div className="flex items-start gap-2.5">
                       <Sparkles className="w-3.5 h-3.5 text-amber-500 stroke-[2.2] flex-shrink-0 mt-0.5" />
@@ -404,7 +386,7 @@ export default function CulturalEtiquettePage() {
                     </div>
                     <Link
                       href={`/search?q=${encodeURIComponent(idea)}`}
-                      className="px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-[11px] font-bold transition flex items-center gap-1.5 shrink-0 shadow-xs active:scale-95"
+                      className="px-3 py-1.5 text-white rounded-xl text-[11px] font-bold transition flex items-center gap-1.5 shrink-0 shadow-xs bg-emerald-600 hover:bg-emerald-500"
                     >
                       <span>{language === "uz" ? "Izlash" : language === "ru" ? "Найти" : "Search"}</span>
                       <ArrowRight className="w-3 h-3 stroke-[2.2]" />
@@ -415,9 +397,9 @@ export default function CulturalEtiquettePage() {
             </div>
 
             {/* Cultural Warnings & Taboos Box */}
-            <div className="bg-gradient-to-br from-white via-[#fff8f8] to-[#fcf2f2] dark:from-[#180f14] dark:via-[#140b10] dark:to-[#0d070a] rounded-3xl p-6 sm:p-7 border-2 border-rose-300/80 dark:border-rose-500/30 shadow-luxury space-y-4">
+            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-7 border border-rose-300/80 dark:border-rose-500/30 shadow-sm space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-400 flex items-center justify-center border-2 border-rose-300 dark:border-rose-800 shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-400 flex items-center justify-center border border-rose-300 dark:border-rose-800 shadow-xs">
                   <AlertTriangle className="w-4.5 h-4.5 stroke-[2.2]" />
                 </div>
                 <div>
@@ -448,7 +430,7 @@ export default function CulturalEtiquettePage() {
             </div>
 
             {/* Recommended Packaging Advice */}
-            <div className="bg-gradient-to-r from-amber-50 via-amber-100/60 to-yellow-50 dark:from-slate-900 dark:to-slate-800 p-5 rounded-2xl border-2 border-amber-200/80 dark:border-amber-500/30 flex items-start gap-3 text-xs text-slate-700 dark:text-slate-300 shadow-sm">
+            <div className="bg-white dark:bg-[#0b1224] p-5 rounded-2xl border border-[var(--line)] dark:border-amber-500/30 flex items-start gap-3 text-xs text-slate-700 dark:text-slate-300 shadow-sm">
               <Gift className="w-5 h-5 text-amber-600 dark:text-amber-400 stroke-[2.2] flex-shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold text-slate-900 dark:text-white block mb-0.5">
@@ -466,7 +448,7 @@ export default function CulturalEtiquettePage() {
           {/* Right Column: Traditional Blessings (Duolar) & Interactive Taboo Checker */}
           <div className="lg:col-span-5 space-y-6">
             {/* Traditional Blessings & Dedications */}
-            <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-6 sm:p-7 border-2 border-amber-200/80 dark:border-amber-500/25 shadow-luxury space-y-4">
+            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-7 border border-[var(--line)] dark:border-amber-500/25 shadow-sm space-y-4">
               <h3 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <Heart className="w-4 h-4 text-rose-500 fill-rose-500 stroke-[2.2]" />
                 <span>
@@ -480,13 +462,13 @@ export default function CulturalEtiquettePage() {
 
               <div className="space-y-3">
                 {current.traditionalBlessings.map((b, idx) => (
-                  <div key={idx} className="p-4.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 border-2 border-amber-200/60 dark:border-slate-800 space-y-3 shadow-2xs">
+                  <div key={idx} className="p-4.5 rounded-2xl bg-white/90 dark:bg-slate-900/60 border border-[var(--line)] dark:border-slate-800 space-y-3 shadow-2xs">
                     <p className="text-xs italic text-slate-800 dark:text-slate-200 leading-relaxed font-serif">
                       "{b}"
                     </p>
                     <button
                       onClick={() => handleCopyBlessing(b, idx)}
-                      className="text-[11px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 flex items-center gap-1.5 transition ml-auto cursor-pointer active:scale-95 px-2.5 py-1 rounded-lg hover:bg-amber-100/60 dark:hover:bg-slate-800"
+                      className="text-[11px] font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 flex items-center gap-1.5 transition ml-auto cursor-pointer px-2.5 py-1 rounded-lg hover:bg-amber-100/60 dark:hover:bg-slate-800"
                     >
                       {copiedIndex === idx ? (
                         <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.2]" />
@@ -505,7 +487,7 @@ export default function CulturalEtiquettePage() {
             </div>
 
             {/* Interactive Item Inspector */}
-            <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-6 sm:p-7 border-2 border-amber-200/80 dark:border-amber-500/25 shadow-luxury space-y-4">
+            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-7 border border-[var(--line)] dark:border-amber-500/25 shadow-sm space-y-4">
               <h3 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <Search className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
                 <span>
@@ -536,11 +518,11 @@ export default function CulturalEtiquettePage() {
                       ? "например: Нож, Часы или Платок..."
                       : "e.g. Knife, Watch, or Scarf..."
                   }
-                  className="flex-1 px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border-2 border-amber-200/80 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
+                  className="flex-1 px-3.5 py-2.5 bg-white dark:bg-slate-900 rounded-xl border border-[var(--line)] dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-amber-500"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black rounded-xl text-xs transition shadow-md shadow-amber-500/20 cursor-pointer active:scale-95"
+                  className="px-4 py-2.5 text-white font-bold rounded-xl text-xs transition shadow-md cursor-pointer bg-amber-500 hover:bg-amber-400"
                 >
                   {language === "uz" ? "Tekshirish" : language === "ru" ? "Проверить" : "Inspect"}
                 </button>
@@ -558,7 +540,7 @@ export default function CulturalEtiquettePage() {
                     key={tag}
                     type="button"
                     onClick={() => evaluateEtiquette(tag)}
-                    className="px-2.5 py-1 rounded-lg bg-amber-100/70 hover:bg-amber-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-amber-950 dark:text-amber-300 text-[11px] font-semibold border border-amber-300/80 dark:border-slate-700 transition cursor-pointer active:scale-95 shadow-2xs"
+                    className="px-2.5 py-1 rounded-lg dark:bg-slate-800 dark:hover:bg-slate-700 text-[11px] font-semibold border border-[var(--line)] dark:border-slate-700 transition cursor-pointer bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]"
                   >
                     {tag}
                   </button>
@@ -567,9 +549,9 @@ export default function CulturalEtiquettePage() {
 
               {inspectVerdict && (
                 <div
-                  className={`p-4 rounded-2xl border-2 space-y-1.5 text-xs animate-fade-in shadow-xs ${
+                  className={`p-4 rounded-2xl border space-y-1.5 text-xs animate-fade-in shadow-xs ${
                     inspectVerdict.status === "warning"
-                      ? "bg-amber-50/90 dark:bg-amber-950/40 border-amber-300 dark:border-amber-600/50 text-amber-950 dark:text-amber-200"
+                      ? "bg-amber-50/90 dark:bg-amber-950/40 border-[var(--line)] dark:border-amber-600/50 text-amber-950 dark:text-amber-200"
                       : inspectVerdict.status === "info"
                       ? "bg-sky-50/90 dark:bg-sky-950/40 border-sky-300 dark:border-sky-600/50 text-sky-950 dark:text-sky-200"
                       : "bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-600/50 text-emerald-950 dark:text-emerald-200"

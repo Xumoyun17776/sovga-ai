@@ -12,7 +12,7 @@ import {
   User,
   MapPin,
   ArrowRight,
-} from "lucide-react";
+} from "../lib/icons";
 import { formatPrice, orders } from "../lib/api";
 import { cyberSound } from "../lib/cyberSound";
 import { useToast } from "./Toast";
@@ -136,10 +136,10 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
           ? `Ваш заказ успешно принят! Номер заказа: ${newOrder.orderNumber}`
           : `Your direct order has been received! Order ID: ${newOrder.orderNumber}`,
         language === "uz"
-          ? "Xarid Rasmiylashtirildi 🎉"
+          ? "Xarid Rasmiylashtirildi"
           : language === "ru"
-          ? "Заказ Оформлен 🎉"
-          : "Order Placed 🎉"
+          ? "Заказ Оформлен"
+          : "Order Placed"
       );
     } catch (err: any) {
       console.error("Order error:", err);
@@ -168,12 +168,12 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="relative w-full max-w-xl bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl shadow-luxury border-2 border-amber-300/80 dark:border-amber-500/25 overflow-hidden my-auto animate-scale-in max-h-[92vh] max-h-[92dvh] flex flex-col">
+      <div className="bg-white dark:bg-[#0b1224] relative w-full max-w-xl rounded-2xl shadow-sm border border-[var(--line)] dark:border-amber-500/25 overflow-hidden my-auto animate-scale-in max-h-[92vh] max-h-[92dvh] flex flex-col">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 relative border-b border-white/10">
+        <div className="text-white p-5 sm:p-6 relative border-b border-white/10 bg-slate-900">
           <button
             onClick={handleResetAndClose}
-            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition cursor-pointer active:scale-95 shadow-2xs"
+            className="absolute top-4 right-4 w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white flex items-center justify-center transition cursor-pointer shadow-2xs"
             aria-label="Yopish"
           >
             <X className="w-4 h-4 stroke-[2.2]" />
@@ -222,7 +222,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
         {confirmedOrder ? (
           /* Confirmation Success Screen */
           <div className="p-6 sm:p-8 text-center space-y-6 max-h-[75vh] max-h-[75dvh] overflow-y-auto">
-            <div className="w-16 h-16 icon-medallion icon-box-emerald mx-auto shadow-lg">
+            <div className="w-16 h-16 icon-medallion icon-box-emerald mx-auto shadow-sm">
               <CheckCircle2 className="w-8 h-8 stroke-[2.2]" />
             </div>
 
@@ -230,7 +230,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
               <span className="inline-block px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-xs font-mono font-bold">
                 {language === "uz" ? "BUYURTMA KODI" : language === "ru" ? "НОМЕР ЗАКАЗА" : "ORDER ID"}: {confirmedOrder.orderNumber}
               </span>
-              <h3 className="font-display font-extrabold text-xl text-slate-900 dark:text-white">
+              <h3 className="font-display font-semibold text-xl text-slate-900 dark:text-white">
                 {language === "uz"
                   ? `Rahmat, ${confirmedOrder.customerName}!`
                   : language === "ru"
@@ -294,7 +294,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
 
             <button
               onClick={handleResetAndClose}
-              className="w-full py-3.5 bg-slate-900 dark:bg-amber-500 hover:bg-slate-800 dark:hover:bg-amber-400 text-white dark:text-slate-950 font-bold rounded-2xl text-xs uppercase tracking-wider transition shadow-md cursor-pointer active:scale-95"
+              className="w-full py-3.5 bg-slate-900 dark:bg-amber-500 hover:bg-slate-800 dark:hover:bg-amber-400 text-white dark:text-white font-bold rounded-2xl text-xs uppercase tracking-wider transition shadow-md cursor-pointer"
             >
               {language === "uz"
                 ? "Tushunarli, Davom Etish"
@@ -324,7 +324,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
                   {product.name}
                 </h4>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="font-extrabold text-xs text-amber-600 dark:text-amber-400">
+                  <span className="font-semibold text-xs text-amber-600 dark:text-amber-400">
                     {formatPrice(product.price, product.currency)}
                   </span>
                   {product.originalPrice && product.originalPrice > (product.price || 0) && (
@@ -446,13 +446,13 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
               </div>
 
               {/* Gift Packaging Checkbox */}
-              <div className="p-3.5 rounded-2xl border border-amber-200/80 dark:border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 space-y-2">
+              <div className="p-3.5 rounded-2xl border border-[var(--line)] dark:border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 space-y-2">
                 <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={giftPackaging}
                     onChange={(e) => setGiftPackaging(e.target.checked)}
-                    className="w-4 h-4 text-amber-600 rounded border-amber-300 focus:ring-amber-500"
+                    className="w-4 h-4 text-amber-600 rounded border-[var(--line)] focus:ring-amber-500"
                   />
                   <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 dark:text-amber-300">
                     <Gift className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
@@ -479,7 +479,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
                       }
                       value={giftMessage}
                       onChange={(e) => setGiftMessage(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-white/10 text-xs bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-3 py-2 rounded-xl border border-[var(--line)] dark:border-white/10 text-xs bg-white dark:bg-slate-900 text-slate-800 dark:text-white outline-none focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
                 )}
@@ -501,7 +501,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("cash_on_delivery")}
-                    className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 cursor-pointer active:scale-95 ${
+                    className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 cursor-pointer ${
                       paymentMethod === "cash_on_delivery"
                         ? "border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 text-slate-900 dark:text-amber-300 font-bold shadow-xs ring-1 ring-amber-400/30"
                         : "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -516,7 +516,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("click")}
-                    className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 cursor-pointer active:scale-95 ${
+                    className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 cursor-pointer ${
                       paymentMethod === "click"
                         ? "border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 text-slate-900 dark:text-amber-300 font-bold shadow-xs ring-1 ring-amber-400/30"
                         : "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -529,7 +529,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("payme")}
-                    className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 cursor-pointer active:scale-95 ${
+                    className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 cursor-pointer ${
                       paymentMethod === "payme"
                         ? "border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 text-slate-900 dark:text-amber-300 font-bold shadow-xs ring-1 ring-amber-400/30"
                         : "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -542,7 +542,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
                   <button
                     type="button"
                     onClick={() => setPaymentMethod("installment")}
-                    className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 cursor-pointer active:scale-95 ${
+                    className={`p-3 rounded-2xl border text-center transition flex flex-col items-center gap-1.5 cursor-pointer ${
                       paymentMethod === "installment"
                         ? "border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 text-slate-900 dark:text-amber-300 font-bold shadow-xs ring-1 ring-amber-400/30"
                         : "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/80 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -562,7 +562,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
                   <span className="text-xs text-slate-500 dark:text-slate-400">
                     {language === "uz" ? "Jami to'lov:" : language === "ru" ? "Итого к оплате:" : "Total Amount:"}
                   </span>
-                  <div className="font-display font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white">
+                  <div className="font-display font-semibold text-lg sm:text-xl text-slate-900 dark:text-white">
                     {formatPrice(totalAmount, product.currency)}
                   </div>
                 </div>
@@ -581,7 +581,7 @@ export default function DirectOrderModal({ product, isOpen, onClose }: Props) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full btn-luxury-gold py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider shadow-lg transition active:scale-95 disabled:opacity-50 cursor-pointer"
+                className="w-full btn-luxury-gold py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-xs uppercase tracking-wider shadow-sm transition disabled:opacity-50 cursor-pointer"
               >
                 {loading ? (
                   <span>

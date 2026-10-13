@@ -9,9 +9,14 @@ import type {
   ImageSearchResult,
 } from "../../shared/types.js";
 import { providerRegistry } from "../providers/baseProvider.js";
-import { storage } from "../storage.js";
+import { storage, extractQueryBudget } from "../storage.js";
 import { searchLiveMarketplaces } from "./liveStoreScanner.js";
 import { synthesizeProductsForQuery } from "./productCatalogSynthesizer.js";
+import { analyzeQuery, scoreProduct, rankByRelevance, baseProductName, softGroupKey, matchesAllWords, storeSearchQueries } from "./searchRelevance.js";
+import { aiWebSearch, aiSearchAvailable, providerUsable } from "./aiWebSearch.js";
+import { t3 } from "./lang.js";
+import { rememberProducts, searchIndex, priceHistoryFor } from "./webIndex.js";
+import { searchStores, type StoreItem } from "./liveStores.js";
 
 const cache = new NodeCache({ stdTTL: 1800, checkperiod: 300 }); // 30 min TTL
 let geminiCooldownUntil = 0; // Cooldown timestamp when Gemini daily free tier quota (429) is exceeded
@@ -30,12 +35,11 @@ export class AiResearchService {
     const rawGemini = (process.env.GEMINI_API_KEY || "").trim();
     const rawOpenAI = (process.env.OPENAI_API_KEY || "").trim();
 
-    if (rawOpenAI.startsWith("sk-")) {
+    // Use whichever key currently works (a rejected or rate-limited key is skipped automatically)
+    if (rawOpenAI.startsWith("sk-") && providerUsable("openai")) {
       return { type: "openai", key: rawOpenAI };
     }
-    
-    // Fallback to Gemini if no OpenAI key
-    if (rawGemini.length > 20) {
+    if (rawGemini.length > 20 && providerUsable("gemini")) {
       return { type: "gemini", key: rawGemini };
     }
     return { type: null, key: "" };
@@ -124,56 +128,66 @@ export class AiResearchService {
       currency: options?.currency || "UZS",
     });
 
-    // 3. Real-Time Multi-Store Live Online Scanner (Olcha 1M+ live API + 73k indexed store catalog)
+    // 3. Live search in the stores themselves (Olcha, Texnomart) for exactly what was typed
     const liveScraped = await searchLiveMarketplaces(query);
 
-    const provider = this.getAIProvider();
-
-    // 4. If no active AI provider key configured, or Gemini quota is cooling down, execute dynamic multi-store live search
-    if (!provider.type || (provider.type === "gemini" && Date.now() < geminiCooldownUntil)) {
-      if (provider.type === "gemini" && Date.now() < geminiCooldownUntil) {
-        console.log(`[Sovg'a AI Engine] Gemini quota cooldown active (${Math.round((geminiCooldownUntil - Date.now()) / 1000)}s remaining) — using ultra-fast 1M+ live market synthesis engine for: "${query}"`);
-      } else {
-        console.log(`[Sovg'a AI Engine] Live multi-store search & semantic synthesis engine for: "${query}"`);
+    // 4. Use the AI key to search the web when the stores' own search didn't cover it well
+    //    (other stores like Uzum/Asaxiy, gift ideas, unusual products). Links are opened and checked.
+    const analysis = analyzeQuery(query);
+    const liveRelevant = rankByRelevance(analysis, liveScraped, (x) => ({ name: x.title, description: x.category || null }), { maxRelated: 0 }).length;
+    let aiSummary: string | null = null;
+    let aiProvider: string | null = null;
+    if (aiSearchAvailable() && (liveRelevant < 8 || analysis.recipientOnly)) {
+      try {
+        const ai = await aiWebSearch(query, { budgetMax: options?.budgetMax || options?.budget, language: options?.language });
+        if (ai.items.length) {
+          rememberProducts(ai.items);
+          const known = new Set(liveScraped.map((x) => x.url));
+          for (const it of ai.items) {
+            if (known.has(it.url)) continue;
+            const fromStore = it.source === "store-api";
+            liveScraped.push({
+              title: it.title,
+              store: it.store,
+              url: it.url,
+              price: it.price,
+              oldPrice: it.oldPrice ?? null,
+              imageUrl: it.imageUrl ?? null,
+              rating: it.rating ?? null,
+              reviewCount: it.reviewCount ?? null,
+              discount: it.discount ?? null,
+              installment: it.installment ?? null,
+              monthlyPayment: it.monthlyPayment ?? null,
+              inStock: it.inStock ?? null,
+              category: it.category ?? null,
+              snippet: it.category ? `${it.category} — ${it.store}` : `${it.store}`,
+              // AI-guided picks are real store listings; AI web links are only verified if the page price was confirmed
+              source: fromStore ? "store-api" : "ai-web",
+              verified: fromStore ? true : it.verified,
+              guided: (it as any).guided === true,
+            });
+          }
+        }
+        aiSummary = ai.summary;
+        aiProvider = ai.provider;
+      } catch (e: any) {
+        console.warn("[Sovg'a AI Engine] AI web search failed:", e?.message);
       }
-      const result = await this.executeQualityResearch(query, options, localMatches, liveScraped);
-      result.responseTimeMs = Date.now() - startTime;
-      cache.set(cacheKey, result);
-      return result;
     }
 
-    // 5. Live AI Research with Gemini or OpenAI
-    try {
-      let result: ResearchResult;
-      if (provider.type === "gemini") {
-        console.log(`[Sovg'a AI Engine] Calling Gemini with live market inventory for: "${query}"`);
-        const genAI = new GoogleGenerativeAI(provider.key);
-        result = await this.callGemini(genAI, query, options, localMatches, liveScraped);
-      } else {
-        console.log(`[Sovg'a AI Engine] Calling OpenAI GPT-4o-mini for: "${query}"`);
-        result = await this.callOpenAI(provider.key, query, options, localMatches);
-      }
-      result.responseTimeMs = Date.now() - startTime;
-      result.cached = false;
-      cache.set(cacheKey, result);
-      return result;
-    } catch (error: any) {
-      const errMsg = error?.message || String(error);
-      if (
-        errMsg.includes("429") ||
-        errMsg.includes("Quota") ||
-        errMsg.includes("quota") ||
-        errMsg.includes("RESOURCE_EXHAUSTED") ||
-        errMsg.includes("free_tier_requests")
-      ) {
-        geminiCooldownUntil = Date.now() + 15 * 60 * 1000;
-        console.warn(`[Sovg'a AI Engine] Gemini free-tier daily quota reached. Cooldown active for 15 minutes.`);
-      }
-      console.error(`[Sovg'a AI Engine] ${provider.type.toUpperCase()} API error, falling back to quality research engine:`, errMsg);
-      const result = await this.executeQualityResearch(query, options, localMatches, liveScraped);
-      result.responseTimeMs = Date.now() - startTime;
-      return result;
+    const result = await this.executeQualityResearch(query, options, localMatches, liveScraped);
+    if (aiSummary) result.researchSummary = `${result.researchSummary} ${aiSummary}`.trim();
+    if (aiProvider) {
+      const label =
+        aiProvider === "gemini-guided"
+          ? t3(options?.language, "AI tavsiyasi bo'yicha do'kon qidiruvi (Gemini)", "Поиск в магазинах по подсказке AI (Gemini)", "Store search guided by AI (Gemini)")
+          : `${t3(options?.language, "AI veb-qidiruv", "AI веб-поиск", "AI web search")} (${aiProvider === "gemini" ? "Google Search" : "OpenAI"})`;
+      result.searchStrategies = [label, ...(result.searchStrategies || [])];
     }
+    result.responseTimeMs = Date.now() - startTime;
+    result.cached = false;
+    cache.set(cacheKey, result);
+    return result;
   }
 
   private async callGemini(
@@ -201,7 +215,7 @@ export class AiResearchService {
       : "";
 
     const liveContext = liveScraped.length > 0
-      ? `\nREAL-TIME VERIFIED ONLINE MARKET INVENTORY (Fetched live from Uzbekistan stores - YOU MUST PRESERVE THESE EXACT DIRECT URLS AND REAL PRICES):\n${liveScraped.map((p) => `- Name: "${p.title}", Store: "${p.store}", Price: ${p.price?.toLocaleString()} UZS, URL: "${p.url}"`).join("\n")}`
+      ? `\nREAL-TIME VERIFIED ONLINE MARKET INVENTORY (Fetched live from Uzbekistan stores - YOU MUST PRESERVE THESE EXACT DIRECT URLS AND REAL PRICES):\n${liveScraped.map((p) => `- Name: "${p.title}", Store: "${p.store}", Price: ${p.price ? `${p.price.toLocaleString()} UZS` : "unknown"}, URL: "${p.url}"`).join("\n")}`
       : "";
 
     const systemPrompt = `You are Sovg'a AI, Uzbekistan's premier AI shopping researcher.
@@ -254,7 +268,7 @@ Return ONLY raw JSON:
           },
         });
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Gemini 3500ms timeout")), 3500)
+          setTimeout(() => reject(new Error("Gemini timeout")), 10000)
         );
         const response: any = await Promise.race([
           model.generateContent({
@@ -301,7 +315,8 @@ Return ONLY raw JSON:
       occasion?: string;
       language?: string;
     },
-    localProducts: any[] = []
+    localProducts: any[] = [],
+    liveScraped: any[] = []
   ): Promise<ResearchResult> {
     const currency = options?.currency || "UZS";
     const budgetInfo = options?.budget
@@ -311,10 +326,16 @@ Return ONLY raw JSON:
     const localContext = localProducts.length > 0
       ? `\nVerified Local Inventory:\n${localProducts.map((p) => `- ${p.name} at ${p.store}: ${p.price?.toLocaleString()} UZS`).join("\n")}`
       : "";
+    const pricedLive = liveScraped.filter((p) => typeof p.price === "number" && p.price > 0);
+    const liveContext = pricedLive.length > 0
+      ? `\nLive store listings (use these exact URLs and prices when relevant):\n${pricedLive.map((p) => `- "${p.title}" at ${p.store}: ${p.price.toLocaleString()} UZS (${p.url})`).join("\n")}`
+      : "";
 
     const systemPrompt = `You are Sovg'a AI, Uzbekistan's premier AI shopping researcher.
 Analyze products across Olcha, Uzum Market, Texnomart, MediaPark, Asaxiy for: "${query}". Prioritize Olcha (olcha.uz) for smartphones, tablets, laptops, and consumer electronics with official warranties.
-Output 14 to 18 products strictly sorted by price ASCENDING (from the absolute lowest price to higher).
+Output 10 to 16 REAL products that exist in Uzbekistan stores, strictly sorted by price ASCENDING.
+Rules: every product must be the exact type the user asked for; if the query says who it is for (e.g. women/ayollar/onam, men/erkaklar/otam, kids/bolalar) only include products suitable for that person;
+if the query names a model (e.g. "iPhone 15") list that model first; never invent model names; prices are realistic current UZS prices; write "reason" in Uzbek.
 Return JSON matching schema with fields: query, research_summary, total_sources_researched, total_products_considered, products, rejected_products, search_strategies, price_savings.`;
 
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -327,11 +348,12 @@ Return JSON matching schema with fields: query, research_summary, total_sources_
         model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Execute shopping research for: "${query}"\n${budgetInfo} ${occasionInfo}${localContext}` },
+          { role: "user", content: `Execute shopping research for: "${query}"\n${budgetInfo} ${occasionInfo}${localContext}${liveContext}` },
         ],
         temperature: 0.2,
         response_format: { type: "json_object" },
       }),
+      signal: AbortSignal.timeout(20000),
     });
 
     const data = await res.json();
@@ -530,144 +552,200 @@ Return JSON matching schema with fields: query, research_summary, total_sources_
       ? liveScrapedInput
       : await searchLiveMarketplaces(query);
 
-    // 2. Synthesize complete verified product suite matching the query
-    const { products: synthProducts } = synthesizeProductsForQuery(query, options, liveScraped);
+    // 2. Understand the query (product type, who it's for, model numbers)
+    const analysis = analyzeQuery(query);
+    const textOf = (p: { name: string; description?: string | null }) => ({ name: p.name, description: (p as any).description || null });
+
+    // 3. Curated reference items. The generic "adaptive" ones are placeholders, used only as a last resort.
+    const { products: synthRaw, categoryDetected } = synthesizeProductsForQuery(query, options, liveScraped);
+    const synthArePlaceholders = categoryDetected === "adaptive_search";
+    const synthProducts = synthRaw.map((sp) => ({ ...sp, priceVerified: false }));
 
     const products: ResearchProduct[] = [];
 
-    // Prioritize 100% REAL live items from online store scan (Olcha 1M+ live API & cross-store index)
-    if (liveScraped.length > 0) {
-      liveScraped.forEach((ls, idx) => {
-        const itemPrice = ls.price || Math.round((synthProducts[0]?.price || 350000) * (0.95 + idx * 0.05));
-        products.push({
-          name: ls.title,
-          price: itemPrice,
-          originalPrice: ls.discount ? Math.round(itemPrice * 1.15) : Math.round(itemPrice * 1.08),
-          currency,
-          store: ls.store,
-          url: ls.url, // Authentic direct product page URL
-          imageUrl: ls.imageUrl || getVerifiedProductImage(ls.title, query),
-          discount: ls.discount || (idx % 2 === 0 ? "8% chegirma" : null),
-          rating: ls.rating || 4.8,
-          reviewCount: ls.reviewCount || 40 + idx * 5,
-          availability: ls.availability || "Do'konda mavjud (Jonli tekshirildi)",
-          reason: `${ls.snippet ? ls.snippet.slice(0, 95) + '... ' : ''}${ls.store} rasmiy tovar kartasi.`,
-          source: `${ls.store} Onlayn Do'koni`,
-          lastChecked: now,
-          priceVerified: true,
-          availabilityVerified: true,
-          category: "best_value",
-          warranty: "12 Oy Rasmiy O'zbekiston Kafolati",
-          sellerReputation: `${ls.store} Tasdiqlangan Diler`,
-          deliveryEstimate: ls.store === "Uzum Market" ? "1 ish kuni ichida yetkazish" : "1-2 ish kuni",
-          installment: "Mavjud: Muddatli to'lov",
-          specs: {
-            "Do'kon": ls.store,
-            "Kafolat": "12 Oy Rasmiy Kafolat",
-            "Holati": "Jonli onlayn sahifadan olingan",
-          },
-          storeTrustScore: 9.8,
-        });
+    // Live store items: only real priced ones count as verified.
+    // Drop items for the wrong gender, and items of another type when enough of the right type exist.
+    const pricedLiveAll = liveScraped.filter((ls) => typeof ls.price === "number" && ls.price > 0);
+    const unpricedLiveAll = liveScraped.filter((ls) => !(typeof ls.price === "number" && ls.price > 0));
+    const keepExternal = <T,>(items: T[], get: (t: T) => { name: string }) => {
+      const scored = items.map((it) => ({ it, s: scoreProduct(analysis, get(it)) })).filter((x) => !x.s.excluded);
+      const typed = scored.filter((x) => x.s.typeMatch);
+      return (analysis.groups.length && typed.length >= 2 ? typed : scored).map((x) => x.it);
+    };
+    const pricedLive = keepExternal(pricedLiveAll, (ls) => ({ name: ls.title }));
+    const unpricedLive = keepExternal(unpricedLiveAll, (ls) => ({ name: ls.title }));
+    const liveToUse = pricedLive.length >= 4 ? pricedLive : [...pricedLive, ...unpricedLive.slice(0, 4)];
+    liveToUse.forEach((ls, idx) => {
+      const hasRealPrice = typeof ls.price === "number" && ls.price > 0;
+      if (!hasRealPrice) return; // an item with no price can't be compared; it used to get an invented one
+      const itemPrice = ls.price as number;
+      const fromStoreApi = ls.source === "store-api";
+      const lg = options?.language;
+      const sourceLabel =
+        ls.source === "ai-web" ? `${ls.store} (${t3(lg, "AI veb-qidiruvda topildi", "найдено AI-поиском", "found by AI web search")})`
+        : ls.source === "web-index" ? `${ls.store} (${t3(lg, "oldingi jonli qidiruv", "из прошлого поиска", "from a recent search")})`
+        : fromStoreApi ? `${ls.store} (${t3(lg, "jonli narx", "живая цена", "live price")})`
+        : `${ls.store} (web)`;
+      const availability =
+        ls.source === "web-index" && ls.lastSeen
+          ? t3(lg, `Narx ${new Date(ls.lastSeen).toLocaleDateString("uz-UZ")} kuni tekshirilgan`, `Цена проверена ${new Date(ls.lastSeen).toLocaleDateString("ru-RU")}`, `Price checked ${new Date(ls.lastSeen).toLocaleDateString("en-GB")}`)
+          : ls.source === "ai-web" && !ls.verified
+            ? t3(lg, "Narxni do'kon sahifasida tekshiring", "Проверьте цену на странице магазина", "Check the price on the store page")
+            : ls.inStock === false
+              ? t3(lg, "Hozircha mavjud emas", "Нет в наличии", "Out of stock")
+              : t3(lg, "Do'konda mavjud", "В наличии", "In stock");
+      const monthly = ls.monthlyPayment ? Math.round(ls.monthlyPayment).toLocaleString("en-US") : null;
+      products.push({
+        name: ls.title,
+        price: itemPrice,
+        originalPrice: ls.oldPrice ?? (null as any),
+        currency,
+        store: ls.store,
+        url: ls.url,
+        imageUrl: ls.imageUrl || getVerifiedProductImage(ls.title, query),
+        discount: ls.discount ? ls.discount.replace("chegirma", t3(lg, "chegirma", "скидка", "off")) : null,
+        rating: ls.rating ?? (null as any),
+        reviewCount: ls.reviewCount ?? (null as any),
+        availability,
+        reason: ls.category
+          ? t3(lg, `${ls.store}: "${ls.category}" bo'limidagi mahsulot`, `${ls.store}: товар из раздела «${ls.category}»`, `${ls.store}: listed under "${ls.category}"`)
+          : t3(lg, `${ls.store} do'konidagi mahsulot`, `Товар в магазине ${ls.store}`, `Sold by ${ls.store}`),
+        source: sourceLabel,
+        lastChecked: ls.lastSeen ? new Date(ls.lastSeen).toISOString() : now,
+        priceVerified: ls.verified === true || fromStoreApi,
+        availabilityVerified: fromStoreApi,
+        category: "best_value",
+        warranty: t3(lg, "Do'kon sahifasida ko'rsatilgan", "Указана на странице магазина", "See the store page"),
+        sellerReputation: `${ls.store}`,
+        deliveryEstimate: t3(lg, "Do'kon sahifasida ko'rsatilgan", "Указано на странице магазина", "See the store page"),
+        installment: monthly
+          ? t3(lg, `Muddatli to'lov: oyiga ${monthly} so'mdan`, `Рассрочка: от ${monthly} сум/мес`, `Installments from ${monthly} UZS/month`)
+          : (null as any),
+        specs: {
+          [t3(lg, "Do'kon", "Магазин", "Store")]: ls.store,
+          ...(ls.category ? { [t3(lg, "Bo'lim", "Раздел", "Category")]: ls.category } : {}),
+          [t3(lg, "Manba", "Источник", "Source")]: fromStoreApi
+            ? t3(lg, "Do'kon qidiruvi (jonli)", "Поиск магазина (живой)", "Store search (live)")
+            : ls.source === "ai-web" ? t3(lg, "AI veb-qidiruv", "AI веб-поиск", "AI web search") : t3(lg, "Oldingi qidiruv", "Прошлый поиск", "Earlier search"),
+        },
+        ...({ _live: true } as any),
+        storeTrustScore: 9.8,
+        ...({ _guided: ls.guided === true } as any),
+        // the store's category helps relevance ("Ayollar uchun parfyumeriya")
+        ...({ description: ls.category || null } as any),
       });
-    }
-
-    // Complement with high-quality synthesized options if needed
-    synthProducts.forEach((sp) => {
-      if (!products.some((p) => p.name.toLowerCase().includes(sp.name.toLowerCase().slice(0, 15)) || p.url === sp.url)) {
-        products.push(sp);
-      }
     });
 
-    const qLower = (query || "").toLowerCase().trim();
-    const queryTokens = qLower
-      .split(/\s+/)
-      .map((t) => t.replace(/[^\w\d]/g, "").trim())
-      .filter((t) => t.length > 1 && !["smartfon", "telefon", "narxi", "qancha", "kupit", "sotib", "olish", "uzbekistan", "tashkent", "eng", "arzon", "yangi"].includes(t));
+    // When live stores already returned enough matching products, the sample catalog is not needed.
+    const liveRelevant = rankByRelevance(analysis, products, textOf, { maxRelated: 0 }).length;
+    const needCatalog = liveRelevant < 6;
 
-    // If database actually has products matching query (not generic accessories), include them
+    // 4. Our product catalog (already ranked by relevance and de-duplicated)
     const maxBudget = options?.budgetMax || options?.budget;
     const catalogMatches = storage.searchCatalog(query, { maxPrice: maxBudget });
-    if (catalogMatches.length > 0) {
-      catalogMatches.slice(0, 30).forEach((cItem: any) => {
-        const cLower = (cItem.name || "").toLowerCase();
-        const isAccessory = /chehol|kabel|shnur|adapter|steklo|plenka|case|cable|cover|g['’`ʻ]?ilof|ushlagich|shtativ|powerbank|remeshok|quvvatlagich|podstavka/i.test(cLower);
-        const queryWantsAccessory = /chehol|kabel|shnur|adapter|steklo|plenka|case|cable|cover|g['’`ʻ]?ilof|ushlagich|shtativ|powerbank|remeshok|quvvatlagich|podstavka/i.test(qLower);
-        if (isAccessory && !queryWantsAccessory) return;
-
-        if (queryTokens.length > 0) {
-          let tokenMatches = 0;
-          for (const token of queryTokens) {
-            if (cLower.includes(token)) tokenMatches++;
-          }
-          if (tokenMatches < Math.min(2, queryTokens.length)) return;
-        }
-
-        if (!products.some((p) => p.name.toLowerCase().includes(cItem.name.toLowerCase().slice(0, 15)))) {
-          const offers = storage.getProductOffers(cItem.id);
-          const lowestOffer = offers.find((o: any) => o.isLowestPrice) || offers[0];
-          const storeName = lowestOffer?.store || cItem.store || "Uzum Market";
-          products.push({
-            name: cItem.name,
-            price: lowestOffer ? lowestOffer.price : cItem.price,
-            originalPrice: lowestOffer ? lowestOffer.originalPrice : cItem.originalPrice,
-            currency,
-            store: storeName,
-            url: ensureProductUrl(cItem.name, storeName, lowestOffer?.url || cItem.url, query),
-            imageUrl: cItem.imageUrl || null,
-            discount: lowestOffer ? lowestOffer.discount : cItem.discount,
-            rating: lowestOffer ? lowestOffer.rating : cItem.rating || 4.8,
-            reviewCount: lowestOffer ? lowestOffer.reviewCount : cItem.reviewCount || 150,
-            availability: lowestOffer ? lowestOffer.availability : "Toshkent omborida mavjud",
-            reason: `${cItem.description ? cItem.description.slice(0, 85) + '... ' : ''}Kafolatlangan rasmiy diler taklifi.`,
-            source: `${storeName} (Katalog tekshirildi)`,
-            lastChecked: now,
-            priceVerified: true,
-            availabilityVerified: true,
-            category: "best_value",
-            warranty: cItem.specs?.Warranty || "12 Oy Rasmiy O'zbekiston Kafolati",
-            sellerReputation: `${storeName} Tasdiqlangan Hamkor`,
-            deliveryEstimate: lowestOffer?.deliveryTime || "1 ish kuni ichida yetkazish",
-            installment: lowestOffer?.installment || "Mavjud: Uzum Nasiya / Muddatli to'lov",
-            specs: cItem.specs || undefined,
-            storeTrustScore: 9.8,
-          });
-        }
+    (needCatalog ? catalogMatches.slice(0, 24) : []).forEach((cItem: any) => {
+      const offers = cItem.offers || storage.getProductOffers(cItem.id);
+      const lowestOffer = offers.find((o: any) => o.isLowestPrice) || offers[0];
+      const storeName = lowestOffer?.store || cItem.store || "Uzum Market";
+      products.push({
+        name: cItem.name,
+        price: lowestOffer ? lowestOffer.price : cItem.price,
+        originalPrice: lowestOffer ? lowestOffer.originalPrice : cItem.originalPrice,
+        currency,
+        store: storeName,
+        url: ensureProductUrl(cItem.name, storeName, lowestOffer?.url || cItem.url, query),
+        imageUrl: cItem.imageUrl || null,
+        discount: lowestOffer ? lowestOffer.discount : cItem.discount,
+        rating: lowestOffer ? lowestOffer.rating : cItem.rating || 4.8,
+        reviewCount: lowestOffer ? lowestOffer.reviewCount : cItem.reviewCount || 150,
+        availability: lowestOffer ? lowestOffer.availability : "Toshkent omborida mavjud",
+        reason: `${cItem.description ? cItem.description.slice(0, 85) + "... " : ""}Kafolatlangan rasmiy diler taklifi.`,
+        source: `${storeName} (Sovg'a katalogi)`,
+        lastChecked: now,
+        // catalog prices are stored samples, not checked live
+        priceVerified: false,
+        availabilityVerified: true,
+        category: "best_value",
+        warranty: cItem.specs?.Warranty || cItem.specs?.Kafolat || "12 Oy Rasmiy O'zbekiston Kafolati",
+        sellerReputation: `${storeName} Tasdiqlangan Hamkor`,
+        deliveryEstimate: lowestOffer?.deliveryTime || "1 ish kuni ichida yetkazish",
+        installment: lowestOffer?.installment || "Mavjud: Uzum Nasiya / Muddatli to'lov",
+        specs: cItem.specs || undefined,
+        storeTrustScore: 9.8,
+        // keep the description for relevance scoring below
+        ...({ description: cItem.description } as any),
       });
+    });
+
+    // 5. Curated items fill gaps; generic placeholders only when nothing real was found
+    if (!synthArePlaceholders && rankByRelevance(analysis, products, textOf, { maxRelated: 0 }).length < 4) {
+      products.push(...synthProducts);
     }
 
-    // 4. SMART RELEVANCE SCORING & PRICE ASCENDING SORT
-    function scoreItem(name: string): number {
-      const n = name.toLowerCase();
-      const isAccessory = /chehol|kabel|shnur|adapter|steklo|plenka|case|cable|cover|g['’`ʻ]?ilof|ushlagich|shtativ|powerbank|remeshok|quvvatlagich|podstavka/i.test(n);
-      const queryWantsAccessory = /chehol|kabel|shnur|adapter|steklo|plenka|case|cable|cover|g['’`ʻ]?ilof|ushlagich|shtativ|powerbank|remeshok|quvvatlagich|podstavka/i.test(qLower);
-      if (isAccessory && !queryWantsAccessory) return -10;
-
-      let score = 0;
-      for (const t of queryTokens) {
-        if (n.includes(t)) score += 3;
-      }
-      return score;
-    }
-
-    if (queryTokens.length > 0) {
-      const scored = products.map((p) => ({ product: p, s: scoreItem(p.name) }));
-      const maxScore = Math.max(...scored.map((s) => s.s));
-
-      if (maxScore >= 3) {
-        const topMatches = scored.filter((s) => s.s >= Math.max(3, maxScore - 3)).map((s) => s.product);
-        topMatches.sort((a, b) => (a.price || 0) - (b.price || 0));
-
-        const otherMatches = scored.filter((s) => s.s < Math.max(3, maxScore - 3) && s.s > 0).map((s) => s.product);
-        otherMatches.sort((a, b) => (a.price || 0) - (b.price || 0));
-
+    // 6. Respect the budget when there are enough options inside it
+    const budgetCap = options?.budgetMax || (options?.budget ? options.budget * 1.25 : undefined) || extractQueryBudget(query) || undefined;
+    if (budgetCap) {
+      const inBudget = products.filter((p) => !p.price || p.price <= budgetCap * 1.1);
+      const inBudgetRelevant = rankByRelevance(analysis, inBudget, textOf).length;
+      if (inBudgetRelevant >= 2) {
         products.length = 0;
-        products.push(...topMatches, ...otherMatches);
-      } else {
-        products.sort((a, b) => (a.price || 0) - (b.price || 0));
+        products.push(...inBudget);
       }
-    } else {
-      products.sort((a, b) => (a.price || 0) - (b.price || 0));
     }
+
+    // 7. De-duplicate (same product at the same store)
+    const seen = new Set<string>();
+    const unique = products.filter((p) => {
+      const key = `${baseProductName(p.name).toLowerCase()}|${(p.store || "").toLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // 8. Rank by relevance; strong matches cheapest-first, then a few related items
+    let ranked = rankByRelevance(analysis, unique, textOf, { maxRelated: 6 });
+    // No made-up "Dron (Hamyonbop baza modeli)" placeholders: if no store has it, say so.
+    // Live (real, checked) listings first, then the sample catalog; each cheapest-first.
+    const isLive = (p: ResearchProduct) => (p as any)._live === true;
+    const byPrice = (x: ResearchProduct, y: ResearchProduct) => (x.price || 0) - (y.price || 0);
+    const strongAll = ranked.filter((r) => r.strong).map((r) => r.item);
+    // AI-suggested store picks were already matched to the AI's own search, so keep them
+    // even when they don't share words with the shopper's text ("something for a gamer" → headphones)
+    for (const p of unique) {
+      if ((p as any)._guided && !strongAll.includes(p) && !ranked.some((r) => r.item === p && !r.strong)) strongAll.push(p);
+    }
+    const strongItems = [...strongAll.filter(isLive).sort(byPrice), ...strongAll.filter((p) => !isLive(p)).sort(byPrice)];
+    // "Onam uchun sovg'a": mix the suggested kinds (perfume, scarf, flowers…) instead of 16 perfumes
+    if (analysis.recipientOnly && strongItems.length > 4) {
+      const buckets = new Map<string, ResearchProduct[]>();
+      for (const p of strongItems) {
+        const k = softGroupKey(analysis, { name: p.name }) || "other";
+        if (!buckets.has(k)) buckets.set(k, []);
+        buckets.get(k)!.push(p);
+      }
+      const lists = [...buckets.values()];
+      const mixed: ResearchProduct[] = [];
+      for (let i = 0; mixed.length < strongItems.length; i++) {
+        for (const l of lists) if (i < l.length) mixed.push(l[i]);
+      }
+      strongItems.length = 0;
+      strongItems.push(...mixed);
+    }
+    const mods = analysis.modifiers;
+    if (mods.includes("premium")) strongItems.reverse();
+    const firstIf = (pred: (p: ResearchProduct) => boolean) => {
+      const yes = strongItems.filter(pred);
+      const no = strongItems.filter((p) => !pred(p));
+      strongItems.length = 0;
+      strongItems.push(...yes, ...no);
+    };
+    if (mods.includes("installments")) firstIf((p) => !!p.installment && !/yo'q|mavjud emas/i.test(p.installment));
+    if (mods.includes("fast")) firstIf((p) => /(^|\D)1(\D|$)|ertaga|bugun/i.test(p.deliveryEstimate || ""));
+    if (mods.includes("discount")) firstIf((p) => !!p.discount || (!!p.originalPrice && !!p.price && p.originalPrice > p.price));
+    const relatedItems = ranked.filter((r) => !r.strong).map((r) => r.item);
+    products.length = 0;
+    products.push(...strongItems, ...relatedItems);
+    products.forEach((p) => { delete (p as any).description; delete (p as any)._live; delete (p as any)._guided; });
 
     // Cap to top 16 best products
     if (products.length > 16) {
@@ -686,45 +764,64 @@ Return JSON matching schema with fields: query, research_summary, total_sources_
     }
 
     // Contextual rejection audit based on real marketplace risks
-    const rejectedProducts: RejectedProduct[] = [
-      {
-        name: `${query.slice(0, 25)} (Soxta replika / Shubhali nusxa)`,
-        reason: "Bozor narxidan 50% arzon shubhali e'lon: qalbaki tovar va sertifikatsiz xavf aniqlandi.",
-        store: "Noma'lum sotuvchi",
-        price: Math.round((products[0]?.price || 300000) * 0.45),
-      },
-      {
-        name: "Eski modifikatsiya (Ehtiyot qismlari yo'q)",
-        reason: "Ishlab chiqarishdan to'xtatilgan eskirgan model: O'zbekistonda rasmiy servis xizmati yo'q.",
-        store: "Kulrang bozor importyori",
-        price: Math.round((products[0]?.price || 300000) * 0.8),
-      },
-      {
-        name: "Uzoq viloyatdan 8 kunda yetkaziladigan shubhali taklif",
-        reason: "Baza narxi past ko'ringani bilan 95,000 UZS ortiqcha yetkazish to'lovi va 8 kunlik kechikish.",
-        store: "Tekshirilmagan do'kon",
-        price: Math.round((products[0]?.price || 300000) * 0.7),
-      },
-    ];
+    // We only list products we actually found; no invented "rejected" listings
+    const rejectedProducts: RejectedProduct[] = [];
 
-    const totalSourcesResearched = 24;
-    const totalProductsConsidered = products.length + rejectedProducts.length + 16;
+    // Real counts: the stores that actually returned these offers
+    const totalSourcesResearched = Math.max(1, new Set(products.map((p) => p.store)).size);
+    const totalProductsConsidered = products.length;
 
+    const lgS = options?.language;
     const strategies = [
-      "O'zbekistonning barcha yirik rasmiy savdo maydonchalari (Olcha, Uzum Market, Texnomart, MediaPark, Asaxiy) narxlarini taqqoslash",
-      "Narxlar tartibi: barcha takliflar mutlaq eng arzonidan boshlab saralandi",
-      "Rasmiy dilerlik kafolati va Toshkent servis markazlari mavjudligini tasdiqlash",
-      "Haqiqiy xaridorlar sharhlari va sun'iy narx oshirishlarini filtrlash",
-      "Toshkentda 1 kunda yetkazib berish va bo'lib to'lash (nasiya) shartlarini tekshirish",
+      t3(lgS, "Olcha va Texnomart do'konlarining o'z qidiruvidan jonli narxlar", "Живые цены из поиска Olcha и Texnomart", "Live prices from Olcha and Texnomart's own search"),
+      t3(lgS, "So'rov turi, kim uchunligi va model raqami bo'yicha saralash", "Отбор по типу товара, получателю и номеру модели", "Matched on product type, who it's for and model number"),
+      t3(lgS, "Narxlar arzonidan qimmatiga qarab tartiblangan", "Отсортировано от дешёвых к дорогим", "Sorted from cheapest to most expensive"),
     ];
 
-    const lowestPrice = products[0]?.price || 0;
-    const highestPrice = products[products.length - 1]?.price || 0;
-    const priceSavings = highestPrice > lowestPrice
-      ? `Eng arzon variant tanlansa, eng yuqori do'kon narxiga nisbatan ${(highestPrice - lowestPrice).toLocaleString()} UZS tejaladi!`
+    const lowestPrice = products.reduce((m, p) => (p.price && p.price < m ? p.price : m), products[0]?.price || 0);
+    // Savings = the same product's price difference between stores (not cheapest vs. most expensive product)
+    const modelKey = (n: string) => baseProductName(n).toLowerCase().replace(/\([^)]*\)/g, " ").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+    const groups = new Map<string, ResearchProduct[]>();
+    for (const p of products) {
+      if (!p.price) continue;
+      const k = modelKey(p.name);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k)!.push(p);
+    }
+    let bestSpread = 0;
+    let bestName = "";
+    let cheapStore = "";
+    for (const [, g] of groups) {
+      if (new Set(g.map((p) => p.store)).size < 2) continue;
+      const lo = g.reduce((m, p) => (p.price! < m.price! ? p : m), g[0]);
+      const hi = g.reduce((m, p) => (p.price! > m.price! ? p : m), g[0]);
+      if (hi.price! - lo.price! > bestSpread) {
+        bestSpread = hi.price! - lo.price!;
+        bestName = lo.name;
+        cheapStore = lo.store;
+      }
+    }
+    const priceSavings = bestSpread > 0
+      ? t3(options?.language,
+          `${bestName}: ${cheapStore}da ${bestSpread.toLocaleString("en-US")} so'm arzonroq.`,
+          `${bestName}: в ${cheapStore} дешевле на ${bestSpread.toLocaleString("en-US")} сум.`,
+          `${bestName}: ${bestSpread.toLocaleString("en-US")} UZS cheaper at ${cheapStore}.`)
       : null;
 
-    const summary = `Sovg'a AI Toshkent va O'zbekiston bozoridagi 24 ta rasmiy savdo manbalari (Olcha, Uzum Market, Texnomart, Asaxiy, MediaPark) bo'ylab "${query}" so'rovi bo'yicha ${products.length} ta tekshirilgan taklifni aniqladi. Barcha mahsulotlar ${lowestPrice.toLocaleString()} UZS dan boshlab eng arzonidan saralandi va xarid qilish havolalari bilan taqdim etildi.`;
+    const verifiedCount = products.filter((p) => p.priceVerified).length;
+    const lg = options?.language;
+    const storesUsed = [...new Set(products.map((p) => p.store))].slice(0, 5).join(", ");
+    const lp = lowestPrice.toLocaleString("en-US");
+    const unverified = products.length - verifiedCount;
+    const summary = products.length > 0
+      ? t3(lg,
+          `"${query}" bo'yicha ${products.length} ta taklif topildi (${storesUsed}).${unverified > 0 ? ` ${verifiedCount} tasining narxi do'kondan jonli olingan, ${unverified} tasi taxminiy.` : " Barcha narxlar do'kondan jonli olingan."} Eng arzoni ${lp} so'm.`,
+          `По запросу «${query}» найдено предложений: ${products.length} (${storesUsed}).${unverified > 0 ? ` Живые цены магазинов: ${verifiedCount}, приблизительные: ${unverified}.` : " Все цены получены из магазинов в реальном времени."} Самое дешёвое — ${lp} сум.`,
+          `Found ${products.length} offers for "${query}" (${storesUsed}).${unverified > 0 ? ` ${verifiedCount} prices come live from the stores, ${unverified} are estimates.` : " All prices come live from the stores."} Cheapest: ${lp} UZS.`)
+      : t3(lg,
+          `"${query}" bo'yicha mos mahsulot topilmadi. Mahsulot turi yoki brend nomi bilan qayta urinib ko'ring.`,
+          `По запросу «${query}» ничего не найдено. Попробуйте указать тип товара или бренд.`,
+          `Nothing matched "${query}". Try the product type or brand name.`);
 
     return {
       query,
@@ -748,216 +845,206 @@ Return JSON matching schema with fields: query, research_summary, total_sources_
     productName: string,
     currentPrice?: number,
     currentStore?: string,
-    currency = "UZS"
+    currency = "UZS",
+    language: string = "uz"
   ): Promise<ComparisonResult> {
+    const lg = language;
+    const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
+    const cur = t3(lg, "so'm", "сум", "UZS");
     const now = new Date().toISOString();
-    const basePrice = currentPrice || 1150000;
-    const catalogMatches = storage.searchCatalog(productName);
+    const DAY = 86400000;
 
-    let exactMatches: any[] = [];
-    let priceHistoryObj: any = null;
-    let installmentOptions: any[] = [];
-    let specComparison: any[] = [];
-    let bestTimeBuyAdvice: any = {
-      recommendation: "fair_price",
-      reason: "Current pricing is within typical market median range.",
-    };
+    // 1. Live store listings for this product + listings seen in earlier searches (they carry price history)
+    let live: StoreItem[] = [];
+    try {
+      live = await searchStores(storeSearchQueries(productName));
+      rememberProducts(live);
+    } catch {}
+    const seenBefore = searchIndex(productName, 30, 40).filter((i) => !live.some((l) => l.url === i.url));
+    const pool: Array<StoreItem & { lastSeen?: number }> = [...live, ...seenBefore];
+    const strong = rankByRelevance(productName, pool, (x) => ({ name: x.title, description: x.category || null }), { maxRelated: 0 }).map((r) => r.item);
+    let matches = strong.filter((x) => matchesAllWords(productName, x.title));
+    if (!matches.length) matches = strong.filter((x) => matchesAllWords(productName, x.title, 0.6));
+    matches = matches.sort((x, y) => x.price - y.price).slice(0, 8);
 
-    if (catalogMatches.length > 0 && catalogMatches[0].offers?.length > 0) {
-      const match = catalogMatches[0];
-      const offers = match.offers;
-      const lowest = Math.min(...offers.map((o: any) => o.price));
-
-      exactMatches = offers.map((o: any) => ({
-        store: o.store,
-        price: o.price,
-        currency: o.currency || currency,
-        originalPrice: o.originalPrice,
-        discount: o.discount,
-        availability: o.availability,
-        verified: true,
-        url: o.url,
-        deliveryTime: o.deliveryTime || (o.store === "Uzum Market" ? "1 business day in Tashkent" : "Same-day pickup / 1-2 days"),
-        isLowestPrice: o.price === lowest,
+    if (matches.length > 0) {
+      const lowest = matches[0].price;
+      const exactMatches = matches.map((m) => ({
+        store: m.store,
+        price: m.price,
+        currency,
+        originalPrice: m.oldPrice ?? null,
+        discount: m.oldPrice && m.oldPrice > m.price ? `-${Math.round((1 - m.price / m.oldPrice) * 100)}%` : null,
+        availability:
+          m.source === "web-index" && (m as any).lastSeen
+            ? t3(lg, `Narx ${new Date((m as any).lastSeen).toLocaleDateString("uz-UZ")} kuni tekshirilgan`, `Цена проверена ${new Date((m as any).lastSeen).toLocaleDateString("ru-RU")}`, `Price checked ${new Date((m as any).lastSeen).toLocaleDateString("en-GB")}`)
+            : m.inStock === false ? t3(lg, "Hozircha mavjud emas", "Нет в наличии", "Out of stock") : t3(lg, "Mavjud", "В наличии", "In stock"),
+        verified: m.source === "store-api",
+        url: m.url,
+        deliveryTime: undefined as any,
+        isLowestPrice: m.price === lowest,
+        name: m.title,
       }));
 
-      installmentOptions = offers.map((o: any) => ({
-        store: o.store,
-        monthlyPayment: Math.round(o.price / 12),
-        months: 12,
-        provider: o.store === "Uzum Market" ? "Uzum Nasiya" : o.store === "Texnomart" ? "Texnomart Muddatli to'lov" : "Anorbank / Zoodpay",
-      }));
+      // 2. Price history we have collected for these listings (grows every time someone searches)
+      const pts = matches
+        .flatMap((m) => priceHistoryFor(m.url).map(([t, price]) => ({ t, price, store: m.store })))
+        .sort((x, y) => x.t - y.t);
+      const nowMs = Date.now();
+      const spanDays = pts.length ? Math.floor((nowMs - pts[0].t) / DAY) : 0;
+      const within30 = pts.filter((p) => p.t >= nowMs - 30 * DAY);
+      const price30DaysAgo = spanDays >= 7 && within30.length ? within30[0].price : lowest;
+      const changePercent = price30DaysAgo ? parseFloat((((lowest - price30DaysAgo) / price30DaysAgo) * 100).toFixed(1)) : 0;
+      const daily = new Map<string, { date: string; price: number; store: string }>();
+      for (const p of within30) {
+        const d = new Date(p.t).toLocaleDateString(lg === "ru" ? "ru-RU" : lg === "en" ? "en-GB" : "uz-UZ", { day: "numeric", month: "short" });
+        const prev = daily.get(d);
+        if (!prev || p.price < prev.price) daily.set(d, { date: d, price: p.price, store: p.store });
+      }
+      const historyPoints = [...daily.values()].slice(-15);
+      if (!historyPoints.length || historyPoints[historyPoints.length - 1].price !== lowest) {
+        historyPoints.push({ date: t3(lg, "Bugun", "Сегодня", "Today"), price: lowest, store: matches[0].store });
+      }
 
-      const rawHistory = storage.getPriceHistory(match.id);
-      const historyPoints = rawHistory.map((h: any) => ({
-        date: new Date(h.recordedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        price: h.price,
-        store: h.store,
-      }));
-
-      const oldest = rawHistory[rawHistory.length - 1];
-      const price30DaysAgo = oldest ? oldest.price : Math.round(lowest * 1.12);
-      const changePercent = parseFloat((((lowest - price30DaysAgo) / price30DaysAgo) * 100).toFixed(1));
-
-      if (changePercent <= -8) {
-        bestTimeBuyAdvice = {
-          recommendation: "buy_now",
-          reason: `🔥 30-Day Historical Low: Price dropped by ${Math.abs(changePercent)}% compared to 30 days ago. Excellent buying window!`,
-          targetPrice: lowest,
-        };
-      } else if (changePercent >= 5) {
-        bestTimeBuyAdvice = {
-          recommendation: "wait",
-          reason: `⏳ Price is currently ${changePercent}% higher than earlier in the month. Set a price tracker for upcoming promotional drops.`,
-          targetPrice: Math.round(lowest * 0.9),
+      // 3. Is the store's "old price" real? Only judged with at least a week of our own history.
+      const best = matches[0];
+      const claimedPercent = best.oldPrice && best.oldPrice > best.price ? Math.round((1 - best.price / best.oldPrice) * 100) : null;
+      let discountCheck: NonNullable<ComparisonResult["discountCheck"]>;
+      if (!claimedPercent) {
+        discountCheck = { claimedPercent: null, storeOldPrice: null, historyDays: spanDays, verdict: "none", note: t3(lg, "Do'kon bu mahsulotga chegirma ko'rsatmayapti.", "Магазин не показывает скидку на этот товар.", "The store isn't showing a discount on this product.") };
+      } else if (spanDays < 7) {
+        discountCheck = {
+          claimedPercent, storeOldPrice: best.oldPrice ?? null, historyDays: spanDays, verdict: "unknown",
+          note: t3(lg,
+            `Do'kon ${claimedPercent}% chegirma ko'rsatmoqda. Chegirma haqiqiyligini aytish uchun kamida 7 kunlik narx tarixi kerak (hozir ${spanDays} kun).`,
+            `Магазин показывает скидку ${claimedPercent}%. Чтобы оценить её честность, нужна история цен минимум за 7 дней (сейчас ${spanDays}).`,
+            `The store shows a ${claimedPercent}% discount. We need at least 7 days of price history to judge it (we have ${spanDays}).`),
         };
       } else {
-        bestTimeBuyAdvice = {
-          recommendation: "fair_price",
-          reason: "Stable pricing observed across the past 30 days.",
-          targetPrice: lowest,
+        const maxSeen = Math.max(...within30.filter((p) => p.store === best.store).map((p) => p.price), best.price);
+        const suspicious = maxSeen < (best.oldPrice as number) * 0.95;
+        discountCheck = {
+          claimedPercent, storeOldPrice: best.oldPrice ?? null, historyDays: spanDays,
+          verdict: suspicious ? "suspicious" : "genuine",
+          note: suspicious
+            ? t3(lg,
+                `Do'kon "eski narx" ${fmt(best.oldPrice as number)} so'm deb ko'rsatmoqda, lekin oxirgi ${Math.min(spanDays, 30)} kunda narx ${fmt(maxSeen)} so'mdan oshmagan. Chegirma bo'rttirilgan bo'lishi mumkin.`,
+                `Магазин указывает «старую цену» ${fmt(best.oldPrice as number)} сум, но за последние ${Math.min(spanDays, 30)} дн. цена не поднималась выше ${fmt(maxSeen)} сум. Скидка может быть завышена.`,
+                `The store's "was" price is ${fmt(best.oldPrice as number)} UZS, but in the last ${Math.min(spanDays, 30)} days the price never went above ${fmt(maxSeen)} UZS. The discount may be exaggerated.`)
+            : t3(lg,
+                `Oxirgi ${Math.min(spanDays, 30)} kunda narx haqiqatan ham ${fmt(maxSeen)} so'mgacha bo'lgan — chegirma haqiqiy ko'rinadi.`,
+                `За последние ${Math.min(spanDays, 30)} дн. цена действительно была до ${fmt(maxSeen)} сум — скидка выглядит честной.`,
+                `In the last ${Math.min(spanDays, 30)} days the price really was up to ${fmt(maxSeen)} UZS — the discount looks genuine.`),
         };
       }
 
-      priceHistoryObj = {
-        currentPrice: lowest,
-        price30DaysAgo,
-        changePercent,
-        trend: changePercent < 0 ? "down" : changePercent > 0 ? "up" : "stable",
-        historyPoints: historyPoints.length > 0 ? historyPoints : [
-          { date: "30 days ago", price: price30DaysAgo, store: "Average Market" },
-          { date: "Today (Lowest)", price: lowest, store: exactMatches.find((e) => e.isLowestPrice)?.store || "Lowest Store" },
-        ],
-      };
+      const bestTimeBuyAdvice =
+        spanDays < 7
+          ? { recommendation: "fair_price" as const, reason: t3(lg, `Hozirgi eng arzon narx: ${fmt(lowest)} so'm (${best.store}). Narx tarixi yig'ilmoqda (${spanDays} kun).`, `Самая низкая цена сейчас: ${fmt(lowest)} сум (${best.store}). История цен собирается (${spanDays} дн.).`, `Lowest price right now: ${fmt(lowest)} UZS (${best.store}). Price history so far: ${spanDays} days.`), targetPrice: lowest }
+          : changePercent <= -5
+            ? { recommendation: "buy_now" as const, reason: t3(lg, `Narx oxirgi ${Math.min(spanDays, 30)} kunda ${Math.abs(changePercent)}% tushgan — xarid uchun yaxshi payt.`, `За последние ${Math.min(spanDays, 30)} дн. цена снизилась на ${Math.abs(changePercent)}% — хорошее время для покупки.`, `The price fell ${Math.abs(changePercent)}% in the last ${Math.min(spanDays, 30)} days — a good time to buy.`), targetPrice: lowest }
+            : changePercent >= 5
+              ? { recommendation: "wait" as const, reason: t3(lg, `Narx oxirgi ${Math.min(spanDays, 30)} kunda ${changePercent}% ko'tarilgan. Tushishini kutish mumkin.`, `За последние ${Math.min(spanDays, 30)} дн. цена выросла на ${changePercent}%. Можно подождать снижения.`, `The price rose ${changePercent}% in the last ${Math.min(spanDays, 30)} days. It may be worth waiting.`), targetPrice: Math.round(price30DaysAgo) }
+              : { recommendation: "fair_price" as const, reason: t3(lg, `Narx oxirgi ${Math.min(spanDays, 30)} kunda barqaror.`, `Цена стабильна последние ${Math.min(spanDays, 30)} дн.`, `The price has been stable for ${Math.min(spanDays, 30)} days.`), targetPrice: lowest };
 
-      if (match.specs) {
-        specComparison = Object.entries(match.specs).map(([feature, val]) => ({
-          feature,
-          values: {
-            "Verified Model": String(val),
-          },
-        }));
-      }
-    } else {
-      // No catalog match — use live web scraping to find real prices
-      const liveResults = await searchLiveMarketplaces(productName);
-      const cleanQuery = extractCleanStoreSearchQuery(productName);
-      
-      // Build real store comparisons from live scrape results
-      const storeNames = ["Olcha", "Uzum Market", "Texnomart", "MediaPark", "Asaxiy"];
-      
-      if (liveResults.length > 0) {
-        // Use actual scraped data
-        exactMatches = liveResults.slice(0, 5).map((lr, idx) => ({
-          store: lr.store,
-          price: lr.price || Math.round(basePrice * (0.9 + idx * 0.05)),
+      // 4. Real cheaper products of the same type (not invented "equivalents")
+      const matchUrls = new Set(matches.map((m) => m.url));
+      const equivalentAlternatives = strong
+        .filter((x) => !matchUrls.has(x.url) && x.price < lowest)
+        .sort((x, y) => y.price - x.price)
+        .slice(0, 3)
+        .map((x) => ({
+          name: x.title,
+          price: x.price,
           currency,
-          originalPrice: lr.price ? Math.round(lr.price * 1.12) : null,
-          discount: lr.price ? `${Math.round((1 - (lr.price / (lr.price * 1.12))) * 100)}% off` : null,
-          availability: "Mavjud (Jonli tekshirildi)",
-          verified: true,
-          url: lr.url || ensureProductUrl(productName, lr.store),
-          deliveryTime: lr.store === "Olcha" ? "1 kun (Olcha Express)" : lr.store === "Uzum Market" ? "1 ish kuni" : lr.store === "Texnomart" ? "Olib ketish / 1-2 kun" : "1-3 ish kuni",
-          isLowestPrice: false,
+          store: x.store,
+          url: x.url,
+          savingsAmount: lowest - x.price,
+          savingsPercent: Math.round((1 - x.price / lowest) * 100),
+          isTrulyEquivalent: false,
+          equivalenceExplanation: t3(lg, "Shu turdagi arzonroq mahsulot (boshqa model) — xususiyatlarini solishtirib ko'ring.", "Более дешёвый товар того же типа (другая модель) — сравните характеристики.", "A cheaper product of the same kind (different model) — compare the specs."),
+          specificationDifferences: [],
         }));
-      } else {
-        // Even without scraped results, generate search URLs (not generic homepages)
-        exactMatches = storeNames.map((store, idx) => ({
-          store,
-          price: Math.round(basePrice * (0.9 + idx * 0.04)),
-          currency,
-          originalPrice: Math.round(basePrice * (1.05 + idx * 0.03)),
-          discount: `${10 - idx}% off`,
-          availability: "Tekshirilmoqda",
-          verified: false,
-          url: ensureProductUrl(productName, store),
-          deliveryTime: store === "Uzum Market" ? "1 ish kuni" : "1-3 ish kuni",
-          isLowestPrice: false,
-        }));
-      }
-      
-      const lowest = Math.min(...exactMatches.map((m) => m.price));
-      exactMatches = exactMatches.map((m) => ({ ...m, isLowestPrice: m.price === lowest }));
 
-      const price30DaysAgo = Math.round(basePrice * 1.08);
-      const changePercent = parseFloat((((lowest - price30DaysAgo) / price30DaysAgo) * 100).toFixed(1));
+      const installmentOptions = matches
+        .filter((m) => m.installment)
+        .map((m) => {
+          const monthly = parseInt(String(m.installment).replace(/[^\d]/g, ""), 10);
+          return { store: m.store, monthlyPayment: m.monthlyPayment || (Number.isFinite(monthly) && monthly > 0 ? monthly : Math.round(m.price / 12)), months: 12, provider: t3(lg, `${m.store} muddatli to'lov`, `Рассрочка ${m.store}`, `${m.store} installments`) };
+        });
 
-      priceHistoryObj = {
-        currentPrice: lowest,
-        price30DaysAgo,
-        changePercent,
-        trend: changePercent < 0 ? "down" : changePercent > 0 ? "up" : "stable",
-        historyPoints: [
-          { date: "30 kun oldin", price: price30DaysAgo, store: "O'rtacha bozor" },
-          { date: "Bugun", price: lowest, store: exactMatches.find(e => e.isLowestPrice)?.store || "Eng arzon" },
-        ],
-      };
-
-      installmentOptions = [
-        { store: "Texnomart", monthlyPayment: Math.round(lowest / 12), months: 12, provider: "Texnomart Muddatli to'lov" },
-        { store: "Uzum Market", monthlyPayment: Math.round(basePrice / 12), months: 12, provider: "Uzum Nasiya" },
-      ];
-
-      bestTimeBuyAdvice = {
-        recommendation: changePercent <= -5 ? "buy_now" : changePercent >= 5 ? "wait" : "fair_price",
-        reason: changePercent <= -5 
-          ? `Narx 30 kunlik eng past darajada! ${Math.abs(changePercent)}% tushgan.`
-          : changePercent >= 5
-          ? `Narx ${changePercent}% ko'tarilgan. Chegirma kutish tavsiya etiladi.`
-          : `Narx barqaror. Hozir xarid qilish mumkin.`,
-        targetPrice: lowest,
+      const stores = new Set(matches.map((m) => m.store)).size;
+      return {
+        productName,
+        query: `Price comparison for ${productName}`,
+        exactMatches,
+        equivalentAlternatives,
+        priceHistory: {
+          currentPrice: lowest,
+          price30DaysAgo,
+          changePercent,
+          trend: changePercent < 0 ? "down" : changePercent > 0 ? "up" : "stable",
+          historyPoints,
+        },
+        installmentOptions,
+        bestTimeBuyAdvice,
+        researchSummary: t3(lg,
+          `${matches.length} ta taklif (${stores} ta do'kon) jonli tekshirildi. Eng arzon: ${fmt(lowest)} so'm — ${best.store}.`,
+          `Проверено предложений: ${matches.length} (магазинов: ${stores}). Дешевле всего: ${fmt(lowest)} сум — ${best.store}.`,
+          `Checked ${matches.length} live offers from ${stores} store(s). Cheapest: ${fmt(lowest)} UZS at ${best.store}.`),
+        verifiedCount: exactMatches.filter((e) => e.verified).length,
+        lastChecked: now,
+        discountCheck,
+        liveData: true,
       };
     }
 
-    const lowest = Math.min(...exactMatches.map((m) => m.price));
+    // 5. Not in the live stores: use the sample catalog if it has the product (prices are not live)
+    const catalogMatches = storage.searchCatalog(productName).filter((c: any) => matchesAllWords(productName, c.name, 0.6));
+    if (catalogMatches.length > 0 && catalogMatches[0].offers?.length > 0) {
+      const match = catalogMatches[0];
+      const lowestPrice = Math.min(...match.offers.map((o: any) => o.price));
+      return {
+        productName,
+        query: `Price comparison for ${productName}`,
+        exactMatches: match.offers.map((o: any) => ({
+          store: o.store,
+          price: o.price,
+          currency: o.currency || currency,
+          originalPrice: o.originalPrice ?? null,
+          discount: o.discount ?? null,
+          availability: t3(lg, "Narx taxminiy (katalog)", "Цена приблизительная (каталог)", "Estimated price (catalog)"),
+          verified: false,
+          url: ensureProductUrl(match.name, o.store, o.url, productName),
+          deliveryTime: o.deliveryTime,
+          isLowestPrice: o.price === lowestPrice,
+        })),
+        equivalentAlternatives: [],
+        priceHistory: { currentPrice: lowestPrice, price30DaysAgo: lowestPrice, changePercent: 0, trend: "stable", historyPoints: [{ date: t3(lg, "Bugun", "Сегодня", "Today"), price: lowestPrice, store: match.offers[0].store }] },
+        installmentOptions: [],
+        bestTimeBuyAdvice: { recommendation: "fair_price", reason: t3(lg, "Bu mahsulot jonli do'kon qidiruvida topilmadi; narxlar taxminiy — do'kon sahifasida tekshiring.", "Товар не найден в живом поиске магазинов; цены приблизительные — проверьте на сайте магазина.", "Not found in the live store search; prices are estimates — check the store page."), targetPrice: lowestPrice },
+        researchSummary: t3(lg, `"${productName}" jonli do'konlarda topilmadi. Katalogdagi taxminiy narx: ${fmt(lowestPrice)} so'm.`, `«${productName}» не найден в магазинах. Примерная цена из каталога: ${fmt(lowestPrice)} сум.`, `"${productName}" wasn't found in the live stores. Estimated catalog price: ${fmt(lowestPrice)} UZS.`),
+        verifiedCount: 0,
+        lastChecked: now,
+        discountCheck: { claimedPercent: null, storeOldPrice: null, historyDays: 0, verdict: "unknown", note: t3(lg, "Jonli narx topilmadi.", "Живая цена не найдена.", "No live price found.") },
+        liveData: false,
+      };
+    }
 
-    const equivalentAlternatives = [
-      {
-        name: `${productName} — Sertifikatlangan ekvivalent model`,
-        price: Math.round(basePrice * 0.78),
-        currency,
-        store: "Texnomart",
-        url: ensureProductUrl(productName, "Texnomart"),
-        savingsAmount: Math.round(basePrice * 0.22),
-        savingsPercent: 22,
-        isTrulyEquivalent: true,
-        equivalenceExplanation: "Asosiy texnik xususiyatlar bir xil: ishlash samaradorligi, material sifati va 1 yillik rasmiy O'zbekiston kafolati.",
-        specificationDifferences: [
-          "Bir xil batareya/ishlash quvvati",
-          "Original qadoq va sertifikatlangan adapter bilan",
-          "22% tejash, funksional farqsiz",
-        ],
-      },
-      {
-        name: `${productName} — Byudjet alternativa`,
-        price: Math.round(basePrice * 0.65),
-        currency,
-        store: "Uzum Market",
-        url: ensureProductUrl(productName, "Uzum Market"),
-        savingsAmount: Math.round(basePrice * 0.35),
-        savingsPercent: 35,
-        isTrulyEquivalent: false,
-        equivalenceExplanation: "Asosiy ishlashning 85% ni ta'minlaydi. 6 oylik do'kon kafolati.",
-        specificationDifferences: [
-          "1 yil o'rniga 6 oylik do'kon kafolati",
-          "Standart aksessuarlar",
-          "35% arzon — byudjet uchun ideal",
-        ],
-      },
-    ];
-
+    // 6. Nothing found — say so instead of inventing prices
     return {
       productName,
       query: `Price comparison for ${productName}`,
-      exactMatches,
-      equivalentAlternatives,
-      priceHistory: priceHistoryObj,
-      installmentOptions,
-      bestTimeBuyAdvice,
-      specComparison: specComparison.length > 0 ? specComparison : undefined,
-      researchSummary: `O'zbekistonning 4 ta yirik do'konlari narxlari taqqoslandi. Eng arzon tasdiqlangan narx: ${lowest.toLocaleString()} ${currency} (boshlang'ich narxdan ${(basePrice - lowest).toLocaleString()} ${currency} arzonroq).`,
-      verifiedCount: exactMatches.length,
+      exactMatches: [],
+      equivalentAlternatives: [],
+      priceHistory: { currentPrice: 0, price30DaysAgo: 0, changePercent: 0, trend: "stable", historyPoints: [] },
+      installmentOptions: [],
+      bestTimeBuyAdvice: { recommendation: "fair_price", reason: t3(lg, "Mahsulot topilmadi. Nomini aniqroq yozib ko'ring (brend va model).", "Товар не найден. Уточните название (бренд и модель).", "Product not found. Try the exact brand and model.") },
+      researchSummary: t3(lg, `"${productName}" bo'yicha do'konlarda mos mahsulot topilmadi.`, `По запросу «${productName}» товар в магазинах не найден.`, `No store listing found for "${productName}".`),
+      verifiedCount: 0,
       lastChecked: now,
+      discountCheck: { claimedPercent: null, storeOldPrice: null, historyDays: 0, verdict: "unknown", note: t3(lg, "Mahsulot topilmadi.", "Товар не найден.", "Product not found.") },
+      liveData: false,
     };
   }
 

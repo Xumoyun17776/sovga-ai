@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Heart, Sparkles, CheckCircle2, AlertTriangle, ArrowRight, Quote } from "lucide-react";
+import { BookOpen, Heart, Sparkles, CheckCircle2, AlertTriangle, ArrowRight, Quote } from "../lib/icons";
 import { Link } from "wouter";
 import { useTranslation } from "../lib/i18n";
 
@@ -82,7 +82,7 @@ const protocols: ProtocolCategory[] = [
     id: "rahbar",
     title: "Rahbarlar & Hamkasblar Odobi",
     titleRu: "Этикет Руководителей и Коллег",
-    titleEn: "Colleagues & Leaders Protocol",
+    titleEn: "Colleagues and managers",
     icon: "💼",
     audience: "Biznes hamkorlar, direktorlar, jamoa",
     recommended: [
@@ -107,21 +107,11 @@ export default function LuxuryCulturalAdvisor() {
 
   return (
     <section className="relative overflow-hidden">
-      <div className="card-luxury-elevated p-6 sm:p-9 bg-white dark:bg-[#11131f] border border-slate-200 dark:border-white/10 rounded-3xl shadow-xl">
+      <div className="card-luxury-elevated p-6 sm:p-9 bg-white dark:bg-[#11131f] border border-slate-200 dark:border-white/10 rounded-2xl shadow-sm">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-6 border-b border-slate-100 dark:border-white/10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold uppercase tracking-wider mb-2 border border-white/10 shadow-xs">
-              <BookOpen className="w-3.5 h-3.5 text-amber-400 stroke-[2.2]" />
-              <span>
-                {language === "uz"
-                  ? "O'zbekona Sovg'a Odobi & Urf-Odat Maslahatchisi"
-                  : language === "ru"
-                  ? "Узбекский Этикет Подарков и Традиции"
-                  : "Uzbek Gift Etiquette & Traditions Advisor"}
-              </span>
-            </div>
-            <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight">
+            <h2 className="font-display font-semibold text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight">
               {language === "uz"
                 ? "Har Bir Tantananing O'ziga Xos Nozik Odobi Bor"
                 : language === "ru"
@@ -139,7 +129,7 @@ export default function LuxuryCulturalAdvisor() {
 
           <Link
             href="/cultural-etiquette"
-            className="text-xs font-bold text-amber-700 dark:text-amber-300 hover:text-amber-800 flex items-center gap-2 self-start md:self-auto bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 px-4 py-2.5 rounded-xl border border-amber-200/80 dark:border-amber-500/20 transition cursor-pointer active:scale-95 shadow-xs"
+            className="text-xs font-bold text-amber-700 dark:text-amber-300 hover:text-amber-800 flex items-center gap-2 self-start md:self-auto bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 dark:hover:bg-amber-900/50 px-4 py-2.5 rounded-xl border border-[var(--line)] dark:border-amber-500/20 transition cursor-pointer shadow-xs"
           >
             <span>
               {language === "uz"
@@ -161,9 +151,9 @@ export default function LuxuryCulturalAdvisor() {
               <button
                 key={p.id}
                 onClick={() => setActiveId(p.id)}
-                className={`p-3.5 rounded-2xl border text-left transition-all flex items-center gap-2.5 cursor-pointer active:scale-95 ${
+                className={`p-3.5 rounded-2xl border text-left transition-all flex items-center gap-2.5 cursor-pointer ${
                   isSelected
-                    ? "bg-slate-900 dark:bg-amber-400 text-white dark:text-slate-950 border-slate-900 dark:border-amber-400 shadow-md font-bold"
+                    ? "bg-slate-900 dark:bg-amber-400 text-white dark:text-white border-slate-900 dark:border-amber-400 shadow-md font-bold"
                     : "bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-white/10"
                 }`}
               >
@@ -179,7 +169,7 @@ export default function LuxuryCulturalAdvisor() {
           {/* Left Column: Recommendations & Taboos */}
           <div className="lg:col-span-7 space-y-5">
             {/* AI Advice Summary */}
-            <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 leading-relaxed shadow-xs">
+            <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/30 border border-[var(--line)] dark:border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 leading-relaxed shadow-xs">
               <div className="flex items-center gap-2 font-bold mb-1 text-amber-950 dark:text-amber-300">
                 <Sparkles className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
                 <span>
@@ -245,7 +235,7 @@ export default function LuxuryCulturalAdvisor() {
           </div>
 
           {/* Right Column: Cultural Blessing Box */}
-          <div className="lg:col-span-5 bg-gradient-to-br from-slate-900 via-slate-850 to-slate-950 p-6 sm:p-7 rounded-3xl text-white shadow-xl space-y-4 border border-white/10">
+          <div className="lg:col-span-5 p-6 sm:p-7 rounded-2xl text-white shadow-sm space-y-4 border border-white/10 bg-slate-900">
             <div className="flex items-center gap-2 text-amber-300 text-xs font-bold uppercase tracking-wider">
               <Quote className="w-4 h-4 stroke-[2.2]" />
               <span>

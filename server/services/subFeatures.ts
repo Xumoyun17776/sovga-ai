@@ -826,7 +826,63 @@ export const UZBEKISTAN_REGIONS_LOGISTICS: RegionDeliveryProfile[] = [
   },
 ];
 
-export function getRegionalDeliveryInfo(regionId?: string): {
+// Russian / English versions of the delivery texts above
+const DELIVERY_TEXT: Record<string, [string, string]> = {
+  "Andijon shahrida PVZ punktlari zich joylashgan.": ["В Андижане много пунктов выдачи.", "Andijan has many pickup points."],
+  "Eng yaqin PVZ orqali 1 kun ichida buyurtmani bepul qabul qiling.": ["Заберите заказ бесплатно в ближайшем пункте выдачи за 1 день.", "Pick up your order free at the nearest pickup point within 1 day."],
+  "Guliston shahriga eng tez yetkazish ta'minlanadi.": ["В Гулистан доставка самая быстрая.", "Gulistan gets the fastest delivery."],
+  "Nukus shahrida Uzum PVZ orqali xavfsiz va kafolatli qabul qilish mumkin.": ["В Нукусе заказ можно надёжно получить в пункте Uzum.", "In Nukus you can safely collect orders at Uzum pickup points."],
+  "Qarshi va Shahrisabzda rasmiy filiallar xizmat ko'rsatadi.": ["В Карши и Шахрисабзе работают официальные филиалы.", "Official branches operate in Karshi and Shahrisabz."],
+  "Qo'qon va Farg'ona shaharlarida 1 kunda to'liq yetkaziladi.": ["В Коканд и Фергану доставка за 1 день.", "Kokand and Fergana get delivery in 1 day."],
+  "Samarqand shahrida Texnomart va MediaPark yirik shourumlari mavjud.": ["В Самарканде есть большие шоурумы Texnomart и MediaPark.", "Samarkand has large Texnomart and MediaPark showrooms."],
+  "Shahar bo'ylab 3 soatlik tezkor yetkazish xizmatidan foydalanish mumkin.": ["По городу доступна экспресс-доставка за 3 часа.", "3-hour express delivery is available across the city."],
+  "Termiz shahrida Uzum PVZ va Texnomart shourumi mavjud.": ["В Термезе есть пункт Uzum и шоурум Texnomart.", "Termez has an Uzum pickup point and a Texnomart showroom."],
+  "Toshkentga yaqinligi sababli 1 kunda yetib keladi.": ["Из-за близости к Ташкенту доставка за 1 день.", "Close to Tashkent, so delivery takes 1 day."],
+  "Urganch markaziga buyurtmalar samolyot/avto marshrut orqali 2 kunda yetadi.": ["В Ургенч заказы доходят за 2 дня.", "Orders reach Urgench in about 2 days."],
+  "Uzum Market 1 kunda viloyat markaziga yetkazadi.": ["Uzum Market доставляет в областной центр за 1 день.", "Uzum Market delivers to the regional centre in 1 day."],
+  "Uzum PVZ orqali buyurtma qilsangiz, yetkazib berish xarajati 0 so'm.": ["При заказе в пункт Uzum доставка бесплатная.", "Delivery is free when you order to an Uzum pickup point."],
+  "Zarafshon shahriga Uzum orqali 2-3 kunda yetkaziladi.": ["В Зарафшан Uzum доставляет за 2–3 дня.", "Uzum delivers to Zarafshan in 2–3 days."],
+  "3-5 soatda ekspress yoki do'kondan olib ketish": ["Экспресс за 3–5 часов или самовывоз", "Express in 3–5 hours or store pickup"],
+  "Filiallardan 1 kunda olib ketish": ["Самовывоз из филиалов за 1 день", "Pickup from branches in 1 day"],
+  "Samarqand filiallaridan bepul olib ketish": ["Бесплатный самовывоз из филиалов в Самарканде", "Free pickup from Samarkand branches"],
+};
+
+function localizeDelivery(text: string, lang: string): string {
+  if (lang !== "ru" && lang !== "en") return text;
+  const exact = DELIVERY_TEXT[text];
+  if (exact) return lang === "ru" ? exact[0] : exact[1];
+  let t = text;
+  // "Termiz filialidan olib ketish" / "Andijon do'konidan olib ketish"
+  t = t.replace(/^(.+?) (filialidan|filiallaridan|do'konidan|do'konlaridan) olib ketish$/, (_m, city) =>
+    lang === "ru" ? `Самовывоз: ${city}` : `Pickup in ${city}`
+  );
+  t = t
+    .replace(/\(bepul PVZ\)/, lang === "ru" ? "(бесплатно в пункт выдачи)" : "(free to pickup point)")
+    .replace(/(\d+(?:-\d+)?) kunda bepul/, lang === "ru" ? "$1 дн., бесплатно" : "$1 day(s), free")
+    .replace(/(\d+(?:-\d+)?) kun kuryer/, lang === "ru" ? "$1 дн., курьер" : "$1 day(s) by courier")
+    .replace(/^(\d+(?:-\d+)?) kun$/, lang === "ru" ? "$1 дн." : "$1 day(s)")
+    .replace(/(\d+(?:-\d+)?) kun /, lang === "ru" ? "$1 дн. " : "$1 day(s) ")
+    .replace(/ viloyati$/, lang === "ru" ? " область" : " Region")
+    .replace(/ shahri\b/, lang === "ru" ? " (город)" : " city")
+    .replace(/Qoraqalpog'iston Respublikasi/, lang === "ru" ? "Республика Каракалпакстан" : "Republic of Karakalpakstan");
+  return t;
+}
+
+function localizeRegion(r: RegionDeliveryProfile, lang: string): RegionDeliveryProfile {
+  if (lang !== "ru" && lang !== "en") return r;
+  return {
+    ...r,
+    name: localizeDelivery(r.name, lang),
+    capitalCity: localizeDelivery(r.capitalCity, lang),
+    uzumDeliveryDays: localizeDelivery(r.uzumDeliveryDays, lang),
+    texnomartOption: localizeDelivery(r.texnomartOption, lang),
+    mediaParkDays: localizeDelivery(r.mediaParkDays, lang),
+    asaxiyDeliveryDays: localizeDelivery(r.asaxiyDeliveryDays, lang),
+    logisticsTip: localizeDelivery(r.logisticsTip, lang),
+  };
+}
+
+export function getRegionalDeliveryInfo(regionId?: string, lang = "uz"): {
   selectedRegion: RegionDeliveryProfile;
   allRegions: RegionDeliveryProfile[];
 } {
@@ -834,70 +890,188 @@ export function getRegionalDeliveryInfo(regionId?: string): {
     (r) => r.regionId === regionId || r.name.toLowerCase().includes((regionId || "").toLowerCase())
   );
   return {
-    selectedRegion: match || UZBEKISTAN_REGIONS_LOGISTICS[0],
-    allRegions: UZBEKISTAN_REGIONS_LOGISTICS,
+    selectedRegion: localizeRegion(match || UZBEKISTAN_REGIONS_LOGISTICS[0], lang),
+    allRegions: UZBEKISTAN_REGIONS_LOGISTICS.map((r) => localizeRegion(r, lang)),
   };
 }
 
 /**
  * 8. HEAD-TO-HEAD COMPARISON DUEL BETWEEN TWO PRODUCTS
  */
+export interface DuelSide {
+  name: string;
+  estimatedPrice: number | null;
+  store: string;
+  url: string;
+  pros: string[];
+  cons: string[];
+  suitability: string;
+  score: number;
+  found: boolean;
+  rating?: number | null;
+  reviewCount?: number | null;
+  storesCount?: number;
+}
+
 export interface ComparisonDuelResult {
-  productA: {
-    name: string;
-    estimatedPrice: number;
-    store: string;
-    url: string;
-    pros: string[];
-    cons: string[];
-    suitability: string;
-    score: number;
-  };
-  productB: {
-    name: string;
-    estimatedPrice: number;
-    store: string;
-    url: string;
-    pros: string[];
-    cons: string[];
-    suitability: string;
-    score: number;
-  };
+  productA: DuelSide;
+  productB: DuelSide;
   winner: "A" | "B" | "tie";
   winnerReason: string;
   bestValueChoice: string;
   verdictUzbek: string;
 }
 
-export function compareProductsDuel(productA: string, productB: string): ComparisonDuelResult {
-  const nameA = productA.trim() || "Mahsulot 1";
-  const nameB = productB.trim() || "Mahsulot 2";
+/** A catalog product as returned by storage.searchCatalog (only the fields used here). */
+export interface DuelCatalogHit {
+  name: string;
+  price: number | null;
+  store?: string | null;
+  url?: string | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  offers?: Array<{ store: string; price: number; deliveryTime?: string; installment?: string | null }>;
+  specs?: Record<string, string>;
+  category?: string | null;
+}
+
+let duelLang = "uz";
+const L = (uz: string, ru: string, en: string) => (duelLang === "ru" ? ru : duelLang === "en" ? en : uz);
+const fmt = (n: number) => `${Math.round(n).toLocaleString("en-US")} ${L("so'm", "сум", "UZS")}`;
+
+function buildSide(query: string, hit: DuelCatalogHit | null, other: DuelCatalogHit | null): DuelSide {
+  if (!hit || !hit.price) {
+    return {
+      name: query,
+      estimatedPrice: null,
+      store: "Uzum Market",
+      url: ensureProductUrl(query, "Uzum Market"),
+      pros: [],
+      cons: [L("Bu mahsulot do'konlarda topilmadi — nomini aniqroq yozing", "Товар не найден в магазинах — уточните название", "Not found in the stores — try a more exact name")],
+      suitability: L("Ma'lumot yetarli emas", "Недостаточно данных", "Not enough data"),
+      score: 0,
+      found: false,
+    };
+  }
+
+  const pros: string[] = [];
+  const cons: string[] = [];
+  const price = hit.price;
+  const otherPrice = other?.price || null;
+  const storesCount = new Set((hit.offers || []).map((o) => o.store)).size || 1;
+  const rating = hit.rating ?? null;
+  const reviews = hit.reviewCount ?? null;
+
+  if (otherPrice) {
+    const diff = otherPrice - price;
+    if (diff > 0) pros.push(L(`${fmt(diff)} arzonroq`, `Дешевле на ${fmt(diff)}`, `${fmt(diff)} cheaper`));
+    else if (diff < 0) cons.push(L(`${fmt(-diff)} qimmatroq`, `Дороже на ${fmt(-diff)}`, `${fmt(-diff)} more expensive`));
+  }
+  if (rating != null) {
+    const r = L(
+      `Xaridorlar bahosi ${rating.toFixed(1)}${reviews ? ` (${reviews} ta sharh)` : ""}`,
+      `Оценка покупателей ${rating.toFixed(1)}${reviews ? ` (${reviews} отзывов)` : ""}`,
+      `Rated ${rating.toFixed(1)}${reviews ? ` (${reviews} reviews)` : ""}`
+    );
+    if (rating >= 4.6) pros.push(r);
+    else if (rating < 4.3) cons.push(r);
+  }
+  if (storesCount >= 2) pros.push(L(`${storesCount} ta do'konda sotiladi`, `Продаётся в ${storesCount} магазинах`, `Sold in ${storesCount} stores`));
+  else cons.push(L("Faqat bitta do'konda topildi", "Найден только в одном магазине", "Found in only one store"));
+  const warranty = hit.specs?.Kafolat || hit.specs?.Warranty;
+  if (warranty) pros.push(`${L("Kafolat", "Гарантия", "Warranty")}: ${warranty}`);
+  const cheapest = (hit.offers || []).slice().sort((x, y) => x.price - y.price)[0];
+  if (cheapest?.deliveryTime) pros.push(`${L("Yetkazish", "Доставка", "Delivery")}: ${cheapest.deliveryTime}`);
+  if (cheapest?.installment) pros.push(L("Muddatli to'lov mavjud", "Есть рассрочка", "Installments available"));
+  if (pros.length === 0) pros.push(L("Rasmiy do'konlarda mavjud", "Есть в официальных магазинах", "Available in official stores"));
+  if (cons.length === 0) cons.push(L("Jiddiy kamchilik topilmadi", "Серьёзных минусов нет", "No major drawbacks"));
+
+  // Score out of 10: rating (up to 6), store coverage (up to 2), warranty (1), value vs the other product (up to 1)
+  let score = 5;
+  if (rating != null) score = Math.min(6, Math.max(0, (rating - 3.5) * 4)) + 2;
+  score += Math.min(2, (storesCount - 1) * 0.7);
+  if (warranty) score += 0.5;
+  if (otherPrice && price < otherPrice) score += Math.min(1, (otherPrice - price) / otherPrice * 2);
+  score = Math.round(Math.min(10, score) * 10) / 10;
+
+  const suitability =
+    price >= 8_000_000 ? L("Katta va obro'li sovg'a uchun", "Для большого, солидного подарка", "For a big, impressive gift")
+    : price >= 2_500_000 ? L("Sifat va narx muvozanati kerak bo'lsa", "Баланс цены и качества", "A balance of price and quality")
+    : L("Byudjetni tejab, foydali sovg'a qilish uchun", "Полезный подарок без лишних трат", "A useful gift on a budget");
 
   return {
-    productA: {
-      name: nameA,
-      estimatedPrice: 3200000,
-      store: "Texnomart",
-      url: ensureProductUrl(nameA, "Texnomart"),
-      pros: ["Rasmiy 1 yillik O'zbekiston kafolati", "Yuqori yig'ilish sifati", "Premium qadoq"],
-      cons: ["Muqobillarga nisbatan biroz qimmatroq"],
-      suitability: "Obro'li sovg'a va uzoq yillik ishonchli xarid uchun ideal",
-      score: 9.3,
-    },
-    productB: {
-      name: nameB,
-      estimatedPrice: 2450000,
-      store: "Uzum Market",
-      url: ensureProductUrl(nameB, "Uzum Market"),
-      pros: ["23% arzonroq narx", "1 kunda bepul yetkazish", "Qulay kundalik foydalanish"],
-      cons: ["Qo'shimcha aksessuarlar talab qilishi mumkin"],
-      suitability: "Tejamkor va ratsional byudjetli xarid uchun eng yaxshi variant",
-      score: 9.1,
-    },
-    winner: "A",
-    winnerReason: `${nameA} uzoq muddatli chidamlilik va rasmiy kafolat bo'yicha ustunroq, biroq ${nameB} 750,000 UZS tejamkorlik beradi.`,
-    bestValueChoice: nameB,
-    verdictUzbek: `Agar sovg'a sifatida obro' va taassurot birinchi o'rinda bo'lsa — ${nameA}ni tanlang. Agar o'zingiz uchun yoki cheklangan byudjetda xarid qilayotgan bo'lsangiz — ${nameB} eng oqilona tanlov.`,
+    name: hit.name,
+    estimatedPrice: price,
+    store: cheapest?.store || hit.store || "Uzum Market",
+    url: hit.url || ensureProductUrl(hit.name, cheapest?.store || hit.store || "Uzum Market"),
+    pros: pros.slice(0, 4),
+    cons: cons.slice(0, 3),
+    suitability,
+    score,
+    found: true,
+    rating,
+    reviewCount: reviews,
+    storesCount,
   };
 }
 
+/**
+ * 8. HEAD-TO-HEAD COMPARISON OF TWO PRODUCTS
+ * Uses real catalog data (prices, ratings, stores, warranty). `lookup` returns the best catalog match or null.
+ */
+export function compareProductsDuel(
+  productA: string,
+  productB: string,
+  lookup: (query: string) => DuelCatalogHit | null = () => null,
+  lang = "uz"
+): ComparisonDuelResult {
+  duelLang = lang;
+  const nameA = productA.trim() || "Mahsulot 1";
+  const nameB = productB.trim() || "Mahsulot 2";
+  const hitA = lookup(nameA);
+  const hitB = lookup(nameB);
+  const A = buildSide(nameA, hitA, hitB);
+  const B = buildSide(nameB, hitB, hitA);
+
+  let winner: "A" | "B" | "tie" = "tie";
+  if (A.found && !B.found) winner = "A";
+  else if (B.found && !A.found) winner = "B";
+  else if (A.found && B.found && Math.abs(A.score - B.score) >= 0.2) winner = A.score > B.score ? "A" : "B";
+
+  const W = winner === "A" ? A : winner === "B" ? B : null;
+  const Lo = winner === "A" ? B : winner === "B" ? A : null;
+
+  let bestValueChoice = L("Ikkalasi ham teng", "Оба одинаковы", "Both are equal");
+  if (A.estimatedPrice && B.estimatedPrice) {
+    bestValueChoice = A.estimatedPrice <= B.estimatedPrice ? A.name : B.name;
+  } else if (A.found || B.found) {
+    bestValueChoice = A.found ? A.name : B.name;
+  }
+
+  let winnerReason: string;
+  let verdict: string;
+  if (!A.found && !B.found) {
+    winnerReason = L("Ikkala mahsulot ham topilmadi.", "Оба товара не найдены.", "Neither product was found.");
+    verdict = L("Aniqroq nom bilan urinib ko'ring (masalan, \"iPhone 15 128GB\" yoki \"Galaxy Buds FE\").", "Попробуйте точнее (например, «iPhone 15 128GB» или «Galaxy Buds FE»).", "Try a more exact name (e.g. \"iPhone 15 128GB\" or \"Galaxy Buds FE\").");
+  } else if (!W || !Lo) {
+    winnerReason = L("Baho va narx bo'yicha deyarli teng.", "По оценке и цене почти равны.", "Almost equal on rating and price.");
+    verdict = L(`Ikkalasi ham yaxshi tanlov. Arzonrog'i — ${bestValueChoice}.`, `Оба — хороший выбор. Дешевле — ${bestValueChoice}.`, `Both are good choices. The cheaper one is ${bestValueChoice}.`);
+  } else if (!Lo.found) {
+    winnerReason = L(`${Lo.name} bo'yicha ma'lumot topilmadi.`, `По «${Lo.name}» данных не найдено.`, `No data found for "${Lo.name}".`);
+    verdict = L(`${W.name} narxi ${fmt(W.estimatedPrice!)}, ${W.store}da mavjud.`, `${W.name}: ${fmt(W.estimatedPrice!)} в ${W.store}.`, `${W.name} is ${fmt(W.estimatedPrice!)} at ${W.store}.`);
+  } else {
+    const wp = W.estimatedPrice!;
+    const lp = Lo.estimatedPrice!;
+    const priceNote = wp < lp
+      ? L(`va ${fmt(lp - wp)} arzonroq`, `и дешевле на ${fmt(lp - wp)}`, `and ${fmt(lp - wp)} cheaper`)
+      : wp > lp
+        ? L(`biroq ${fmt(wp - lp)} qimmatroq`, `но дороже на ${fmt(wp - lp)}`, `but ${fmt(wp - lp)} more expensive`)
+        : L("narxi bir xil", "цена одинаковая", "same price");
+    winnerReason = L(`${W.name} bahosi yuqoriroq (${W.score} / ${Lo.score}) ${priceNote}.`, `У ${W.name} оценка выше (${W.score} / ${Lo.score}) ${priceNote}.`, `${W.name} scores higher (${W.score} / ${Lo.score}) ${priceNote}.`);
+    verdict = wp > lp
+      ? L(`Sifat birinchi o'rinda bo'lsa — ${W.name}. Pulni tejash muhim bo'lsa — ${Lo.name}.`, `Если важнее качество — ${W.name}. Если важнее экономия — ${Lo.name}.`, `If quality matters most, choose ${W.name}. To save money, choose ${Lo.name}.`)
+      : L(`${W.name} — ham bahosi, ham narxi bo'yicha yaxshiroq tanlov.`, `${W.name} — лучше и по оценке, и по цене.`, `${W.name} is better on both rating and price.`);
+  }
+
+  return { productA: A, productB: B, winner, winnerReason, bestValueChoice, verdictUzbek: verdict };
+}

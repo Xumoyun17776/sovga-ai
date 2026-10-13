@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation, useSearch, Link } from "wouter";
-import { useTranslation } from "../lib/i18n";
+import { useTranslation, tr } from "../lib/i18n";
 import { research } from "../lib/api";
 import { cyberSound } from "../lib/cyberSound";
 import SearchBar from "../components/SearchBar";
@@ -20,7 +20,7 @@ import {
   Tag,
   ArrowUpDown,
   ShoppingBag,
-} from "lucide-react";
+} from "../lib/icons";
 
 interface RefinementItem {
   labelEn: string;
@@ -43,8 +43,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " Toshkentda 1 kunda yetkazib berish",
     suffixRu: " быстрая доставка в Ташкенте за 1 день",
     icon: Zap,
-    chipClass: "bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 border-amber-200/80 dark:border-amber-800/60",
-    iconClass: "text-amber-600 dark:text-amber-400",
+    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
+    iconClass: "text-slate-400",
   },
   {
     labelEn: "Value & Budget Alternatives",
@@ -54,8 +54,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " arzonroq sifatli variantlar",
     suffixRu: " доступные качественные альтернативы",
     icon: TrendingDown,
-    chipClass: "bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/60",
-    iconClass: "text-emerald-600 dark:text-emerald-400",
+    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
+    iconClass: "text-slate-400",
   },
   {
     labelEn: "0% Halol Installments (Nasiya)",
@@ -65,8 +65,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " Uzum Nasiya bo'lib to'lash bilan",
     suffixRu: " в рассрочку без переплат Uzum Nasiya",
     icon: CreditCard,
-    chipClass: "bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-950/40 text-cyan-900 dark:text-cyan-300 border-cyan-200/80 dark:border-cyan-800/60",
-    iconClass: "text-cyan-600 dark:text-cyan-400",
+    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
+    iconClass: "text-slate-400",
   },
   {
     labelEn: "Ultra-Premium Tier",
@@ -76,8 +76,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " eng sifatli premium model",
     suffixRu: " премиум флагман оригинал",
     icon: Crown,
-    chipClass: "bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/40 text-purple-900 dark:text-purple-300 border-purple-200/80 dark:border-purple-800/60",
-    iconClass: "text-purple-600 dark:text-purple-400",
+    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
+    iconClass: "text-slate-400",
   },
   {
     labelEn: "Deepest Discounts & Promos",
@@ -87,8 +87,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " eng katta chegirmadagi aksiya",
     suffixRu: " с максимальной скидкой по акции",
     icon: Tag,
-    chipClass: "bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-900 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/60",
-    iconClass: "text-rose-600 dark:text-rose-400",
+    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
+    iconClass: "text-slate-400",
   },
 ];
 
@@ -170,9 +170,8 @@ export default function SearchResultsPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#07080c] py-8 transition-colors relative overflow-hidden">
+    <div className="min-h-screen py-8 transition-colors relative overflow-hidden">
       {/* Ambient luxury vignette glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(1000px,100vw)] max-w-full h-[400px] bg-gradient-to-b from-amber-500/10 via-amber-400/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8 animate-fade-in relative z-10">
         {/* Search Header Bar */}
@@ -189,25 +188,25 @@ export default function SearchResultsPage() {
       {/* Loading state with animated pipeline simulation */}
       {mutation.isPending && (
         <div className="space-y-6 max-w-3xl mx-auto">
-          <div className="card-luxury radar-sweep-indicator bg-white dark:bg-[#10121d] rounded-3xl p-7 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-luxury text-center space-y-5 relative overflow-hidden">
-            <div className="w-16 h-16 bg-slate-900 dark:bg-slate-800 text-amber-400 rounded-2xl flex items-center justify-center mx-auto shadow-lg relative z-10">
+          <div className="card-luxury radar-sweep-indicator bg-white dark:bg-[#0d1530] rounded-2xl p-7 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-sm text-center space-y-5 relative overflow-hidden">
+            <div className="w-16 h-16 bg-slate-900 dark:bg-slate-800 text-amber-400 rounded-2xl flex items-center justify-center mx-auto shadow-sm relative z-10">
               <Sparkles className="w-8 h-8 animate-spin" style={{ animationDuration: "6s" }} />
             </div>
 
             <div className="space-y-1.5 relative z-10">
-              <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-3.5 py-1 rounded-full border border-indigo-200 dark:border-indigo-800 uppercase tracking-widest">
+              <span className="text-[11px] font-bold px-3.5 py-1 rounded-full border bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                 {language === "uz"
                   ? "Jonli Bozor Skaneri Ishga Tushirildi"
                   : language === "ru"
                   ? "Сканирование Рынка Запущено"
                   : "Live Market Scanner Activated"}
               </span>
-              <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white">
+              <h2 className="font-display font-semibold text-2xl sm:text-3xl text-slate-900 dark:text-white">
                 {language === "uz"
                   ? "AI Xarid Tadqiqoti Olib Borilmoqda"
                   : language === "ru"
                   ? "Выполняется исследование рынка"
-                  : "Neural Shopping Intelligence in Progress"}
+                  : "Searching stores…"}
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-lg mx-auto">
                 {language === "uz"
@@ -221,19 +220,19 @@ export default function SearchResultsPage() {
             {/* Stepper live store badges */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 max-w-xl mx-auto relative z-10 text-xs">
               <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60 text-purple-950 dark:text-purple-300 font-semibold flex items-center justify-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-purple-600 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-purple-600" />
                 <span>Uzum Market</span>
               </div>
               <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 text-rose-950 dark:text-rose-300 font-semibold flex items-center justify-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-rose-600" />
                 <span>Texnomart</span>
               </div>
               <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-950 dark:text-emerald-300 font-semibold flex items-center justify-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-emerald-600" />
                 <span>MediaPark</span>
               </div>
               <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800/60 text-sky-950 dark:text-sky-300 font-semibold flex items-center justify-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-sky-600 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-sky-600" />
                 <span>Asaxiy.uz</span>
               </div>
             </div>
@@ -269,12 +268,12 @@ export default function SearchResultsPage() {
                   <span>/</span>
                   <span>{language === "uz" ? "Qidiruv" : language === "ru" ? "Поиск" : "Search"}</span>
                 </div>
-                <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight">
+                <h1 className="lux-title text-[2.15rem] sm:text-[2.7rem] text-slate-900 dark:text-white leading-[1.05]">
                   {language === "uz"
-                    ? `Tadqiqot natijalari: “`
+                    ? `Natijalar: “`
                     : language === "ru"
-                    ? `Результаты исследования: «`
-                    : `Research Results for: “`}
+                    ? `Результаты: «`
+                    : `Results for “`}
                   <span className="text-amber-600 dark:text-amber-400">{query}</span>
                   {language === "ru" ? "»" : "”"}
                 </h1>
@@ -285,13 +284,13 @@ export default function SearchResultsPage() {
                       ? `Eng arzonidan boshlab tartiblangan (${filteredData.products.length} ta mahsulot)`
                       : language === "ru"
                       ? `Отсортировано по возрастанию цены (${filteredData.products.length} товаров)`
-                      : `Sorted from Lowest Price First (${filteredData.products.length} verified products)`}
+                      : `Sorted from lowest price (${filteredData.products.length} products)`}
                   </span>
                 </div>
               </div>
 
               {/* Category Filter Tabs */}
-              <div className="flex flex-wrap gap-1.5 bg-amber-100/70 dark:bg-slate-800/80 p-1 rounded-2xl text-xs font-bold border border-amber-300/70 dark:border-slate-700">
+              <div className="flex flex-wrap gap-1.5 bg-amber-100/70 dark:bg-slate-800/80 p-1 rounded-2xl text-xs font-bold border border-[var(--line)] dark:border-slate-700">
                 {[
                   {
                     key: "all",
@@ -324,10 +323,10 @@ export default function SearchResultsPage() {
                       cyberSound.playClick();
                       setActiveFilter(tab.key);
                     }}
-                    className={`px-3 py-1.5 rounded-xl transition cursor-pointer active:scale-95 ${
+                    className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
                       activeFilter === tab.key
-                        ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white shadow-xs font-black"
-                        : "text-amber-950 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-amber-200/50 dark:hover:bg-slate-700/50"
+                        ? "text-white shadow-xs font-bold bg-amber-500"
+                        : "text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-amber-200/50 dark:hover:bg-slate-700/50"
                     }`}
                   >
                     {tab.label}
@@ -353,7 +352,7 @@ export default function SearchResultsPage() {
                       cyberSound.playClick();
                       handleRefine(suffix);
                     }}
-                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition shadow-xs hover:scale-105 active:scale-95 cursor-pointer ${item.chipClass}`}
+                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition shadow-xs cursor-pointer ${item.chipClass}`}
                   >
                     <Icon className={`w-3.5 h-3.5 ${item.iconClass}`} />
                     <span>{label}</span>
@@ -363,7 +362,7 @@ export default function SearchResultsPage() {
             </div>
 
             {/* Filter & Sort Controls Toolbar */}
-            <div className="card-luxury bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#10121d] dark:to-[#090b12] p-3.5 rounded-2xl border-2 border-amber-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs shadow-luxury">
+            <div className="bg-white dark:bg-[#0b1224] card-luxury p-3.5 rounded-2xl border border-[var(--line)] dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
               <div className="flex flex-wrap items-center gap-2.5">
                 {/* Store Filter */}
                 <div className="flex items-center gap-1.5">
@@ -376,7 +375,7 @@ export default function SearchResultsPage() {
                       cyberSound.playClick();
                       setSelectedStore(e.target.value);
                     }}
-                    className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-amber-300/80 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
+                    className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
                   >
                     <option value="all">
                       {language === "uz" ? "Barcha do'konlar" : language === "ru" ? "Все магазины" : "All Stores"}
@@ -403,7 +402,7 @@ export default function SearchResultsPage() {
                       cyberSound.playClick();
                       setPriceBracket(e.target.value);
                     }}
-                    className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-amber-300/80 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
+                    className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
                   >
                     <option value="all">
                       {language === "uz" ? "Barcha narxlar" : language === "ru" ? "Все диапазоны" : "All Price Ranges"}
@@ -429,7 +428,7 @@ export default function SearchResultsPage() {
                     cyberSound.playClick();
                     setSortBy(e.target.value);
                   }}
-                  className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-amber-300/80 dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
+                  className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
                 >
                   <option value="price_asc">
                     {language === "uz"
@@ -468,12 +467,12 @@ export default function SearchResultsPage() {
           </div>
 
           {filteredData.products.length === 0 ? (
-            <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl p-10 sm:p-12 text-center border-2 border-amber-300/80 dark:border-amber-500/25 max-w-md mx-auto space-y-4 shadow-luxury animate-fade-in">
-              <div className="w-16 h-16 bg-amber-50 dark:bg-amber-950/40 border border-amber-300/60 dark:border-amber-800 rounded-2xl flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">
+            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-10 sm:p-12 text-center border border-[var(--line)] dark:border-amber-500/25 max-w-md mx-auto space-y-4 shadow-sm animate-fade-in">
+              <div className="w-16 h-16 bg-amber-50 dark:bg-amber-950/40 border border-[var(--line)] dark:border-amber-800 rounded-2xl flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">
                 <ShoppingBag className="w-8 h-8 stroke-[2.2]" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-display font-black text-slate-900 dark:text-white text-lg">
+                <h3 className="font-display font-bold text-slate-900 dark:text-white text-lg">
                   {language === "uz"
                     ? "Tanlangan filtrlarga mos mahsulot topilmadi"
                     : language === "ru"
@@ -488,6 +487,29 @@ export default function SearchResultsPage() {
                     : "Try expanding your price range or resetting store filters to see full market inventory."}
                 </p>
               </div>
+              {selectedStore === "all" && priceBracket === "all" && activeFilter === "all" && (
+                <div className="space-y-2">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    {tr(
+                      "Olcha va Texnomart'da bu mahsulot topilmadi. Boshqa do'konlarda qidirib ko'ring:",
+                      "В Olcha и Texnomart этого товара нет. Поищите в других магазинах:",
+                      "Olcha and Texnomart don't have this right now. Try searching other stores:"
+                    )}
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {[
+                      ["Uzum Market", `https://uzum.uz/uz/search?query=${encodeURIComponent(qParam)}`],
+                      ["Asaxiy", `https://asaxiy.uz/product?key=${encodeURIComponent(qParam)}`],
+                      ["MediaPark", `https://mediapark.uz/search?q=${encodeURIComponent(qParam)}`],
+                      ["Olcha", `https://olcha.uz/oz/search?q=${encodeURIComponent(qParam)}`],
+                    ].map(([name, href]) => (
+                      <a key={name} href={href} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg border border-[var(--line)] text-xs font-semibold hover:border-[var(--line-strong)]">
+                        {name} ↗
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => {
                   cyberSound.playClick();
@@ -495,7 +517,7 @@ export default function SearchResultsPage() {
                   setPriceBracket("all");
                   setActiveFilter("all");
                 }}
-                className="px-6 py-2.5 btn-luxury-gold text-slate-950 font-black rounded-xl text-xs transition shadow-md active:scale-95 cursor-pointer"
+                className="px-6 py-2.5 btn-luxury-gold text-slate-950 font-bold rounded-xl text-xs transition shadow-md cursor-pointer"
               >
                 {language === "uz" ? "Filtrlarni tozalash" : language === "ru" ? "Сбросить фильтры" : "Reset All Filters"}
               </button>
@@ -508,12 +530,12 @@ export default function SearchResultsPage() {
 
       {/* Error State */}
       {mutation.isError && (
-        <div className="max-w-md mx-auto text-center py-12 bg-gradient-to-br from-white via-[#fff8f8] to-[#fcf2f2] dark:from-[#180f14] dark:via-[#140b10] dark:to-[#0d070a] rounded-3xl border-2 border-rose-300/80 dark:border-rose-500/30 p-8 space-y-4 shadow-luxury animate-fade-in">
+        <div className="bg-white dark:bg-[#0b1224] max-w-md mx-auto text-center py-12 rounded-2xl border border-rose-300/80 dark:border-rose-500/30 p-8 space-y-4 shadow-sm animate-fade-in">
           <div className="w-14 h-14 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto border border-rose-200 dark:border-rose-800">
             <AlertCircle className="w-7 h-7 stroke-[2.2]" />
           </div>
           <div className="space-y-1">
-            <h3 className="font-display font-extrabold text-lg text-slate-900 dark:text-white">
+            <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white">
               {language === "uz"
                 ? "Tadqiqotda Kutilmagan Uzilish"
                 : language === "ru"
@@ -534,7 +556,7 @@ export default function SearchResultsPage() {
               cyberSound.playClick();
               mutation.mutate(query);
             }}
-            className="px-6 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 text-xs font-black rounded-xl transition flex items-center gap-2 mx-auto shadow-md cursor-pointer active:scale-95"
+            className="px-6 py-2.5 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 mx-auto shadow-md cursor-pointer bg-amber-500 hover:bg-amber-400"
           >
             <RefreshCw className="w-3.5 h-3.5 stroke-[2.2]" />
             <span>{language === "uz" ? "Qaytadan tadqiq qilish" : language === "ru" ? "Повторить поиск" : "Rerun Research Query"}</span>
@@ -545,7 +567,7 @@ export default function SearchResultsPage() {
       {/* Empty Initial State */}
       {!mutation.isPending && !mutation.data && !mutation.isError && (
         <div className="text-center py-20 text-slate-400 space-y-4">
-          <div className="w-16 h-16 bg-indigo-50/60 dark:bg-indigo-950/40 rounded-3xl flex items-center justify-center mx-auto border border-indigo-100 dark:border-indigo-900 text-indigo-500 dark:text-indigo-400">
+          <div className="w-16 h-16 bg-indigo-50/60 dark:bg-indigo-950/40 rounded-2xl flex items-center justify-center mx-auto border border-indigo-100 dark:border-indigo-900 text-indigo-500 dark:text-indigo-400">
             <Sparkles className="w-8 h-8 stroke-[2.2]" />
           </div>
           <div className="space-y-1 max-w-md mx-auto">
@@ -554,7 +576,7 @@ export default function SearchResultsPage() {
                 ? "AI Xarid Tadqiqotini Boshlang"
                 : language === "ru"
                 ? "Начните AI исследование покупок"
-                : "Launch AI Retail Telemetry"}
+                : "Search"}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
               {language === "uz"

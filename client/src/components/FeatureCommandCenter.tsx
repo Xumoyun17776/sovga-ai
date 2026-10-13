@@ -31,7 +31,7 @@ import {
   Zap,
   Command,
   DollarSign,
-} from "lucide-react";
+} from "../lib/icons";
 
 export type FeatureCategory = "all" | "ai_tools" | "games" | "luxury" | "fintech";
 
@@ -67,31 +67,33 @@ export interface FeatureItem {
   targetEn: string;
 }
 
+const FEATURE_TILES = ["tile-gold", "tile-rose", "tile-violet", "tile-sky", "tile-emerald", "tile-orange", "tile-indigo", "tile-pink", "tile-teal"];
+
 const featuresList: FeatureItem[] = [
   // ── 1. AI & MARKET INTELLIGENCE ──
   {
     id: "spotlight-console",
     category: "ai_tools",
-    titleUz: "Spotlight Konsoli & Barcha Funksiyalar (1-bosish)",
-    titleRu: "Spotlight Консоль & Быстрый Доступ (1 клик)",
-    titleEn: "Spotlight Command Center & Fast Palette (1-click)",
-    descUz: "Saytdagi barcha 15+ funksiyalar, xaridlar va filtrlarni klaviatura (Ctrl+K)siz, sichqoncha bilan 1 bosishda ochish.",
-    descRu: "Доступ ко всем 15+ сервисам, поиску и фильтрам в 1 клик мыши без необходимости нажимать Ctrl+K.",
-    descEn: "1-click access to all 15+ platform modules, tools, and actions without needing keyboard shortcuts.",
-    badgeUz: "Spotlight HUD",
-    badgeRu: "Spotlight HUD",
-    badgeEn: "Spotlight HUD",
-    statusUz: "⚡ 1-Bosish",
-    statusRu: "⚡ 1-Клик",
-    statusEn: "⚡ 1-Click",
+    titleUz: "Tez qidiruv",
+    titleRu: "Быстрый поиск",
+    titleEn: "Quick search",
+    descUz: "Istalgan vosita, sahifa yoki do'konni bir joydan toping. Klaviaturada Ctrl+K ni bosing.",
+    descRu: "Найдите любой инструмент, страницу или магазин из одного окна. Нажмите Ctrl+K.",
+    descEn: "Jump to any tool, page or store from one place. Press Ctrl+K on a keyboard.",
+    badgeUz: "Navigatsiya",
+    badgeRu: "Навигация",
+    badgeEn: "Navigation",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     icon: Command,
-    iconGradient: "from-amber-500/20 to-yellow-500/10",
+    iconGradient: "from-amber-500/20 to-amber-600/10",
     iconColor: "text-amber-500",
     route: "action:command-palette",
-    actionUz: "Spotlightni ochish",
-    actionRu: "Открыть Spotlight",
-    actionEn: "Open Spotlight",
+    actionUz: "Ochish",
+    actionRu: "Открыть",
+    actionEn: "Open",
     highlightsUz: [
       "Klaviatura (Ctrl+K) shart emas — sichqoncha bilan 1 bosishda ochiladi",
       "Barcha 15 ta servis, sovg'a kalkulyatori va do'konlarga tezkor o'tish",
@@ -114,26 +116,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "price-audit",
     category: "ai_tools",
-    titleUz: "AI Narx Auditori & Soxta Chegirma Foshi",
-    titleRu: "AI Аудитор Цен и Фальшивых Скидок",
-    titleEn: "AI Price Auditor & Fake Discount Buster",
-    descUz: "Sun'iy ko'tarilgan boshlang'ich narxlar va soxta foizlarni fosh qiling. 30 kunlik narx grafigi va bozor medianasi tahlili.",
-    descRu: "Разоблачение искусственно завышенных цен и мнимых скидок. 30-дневная история динамики и рыночная медиана цен.",
-    descEn: "Expose inflated baselines and fake discount stickers. 30-day verified historical trends and live market median.",
-    badgeUz: "Fintech Audit",
-    badgeRu: "Финтех Аудит",
-    badgeEn: "Fintech Audit",
-    statusUz: "🔥 Trend",
-    statusRu: "🔥 Тренд",
-    statusEn: "🔥 Trending",
+    titleUz: "Narx tekshiruvi",
+    titleRu: "Проверка цены",
+    titleEn: "Price check",
+    descUz: "Chegirma haqiqiymi yoki narx avval ko'tarilganmi — 30 kunlik narx tarixi bilan tekshiring.",
+    descRu: "Проверьте по истории цен за 30 дней, настоящая ли скидка или цену сначала подняли.",
+    descEn: "Check a 30-day price history to see whether a discount is real or the price was raised first.",
+    badgeUz: "Narxlar",
+    badgeRu: "Цены",
+    badgeEn: "Prices",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     icon: ShieldAlert,
-    iconGradient: "from-amber-500/20 to-orange-500/10",
+    iconGradient: "from-amber-500/20 to-amber-600/10",
     iconColor: "text-amber-500",
     route: "/price-audit",
     actionUz: "Narxni tekshirish",
     actionRu: "Проверить цену",
-    actionEn: "Audit Price",
+    actionEn: "Check a price",
     highlightsUz: [
       "30 kunlik haqiqiy narxlar dinamikasi grafigi",
       "Soxta chegirma koeffitsiyenti (Haqiqiy vs Reklama)",
@@ -156,26 +158,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "compare-duel",
     category: "ai_tools",
-    titleUz: "AI Sovg'a Qiyoslagich & Texnik Duel",
-    titleRu: "AI Сравнение Товаров & Очная Дуэль",
-    titleEn: "AI Gift Comparison & Spec Duel",
-    descUz: "Ikkita mashhur modelni boshma-bosh to'qnashtiring: narx, xususiyatlar, obro' balli va AI xolis g'oliblik hukmi.",
-    descRu: "Сравните две флагманские модели лицом к лицу: цена, рейтинги надежности, спецификации и беспристрастный AI вердикт.",
-    descEn: "Pit two popular models head-to-head: pricing, verified scores, suitability matrix, and definitive AI verdict.",
-    badgeUz: "Boshma-Bosh Duel",
-    badgeRu: "Очная Дуэль",
-    badgeEn: "Head-to-Head Duel",
-    statusUz: "⚡ Jonli AI",
-    statusRu: "⚡ Живой AI",
-    statusEn: "⚡ Live AI",
+    titleUz: "Ikki mahsulotni solishtirish",
+    titleRu: "Сравнить два товара",
+    titleEn: "Compare two products",
+    descUz: "Ikki modelni xususiyatlari, narxi va kafolati bo'yicha yonma-yon ko'ring.",
+    descRu: "Сравните две модели по характеристикам, цене и гарантии.",
+    descEn: "See two models side by side: specs, price and warranty.",
+    badgeUz: "Narxlar",
+    badgeRu: "Цены",
+    badgeEn: "Prices",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
     icon: Swords,
     iconGradient: "from-rose-500/20 to-pink-500/10",
     iconColor: "text-rose-500",
     route: "/compare-duel",
-    actionUz: "Duelni boshlash",
-    actionRu: "Начать дуэль",
-    actionEn: "Launch Duel",
+    actionUz: "Solishtirish",
+    actionRu: "Сравнить",
+    actionEn: "Compare",
     simulatorTab: "duel",
     highlightsUz: [
       "Boshma-bosh texnik parametrlar taqqoslashi",
@@ -199,26 +201,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "stores-delivery",
     category: "ai_tools",
-    titleUz: "14 Viloyat Do'konlari & Logistika Radari",
-    titleRu: "Магазины, ПВЗ и Доставка по Областям",
-    titleEn: "Stores, Pickup Points & Regional Transit",
-    descUz: "Uzum PVZ punktlari, Texnomart filiallari, Toshkentda 3 soatlik ekspress va 14 viloyatga real yetkazish muddatlari xaritasi.",
-    descRu: "Пункты выдачи Uzum, филиалы Texnomart, 3-часовой экспресс по Ташкенту и реальные сроки доставки по 14 регионам.",
-    descEn: "Uzum pickup nodes, Texnomart stores, 3-hour Tashkent express, and accurate ground transit times for all 14 regions.",
-    badgeUz: "14 Viloyat Logistikasi",
-    badgeRu: "14 Регионов",
-    badgeEn: "14 Regions Transit",
-    statusUz: "📍 Jonli Xarita",
-    statusRu: "📍 Живая Карта",
-    statusEn: "📍 Live Map",
+    titleUz: "Do'konlar va yetkazish",
+    titleRu: "Магазины и доставка",
+    titleEn: "Stores and delivery",
+    descUz: "Hududingiz bo'yicha topshirish punktlari, yetkazish muddati va narxi.",
+    descRu: "Пункты выдачи, сроки и стоимость доставки в вашем регионе.",
+    descEn: "Pickup points, delivery times and costs for your region.",
+    badgeUz: "Yetkazish",
+    badgeRu: "Доставка",
+    badgeEn: "Delivery",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
     icon: Truck,
     iconGradient: "from-purple-500/20 to-indigo-500/10",
     iconColor: "text-purple-500",
     route: "/stores-delivery",
-    actionUz: "Logistika xaritasi",
-    actionRu: "Карта логистики",
-    actionEn: "Explore Delivery",
+    actionUz: "Ko'rish",
+    actionRu: "Смотреть",
+    actionEn: "View",
     simulatorTab: "logistics",
     highlightsUz: [
       "500+ Uzum va Texnomart punktlari geolokatsiyasi",
@@ -242,26 +244,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "gift-finder",
     category: "ai_tools",
-    titleUz: "AI Shaxsiy Sovg'a Tanlovchi (Matcher)",
-    titleRu: "AI Персональный Подборщик Подарков",
-    titleEn: "AI Autonomous Gift Matcher",
-    descUz: "Yoshi, qiziqishi, munosabati va aniq byudjetingizga asoslanib, O'zbekiston do'konlaridagi eng munosib sovg'ani ajratib beradi.",
-    descRu: "На основе возраста, интересов и лимита бюджета подбирает идеальный подарок среди ведущих магазинов Узбекистана.",
-    descEn: "Considers age, interests, relationship, and strict budget limit to calculate the mathematically optimal present.",
-    badgeUz: "Smart Matcher",
-    badgeRu: "Умный Подбор",
-    badgeEn: "Smart Matcher",
-    statusUz: "🎯 98% Aniq",
-    statusRu: "🎯 98% Точность",
-    statusEn: "🎯 98% Accuracy",
+    titleUz: "Sovg'a topish",
+    titleRu: "Подбор подарка",
+    titleEn: "Gift finder",
+    descUz: "Kimga, qanday bayram va byudjet — bir necha savolga javob bering va mos variantlarni oling.",
+    descRu: "Ответьте на пару вопросов — кому, какой повод и бюджет — и получите подходящие варианты.",
+    descEn: "Answer a few questions about who it's for, the occasion and budget, and get matching ideas.",
+    badgeUz: "Sovg'alar",
+    badgeRu: "Подарки",
+    badgeEn: "Gifts",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
     icon: Sparkles,
     iconGradient: "from-emerald-500/20 to-teal-500/10",
     iconColor: "text-emerald-500",
     route: "/gift-finder",
-    actionUz: "Sovg'a qidirish",
-    actionRu: "Подобрать подарок",
-    actionEn: "Find Gifts",
+    actionUz: "Boshlash",
+    actionRu: "Начать",
+    actionEn: "Start",
     highlightsUz: [
       "4 bosqichli tezkor xarakter tahlili",
       "Aniq byudjet doirasida eng yaxshi 3 variant",
@@ -286,26 +288,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "mystery-box",
     category: "games",
-    titleUz: "AI Syurpriz Quti (Mystery Box & Unboxing)",
-    titleRu: "AI Коробка-Сюрприз (Mystery Box)",
-    titleEn: "AI Mystery Box & 3D Unboxing",
-    descUz: "Byudjetingizga mos 3-4 ta bir-birini to'ldiruvchi sovg'a to'plami va interaktiv virtual 3D ochish animatsiyalari.",
-    descRu: "Набор из 3-4 взаимодополняющих подарков под ваш бюджет с эффектом виртуального 3D открытия коробки.",
-    descEn: "Curated 3-4 item surprise gift set matched to your exact budget with virtual 3D celebratory unboxing physics.",
-    badgeUz: "3D Virtual Unboxing",
-    badgeRu: "3D Анбоксинг",
-    badgeEn: "3D Unboxing",
-    statusUz: "✨ Yangi",
-    statusRu: "✨ Новинка",
-    statusEn: "✨ New Arrival",
+    titleUz: "Syurpriz quti",
+    titleRu: "Сюрприз-бокс",
+    titleEn: "Mystery box",
+    descUz: "Byudjetni kiriting — biz bir-biriga mos 3-4 ta sovg'adan iborat to'plam tuzamiz.",
+    descRu: "Укажите бюджет — мы соберём набор из 3–4 подарков, которые хорошо сочетаются.",
+    descEn: "Set a budget and we'll put together a set of 3–4 gifts that go well together.",
+    badgeUz: "Sovg'alar",
+    badgeRu: "Подарки",
+    badgeEn: "Gifts",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     icon: Box,
-    iconGradient: "from-amber-500/20 to-yellow-500/10",
+    iconGradient: "from-amber-500/20 to-amber-600/10",
     iconColor: "text-amber-500",
     route: "/mystery-box",
     actionUz: "Qutini ochish",
-    actionRu: "Открыть коробку",
-    actionEn: "Open Mystery Box",
+    actionRu: "Открыть",
+    actionEn: "Open a box",
     highlightsUz: [
       "3D animatsiyali interaktiv virtual quti ochish",
       "Byudjetga mos 3-4 ta sinxron sovg'a to'plami",
@@ -328,18 +330,18 @@ const featuresList: FeatureItem[] = [
   {
     id: "gift-quiz",
     category: "games",
-    titleUz: "Sovg'a Testi & Omad Ruletkasi",
-    titleRu: "Тест Подарка & Колесо Фортуны",
-    titleEn: "Psychometric Gift Quiz & Lucky Wheel",
-    descUz: "4 ta psixologik savol bilan 98% aniq sovg'a toping yoki omadli sovg'a ruletkasini aylantirib, g'oyalarni kashf eting.",
-    descRu: "Найдите идеальный подарок за 4 вопроса личности или испытайте интерактивное колесо фортуны.",
-    descEn: "Discover the 98% accurate gift match through 4 psychology questions or spin the interactive lucky roulette wheel.",
-    badgeUz: "Psixometrik Test",
-    badgeRu: "Тест Личности",
-    badgeEn: "Personality Quiz",
-    statusUz: "🎲 Interaktiv",
-    statusRu: "🎲 Интерактив",
-    statusEn: "🎲 Interactive",
+    titleUz: "Sovg'a testi",
+    titleRu: "Тест подарка",
+    titleEn: "Gift quiz",
+    descUz: "To'rtta qisqa savol orqali qanday sovg'a mos kelishini aniqlang. Yoki barabanni aylantiring.",
+    descRu: "Четыре коротких вопроса помогут понять, какой подарок подойдёт. Или крутите колесо.",
+    descEn: "Four short questions to work out what kind of gift fits. Or try the prize wheel.",
+    badgeUz: "Sovg'alar",
+    badgeRu: "Подарки",
+    badgeEn: "Gifts",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
     icon: HelpCircle,
     iconGradient: "from-indigo-500/20 to-blue-500/10",
@@ -347,7 +349,7 @@ const featuresList: FeatureItem[] = [
     route: "/gift-quiz",
     actionUz: "Testni boshlash",
     actionRu: "Начать тест",
-    actionEn: "Start Quiz",
+    actionEn: "Take the quiz",
     highlightsUz: [
       "Shaxsiyat arxetipini aniqlovchi 4 ta savol",
       "Interaktiv sovg'alar omad g'ildiragi (Wheel of Fortune)",
@@ -370,26 +372,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "group-gifting",
     category: "games",
-    titleUz: "Jamoaviy Sovg'a & Payme/Click Splitter",
-    titleRu: "Групповой Сбор & Payme/Click Splitter",
-    titleEn: "Group Gifting Pool & Payment Splitter",
-    descUz: "Hamkasblar yoki do'stlar bilan katta sovg'aga mablag' to'plang. Payme & Click havolalari, progress bar va tabriklar devori.",
-    descRu: "Сбор средств на крупный подарок с друзьями или коллегами. Прямые ссылки Payme / Click и прогресс-бар сбора.",
-    descEn: "Crowdfund premium gifts together with colleagues or friends. Automated progress tracking and direct Payme/Click links.",
-    badgeUz: "Jamoaviy Ulush",
-    badgeRu: "Групповой Сбор",
-    badgeEn: "Group Crowdfund",
-    statusUz: "💳 Payme & Click",
-    statusRu: "💳 Payme & Click",
-    statusEn: "💳 Payme & Click",
+    titleUz: "Birgalikda sovg'a",
+    titleRu: "Общий подарок",
+    titleEn: "Group gift",
+    descUz: "Hamkasblar yoki do'stlar bilan pul yig'ing, kim to'laganini kuzating va ulushlarni Payme/Click orqali yuboring.",
+    descRu: "Соберите деньги с коллегами или друзьями, отслеживайте, кто заплатил, и отправляйте доли через Payme/Click.",
+    descEn: "Collect money with colleagues or friends, track who has paid, and send shares via Payme or Click.",
+    badgeUz: "Tadbirlar",
+    badgeRu: "События",
+    badgeEn: "Events",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
     icon: Users,
     iconGradient: "from-emerald-500/20 to-green-500/10",
     iconColor: "text-emerald-500",
     route: "/group-gifting",
-    actionUz: "Fond ochish",
-    actionRu: "Создать сбор",
-    actionEn: "Start Pool",
+    actionUz: "Yig'im boshlash",
+    actionRu: "Начать сбор",
+    actionEn: "Start a group gift",
     highlightsUz: [
       "Payme va Click orqali avtomatik to'lov hisoblash",
       "Jonli yig'ilgan mablag' progress-bari",
@@ -412,26 +414,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "secret-santa",
     category: "games",
-    titleUz: "Maxfiy Sovg'a (Secret Santa) Xonasi",
-    titleRu: "Тайный Санта (Secret Santa) Комната",
-    titleEn: "Secret Santa & Holiday Party Room",
-    descUz: "Jamoangiz yoki sinfdoshlar uchun anonim sovg'a almashish. Adolatli tasodifiy juftlashtirish va byudjet chegaralari.",
-    descRu: "Анонимный обмен подарками для команд или друзей. Честная жеребьевка и подбор подарков под фиксированный лимит.",
-    descEn: "Anonymous gift exchanges for teams and friends. Fair randomized pairing algorithm and strict budget enforcement.",
-    badgeUz: "Anonim Almashuv",
-    badgeRu: "Анонимный Обмен",
-    badgeEn: "Secret Exchange",
-    statusUz: "🎉 Bayramona",
-    statusRu: "🎉 Праздник",
-    statusEn: "🎉 Holiday Room",
+    titleUz: "Secret Santa",
+    titleRu: "Тайный Санта",
+    titleEn: "Secret Santa",
+    descUz: "Ishtirokchilarni qo'shing, byudjetni belgilang va kim kimga sovg'a berishini tasodifiy tanlang.",
+    descRu: "Добавьте участников, задайте бюджет и случайно распределите, кто кому дарит.",
+    descEn: "Add people, set a budget and randomly draw who gives a gift to whom.",
+    badgeUz: "Tadbirlar",
+    badgeRu: "События",
+    badgeEn: "Events",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
     icon: Gift,
     iconGradient: "from-rose-500/20 to-red-500/10",
     iconColor: "text-rose-500",
     route: "/secret-santa",
-    actionUz: "Xona yaratish",
-    actionRu: "Создать комнату",
-    actionEn: "Launch Room",
+    actionUz: "Guruh yaratish",
+    actionRu: "Создать группу",
+    actionEn: "Set up a group",
     highlightsUz: [
       "Adolatli avtomatlashtirilgan anonim juftlash algoritmi",
       "Aniq byudjet limiti belgilash (masalan: 200,000 UZS gacha)",
@@ -456,26 +458,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "packaging-studio",
     category: "luxury",
-    titleUz: "Qadoqlash & Mumli Muhr Studiyasi",
-    titleRu: "Студия Упаковки и Сургучной Печати",
-    titleEn: "Royal Packaging & Wax Seal Atelier",
-    descUz: "4 xil qirollik qutilari, haqiqiy ipak lentalar, mumli muhr (Wax Seal) va metall lavhadagi shaxsiy lazer o'ymakorligi.",
-    descRu: "4 королевские коробки, натуральные шелковые ленты, сургучная печать и металлическая гравированная табличка.",
-    descEn: "4 royal gift boxes, genuine silk ribbons, bespoke wax seal stamps, and laser-engraved metal plaque inscriptions.",
-    badgeUz: "Atelier Qadoqlash",
-    badgeRu: "Ателье Упаковки",
-    badgeEn: "Royal Atelier",
-    statusUz: "💎 Qirollik",
-    statusRu: "💎 Премиум",
-    statusEn: "💎 Royal Grade",
+    titleUz: "Sovg'a qadoqlash",
+    titleRu: "Упаковка подарка",
+    titleEn: "Gift wrapping",
+    descUz: "Quti, lenta va muhrni tanlang, kartochkaga matn yozing.",
+    descRu: "Выберите коробку, ленту и печать, добавьте текст на карточку.",
+    descEn: "Choose a box, ribbon and seal, and add a message card.",
+    badgeUz: "Dizayn",
+    badgeRu: "Оформление",
+    badgeEn: "Design",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
     icon: PackageCheck,
     iconGradient: "from-indigo-500/20 to-violet-500/10",
     iconColor: "text-indigo-500",
     route: "/packaging-studio",
-    actionUz: "Studiyani ochish",
-    actionRu: "Открыть студию",
-    actionEn: "Open Studio",
+    actionUz: "Tanlash",
+    actionRu: "Выбрать",
+    actionEn: "Choose wrapping",
     highlightsUz: [
       "4 xil hashamatli qutilar (Black Obsidian, Royal Emerald, etc.)",
       "Haqiqiy mumli muhr (Wax Seal) bosish xizmati",
@@ -498,26 +500,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "calligraphy-card",
     category: "luxury",
-    titleUz: "Kalligrafik Tabriknoma & Zardo'zlik Duolari",
-    titleRu: "Каллиграфические Открытки & Дуа",
-    titleEn: "Artisanal Calligraphy Cards & Blessings",
-    descUz: "Buxoro zardo'zligi, Samarqand feruzasi va Marg'ilon adrasi uslubidagi zarhalli xattotlik kartochkalarini loyihalash va chop etish.",
-    descRu: "Создание открыток в стиле бухарского золота, самаркандской бирюзы и маргиланского адраса с готовыми дуа.",
-    descEn: "Design gold-foil calligraphy greeting cards in Bukhara zardozi, Samarkand turquoise, and Margilan ikat aesthetics.",
-    badgeUz: "Xattotlik Studiyasi",
-    badgeRu: "Студия Каллиграфии",
-    badgeEn: "Calligraphy Atelier",
-    statusUz: "📜 Buxoro Zardo'zi",
-    statusRu: "📜 Золотое Тиснение",
-    statusEn: "📜 Gold Embossed",
+    titleUz: "Tabriknoma",
+    titleRu: "Открытка",
+    titleEn: "Greeting card",
+    descUz: "Tabrik matnini yozing yoki tayyor matnni tanlang va uslubini belgilang.",
+    descRu: "Напишите поздравление или выберите готовое и оформите его.",
+    descEn: "Write a message or pick a ready one, then choose a style.",
+    badgeUz: "Dizayn",
+    badgeRu: "Оформление",
+    badgeEn: "Design",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     icon: PenTool,
-    iconGradient: "from-amber-500/20 to-yellow-500/10",
+    iconGradient: "from-amber-500/20 to-amber-600/10",
     iconColor: "text-amber-500",
     route: "/calligraphy-card",
     actionUz: "Tabriknoma yaratish",
     actionRu: "Создать открытку",
-    actionEn: "Design Card",
+    actionEn: "Make a card",
     highlightsUz: [
       "Buxoro zarhalli va Samarqand feruza bezaklari",
       "O'zbek xattotlik san'atidagi klassik shriftlar",
@@ -540,26 +542,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "cultural-etiquette",
     category: "luxury",
-    titleUz: "O'zbek Sovg'a Odobi & Urf-odat AI",
-    titleRu: "Узбекский Этикет Подарков & Традиции",
-    titleEn: "Uzbek Gift Etiquette & Traditions Advisor",
-    descUz: "Qaynona-qaynota, kelin salom va yangi xonadonlar uchun milliy nozikliklar, taboolar va samimiy o'zbekona duolar to'plami.",
-    descRu: "Тонкости этикета для сватов, келин салом, табу новоселья и искренние национальные благословения.",
-    descEn: "Centuries-old traditions for in-laws, Kelin Salom, housewarming taboos, and heartfelt cultural blessings.",
-    badgeUz: "Madaniy Intellekt",
-    badgeRu: "Культурный Интеллект",
-    badgeEn: "Cultural Etiquette",
-    statusUz: "🕌 Milliy Qadriyat",
-    statusRu: "🕌 Традиции",
-    statusEn: "🕌 Heritage AI",
+    titleUz: "Sovg'a odobi",
+    titleRu: "Этикет подарков",
+    titleEn: "Gift etiquette",
+    descUz: "Qaynona-qaynotaga, kelin salomga yoki yangi uyga nima sovg'a qilish odat bo'lgani va nimadan qochish kerakligi.",
+    descRu: "Что принято дарить родителям супруга, на келин салом или новоселье, и чего лучше избегать.",
+    descEn: "What's customary to give in-laws, at a kelin salom or a housewarming, and what to avoid.",
+    badgeUz: "Maslahat",
+    badgeRu: "Советы",
+    badgeEn: "Advice",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20",
     icon: BookOpen,
     iconGradient: "from-teal-500/20 to-emerald-500/10",
     iconColor: "text-teal-500",
     route: "/cultural-etiquette",
-    actionUz: "Odob qoidalarini ko'rish",
-    actionRu: "Смотреть этикет",
-    actionEn: "Explore Etiquette",
+    actionUz: "O'qish",
+    actionRu: "Читать",
+    actionEn: "Read the guide",
     simulatorTab: "cultural",
     highlightsUz: [
       "Qudalar va yangi oila uchun milliy me'yorlar",
@@ -583,26 +585,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "wedding-registry",
     category: "luxury",
-    titleUz: "To'y Registratsiyasi & Surprise Protection",
-    titleRu: "Свадебный Реестр & Защита от Дубликатов",
-    titleEn: "Wedding Registry & Duplicate Protection",
-    descUz: "Mehmonlar bir xil sovg'ani olmasligi uchun band qilish, kelin-kuyov orzular ro'yxati va orzudagi sayohat jamg'armasi.",
-    descRu: "Создайте персональный реестр желанных подарков: техника, фарфор или медовый месяц. Алгоритм исключает повторы!",
-    descEn: "Curate your gift registry with reservation locks to prevent duplicate presents, plus honeymoon cash pool.",
-    badgeUz: "Zero Duplicates",
-    badgeRu: "Без Дубликатов",
-    badgeEn: "Zero Duplicates",
-    statusUz: "💍 To'y Ro'yxati",
-    statusRu: "💍 Свадьба",
-    statusEn: "💍 Wedding Protocol",
+    titleUz: "To'y ro'yxati",
+    titleRu: "Свадебный список",
+    titleEn: "Wedding registry",
+    descUz: "Kerakli narsalar ro'yxatini tuzing va mehmonlarga yuboring. Band qilingan sovg'ani boshqalar ko'radi.",
+    descRu: "Составьте список нужных вещей и отправьте гостям. Забронированные подарки видны всем.",
+    descEn: "List what you need and share it with guests. Reserved gifts are visible to everyone.",
+    badgeUz: "Tadbirlar",
+    badgeRu: "События",
+    badgeEn: "Events",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20",
     icon: Heart,
     iconGradient: "from-rose-500/20 to-pink-500/10",
     iconColor: "text-rose-500",
     route: "/wedding/ali-madina",
-    actionUz: "Registratsiyani ko'rish",
-    actionRu: "Смотреть реестр",
-    actionEn: "View Registry",
+    actionUz: "Ro'yxatni ochish",
+    actionRu: "Открыть список",
+    actionEn: "Open registry",
     highlightsUz: [
       "Takrorlanishning oldini oluvchi band qilish tizimi",
       "Kelin-kuyov uchun sayohat jamg'armasi (Payme/Click)",
@@ -627,26 +629,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "currency-converter",
     category: "fintech",
-    titleUz: "Valyuta & Markaziy Bank Kursi Konvertori",
-    titleRu: "Конвертер Валют & Курс ЦБ Узбекистана",
-    titleEn: "Currency Converter & CBU Live Exchange Rate",
-    descUz: "O'zbekiston Markaziy Banki rasmiy kursi asosida jonli ikki tomonlama dollar va so'm kalkulyatori, tezkor miqdorlar.",
-    descRu: "Двусторонний калькулятор долларов и сумов по официальному курсу ЦБ РУз с быстрыми шаблонами сумм.",
-    descEn: "Bilateral USD to UZS currency calculator based on official Central Bank of Uzbekistan daily rates.",
-    badgeUz: "Markaziy Bank",
-    badgeRu: "Центральный Банк",
-    badgeEn: "Central Bank UZ",
-    statusUz: "💵 Jonli Kurs",
-    statusRu: "💵 Курс ЦБ",
-    statusEn: "💵 Live Rate",
+    titleUz: "Valyuta kalkulyatori",
+    titleRu: "Конвертер валют",
+    titleEn: "Currency converter",
+    descUz: "Dollar va so'm o'rtasida Markaziy bank kursi bo'yicha hisoblang.",
+    descRu: "Пересчёт долларов и сумов по курсу Центрального банка.",
+    descEn: "Convert between dollars and sum at the Central Bank rate.",
+    badgeUz: "Hisob-kitob",
+    badgeRu: "Расчёты",
+    badgeEn: "Money",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
     icon: DollarSign,
     iconGradient: "from-emerald-500/20 to-green-500/10",
     iconColor: "text-emerald-500",
     route: "action:currency-converter",
-    actionUz: "Kalkulyatorni ochish",
-    actionRu: "Открыть калькулятор",
-    actionEn: "Open Calculator",
+    actionUz: "Hisoblash",
+    actionRu: "Посчитать",
+    actionEn: "Convert",
     highlightsUz: [
       "MB rasmiy kursi bo'yicha aniq hisob-kitob (1 USD = 12,850 UZS)",
       "Tezkor oldindan belgilangan summalar ($20, $50, $100, $500, $1000)",
@@ -669,26 +671,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "warranty-vault",
     category: "fintech",
-    titleUz: "Raqamli Kafolat & Cheklar Hamyoni (Vault)",
-    titleRu: "Кошелек Гарантий & Цифровой Архив Чеков",
-    titleEn: "Digital Warranty Vault & Receipt Wallet",
-    descUz: "Texnika va sovg'alar kafolat muddati hisoblagichi, cheklar arxivi hamda O'zbekiston do'konlarining rasmiy servis telefonlari.",
-    descRu: "Трекинг гарантийных сроков на технику, защищенный архив чеков и контакты официальных сервис-центров.",
-    descEn: "Digital warranty countdown for appliances, cloud receipt locker, and direct access to manufacturer service centers.",
-    badgeUz: "Kafolat Hamyoni",
-    badgeRu: "Кошелек Гарантий",
-    badgeEn: "Warranty Vault",
-    statusUz: "🛡️ Xavfsiz Arxiv",
-    statusRu: "🛡️ Защищено",
-    statusEn: "🛡️ Secured Vault",
+    titleUz: "Kafolatlar",
+    titleRu: "Гарантии",
+    titleEn: "Warranty tracker",
+    descUz: "Cheklarni saqlang va kafolat muddati tugashidan oldin eslatma oling.",
+    descRu: "Храните чеки и получайте напоминание до окончания гарантии.",
+    descEn: "Keep your receipts and get reminded before a warranty runs out.",
+    badgeUz: "Hisob-kitob",
+    badgeRu: "Расчёты",
+    badgeEn: "Money",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
     icon: ShieldCheck,
     iconGradient: "from-emerald-500/20 to-teal-500/10",
     iconColor: "text-emerald-500",
     route: "/warranty-vault",
-    actionUz: "Hamyonni ochish",
-    actionRu: "Открыть кошелек",
-    actionEn: "Open Vault",
+    actionUz: "Ochish",
+    actionRu: "Открыть",
+    actionEn: "Open",
     highlightsUz: [
       "Texnikalar kafolat muddati teskari taymeri",
       "Chek va kafolat talonlarini bulutda saqlash",
@@ -711,26 +713,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "installment-simulator",
     category: "fintech",
-    titleUz: "0-0-12 Halol Muddatli To'lov & Nasiya",
-    titleRu: "Калькулятор Рассрочки 0-0-12 Без Переплат",
-    titleEn: "0-0-12 Halal Installment & Nasiya Simulator",
-    descUz: "Texnomart, Uzum Nasiya va Anorbank 0% ustamasiz oylik to'lovlarini real vaqt rejimida taqqoslash va qulay xaridni rejalashtirish.",
-    descRu: "Сравнение условий Uzum Nasiya, Texnomart и банковской рассрочки без скрытых переплат за 3, 6 или 12 месяцев.",
-    descEn: "Compare transparent 3, 6, and 12-month installment payment plans across Texnomart and Uzum Nasiya.",
-    badgeUz: "Nasiya Hisoblagich",
-    badgeRu: "Калькулятор Рассрочки",
-    badgeEn: "Installment Engine",
-    statusUz: "0% Ustamasiz",
-    statusRu: "0% Переплат",
-    statusEn: "0% Surcharge",
+    titleUz: "Muddatli to'lov kalkulyatori",
+    titleRu: "Калькулятор рассрочки",
+    titleEn: "Installment calculator",
+    descUz: "3, 6 va 12 oylik to'lovlarni Texnomart va Uzum Nasiya shartlari bo'yicha solishtiring.",
+    descRu: "Сравните платежи на 3, 6 и 12 месяцев по условиям Texnomart и Uzum Nasiya.",
+    descEn: "Compare 3, 6 and 12-month payments on Texnomart and Uzum Nasiya terms.",
+    badgeUz: "Hisob-kitob",
+    badgeRu: "Расчёты",
+    badgeEn: "Money",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
     icon: Wallet,
     iconGradient: "from-blue-500/20 to-cyan-500/10",
     iconColor: "text-blue-500",
     route: "#ai-lab-studio",
-    actionUz: "Simulyatorni ochish",
-    actionRu: "Открыть калькулятор",
-    actionEn: "Launch Calculator",
+    actionUz: "Hisoblash",
+    actionRu: "Посчитать",
+    actionEn: "Calculate",
     simulatorTab: "installment",
     highlightsUz: [
       "3, 6 va 12 oylik to'lovlar jadvalini hisoblash",
@@ -754,26 +756,26 @@ const featuresList: FeatureItem[] = [
   {
     id: "vip-privilege-card",
     category: "fintech",
-    titleUz: "Holographic VIP Privilege Pass",
-    titleRu: "Голографическая VIP Карта Привилегий",
-    titleEn: "Holographic VIP Privilege Pass",
-    descUz: "Keshbek statusi, shaxsiy konsyerj xizmati, 14 viloyatga bepul yetkazish va yopiq sotuvlardagi eksklyuziv narxlar tizimi.",
-    descRu: "Кешбэк статус, персональный консьерж-сервис, бесплатная доставка по Узбекистану и закрытые распродажи.",
-    descEn: "Tiered cashback status, bespoke human concierge, free nationwide transit, and invite-only flash drops.",
-    badgeUz: "VIP Status",
-    badgeRu: "VIP Привилегия",
-    badgeEn: "VIP Privilege",
-    statusUz: "👑 Eksklyuziv",
-    statusRu: "👑 Эксклюзив",
-    statusEn: "👑 Exclusive",
+    titleUz: "Pro obuna",
+    titleRu: "Подписка Pro",
+    titleEn: "Pro membership",
+    descUz: "Ko'proq qidiruv, narx eslatmalari va maxsus takliflar.",
+    descRu: "Больше поисков, уведомления о ценах и специальные предложения.",
+    descEn: "More searches, price alerts and members-only offers.",
+    badgeUz: "Obuna",
+    badgeRu: "Подписка",
+    badgeEn: "Membership",
+    statusUz: "",
+    statusRu: "",
+    statusEn: "",
     statusColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     icon: Star,
-    iconGradient: "from-amber-500/20 to-orange-500/10",
+    iconGradient: "from-amber-500/20 to-amber-600/10",
     iconColor: "text-amber-500",
     route: "#vip-card-section",
-    actionUz: "Karta tafsilotlari",
-    actionRu: "Смотреть карту",
-    actionEn: "View VIP Pass",
+    actionUz: "Batafsil",
+    actionRu: "Подробнее",
+    actionEn: "Learn more",
     highlightsUz: [
       "Shaxsiy AI Shopping konsyerji 24/7",
       "14 viloyat bo'ylab bepul ekspress yetkazish",
@@ -811,39 +813,39 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
       key: "all" as FeatureCategory,
       labelUz: "Barchasi",
       labelRu: "Все",
-      labelEn: "All Services",
+      labelEn: "All",
       count: featuresList.length,
       icon: Compass,
     },
     {
       key: "ai_tools" as FeatureCategory,
-      labelUz: "⚡ AI & Bozor",
-      labelRu: "⚡ AI & Рынок",
-      labelEn: "⚡ AI & Market",
+      labelUz: "Narxlar va xarid",
+      labelRu: "Цены и покупки",
+      labelEn: "Prices & shopping",
       count: featuresList.filter((f) => f.category === "ai_tools").length,
       icon: Sparkles,
     },
     {
       key: "games" as FeatureCategory,
-      labelUz: "🎁 Syurpriz & O'yinlar",
-      labelRu: "🎁 Сюрпризы & Игры",
-      labelEn: "🎁 Fun & Games",
+      labelUz: "Sovg'a g'oyalari",
+      labelRu: "Идеи подарков",
+      labelEn: "Gift ideas",
       count: featuresList.filter((f) => f.category === "games").length,
       icon: Box,
     },
     {
       key: "luxury" as FeatureCategory,
-      labelUz: "👑 Hashamat & Studiya",
-      labelRu: "👑 Люкс & Ателье",
-      labelEn: "👑 Luxury Atelier",
+      labelUz: "Tadbirlar va dizayn",
+      labelRu: "События и оформление",
+      labelEn: "Occasions & design",
       count: featuresList.filter((f) => f.category === "luxury").length,
       icon: PackageCheck,
     },
     {
       key: "fintech" as FeatureCategory,
-      labelUz: "💰 Moliya & Xavfsizlik",
-      labelRu: "💰 Финтех & Защита",
-      labelEn: "💰 Fintech & Vault",
+      labelUz: "Hisob-kitob",
+      labelRu: "Расчёты",
+      labelEn: "Money",
       count: featuresList.filter((f) => f.category === "fintech").length,
       icon: ShieldCheck,
     },
@@ -900,51 +902,20 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
   };
 
   return (
-    <section id="features-hub-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
+    <section id="features-hub-section" className="reveal max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
       {/* ─── COMMAND CENTER HEADER ───────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 pb-6 border-b border-slate-200/80 dark:border-slate-800">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-900 dark:bg-amber-500/10 border border-slate-800 dark:border-amber-500/20 text-slate-200 dark:text-amber-400 text-xs font-mono font-bold tracking-wider uppercase mb-3 shadow-xs">
-            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />
-            <span>
-              {language === "uz"
-                ? "EKOTIZIM NAVIGATORI"
-                : language === "ru"
-                ? "НАВИГАТОР ЭКОСИСТЕМЫ"
-                : "PLATFORM DIRECTORY"}
-            </span>
-            <span className="text-slate-600 dark:text-slate-500">•</span>
-            <span className="text-amber-400 font-semibold">
-              {language === "uz"
-                ? `${featuresList.length} TA XIZMAT`
-                : language === "ru"
-                ? `${featuresList.length} СЕРВИСОВ`
-                : `${featuresList.length} SERVICES`}
-            </span>
-          </div>
-
-          <h2 className="font-display font-black text-2xl sm:text-4xl text-slate-900 dark:text-white tracking-tight">
-            {language === "uz" ? (
-              <>
-                Barcha Imkoniyatlar & <span className="gold-gradient-text">Eksklyuziv Xizmatlar</span>
-              </>
-            ) : language === "ru" ? (
-              <>
-                Все Возможности & <span className="gold-gradient-text">Эксклюзивные Сервисы</span>
-              </>
-            ) : (
-              <>
-                The Complete <span className="gold-gradient-text">Platform Feature Command Hub</span>
-              </>
-            )}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+        <div className="max-w-2xl">
+          <span className="eyebrow mb-3">{language === "uz" ? "Katalog" : language === "ru" ? "Каталог" : "Directory"}</span>
+          <h2 className="font-display font-semibold text-[1.75rem] leading-tight sm:text-4xl tracking-[-0.035em] text-slate-900 dark:text-white">
+            {language === "uz" ? <>Barcha <span className="text-gold-gradient">vositalar</span></> : language === "ru" ? <>Все <span className="text-gold-gradient">инструменты</span></> : <>Everything <span className="text-gold-gradient">Sovg'a can do</span></>}
           </h2>
-
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-2xl mt-2 font-normal leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
             {language === "uz"
-              ? "Bozor tahlili, o'yinlar, mumli muhrli qadoqlash studiyasi va jamoaviy to'lovlar — barchasi bir markazda tartiblangan."
+              ? `${featuresList.length} ta vosita: narxlar, sovg'a g'oyalari, tadbirlar va hisob-kitoblar.`
               : language === "ru"
-              ? "Анализ цен, анбоксинг, королевская студия упаковки и групповой сбор — все сервисы структурированы в одном хабе."
-              : "Live price arbitrage, mystery unboxing, royal wax seal atelier, and payment pools organized in one unified command center."}
+              ? `${featuresList.length} инструментов: цены, идеи подарков, события и расчёты.`
+              : `${featuresList.length} tools for prices, gift ideas, occasions and money.`}
           </p>
         </div>
 
@@ -964,7 +935,7 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
                   ? "Поиск сервисов..."
                   : "Filter features..."
               }
-              className="w-full pl-9.5 pr-8 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-hidden focus:border-amber-400 shadow-xs transition"
+              className="w-full h-10 pl-9.5 pr-8 rounded-lg bg-white dark:bg-white/5 border border-[var(--line)] text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-hidden focus:border-slate-400 transition"
             />
             {searchQuery && (
               <button
@@ -981,61 +952,40 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
               cyberSound.playConfirm();
               document.getElementById("ai-lab-studio")?.scrollIntoView({ behavior: "smooth" });
             }}
-            className="px-4 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-900 dark:border dark:border-slate-800 dark:hover:border-amber-400/60 text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-2 group cursor-pointer whitespace-nowrap"
+            className="h-10 px-4 rounded-lg bg-white dark:bg-white/5 border border-[var(--line)] hover:border-[var(--line-strong)] text-slate-700 dark:text-slate-200 text-sm font-medium transition flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap"
           >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 group-hover:rotate-12 transition-transform" />
             <span>
-              {language === "uz"
-                ? "AI Lab Simulyatorlari"
-                : language === "ru"
-                ? "Лаборатория AI"
-                : "AI Simulators Lab"}
+              {language === "uz" ? "Kalkulyatorlar" : language === "ru" ? "Калькуляторы" : "Calculators"}
             </span>
-            <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
           </button>
         </div>
       </div>
 
       {/* ─── VIRAL FEATURE SPOTLIGHT HERO RIBBON ───────────── */}
-      <div className="mb-8 rounded-3xl p-5 sm:p-7 bg-gradient-to-br from-[#fffdfa] via-[#fbf6ec] to-[#f5eddb] dark:from-slate-950 dark:via-slate-900 dark:to-amber-950/40 border-2 border-amber-300/90 dark:border-amber-500/30 text-slate-900 dark:text-white relative overflow-hidden shadow-luxury flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-400/20 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="panel-ink ring-gold mb-8 rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
 
         <div className="space-y-2 relative z-10 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 dark:bg-amber-400/20 border border-amber-500/30 dark:border-amber-400/30 text-amber-900 dark:text-amber-300 text-[10px] font-bold tracking-wider uppercase">
-            <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-            <span>
-              {language === "uz"
-                ? "HAFTA TRENDI · VIRTUAL 3D UNBOXING"
-                : language === "ru"
-                ? "ТРЕНД НЕДЕЛИ · 3D АНБОКСИНГ"
-                : "FEATURE OF THE WEEK · 3D UNBOXING"}
-            </span>
-          </div>
+          <span className="eyebrow">
+            {language === "uz" ? "Tavsiya etamiz" : language === "ru" ? "Рекомендуем" : "Worth a try"}
+          </span>
 
-          <h3 className="font-display font-extrabold text-xl sm:text-2xl text-slate-900 dark:text-white">
-            {language === "uz"
-              ? "AI Syurpriz Quti: Byudjetingizga mos sovg'alar & 3D Unboxing"
-              : language === "ru"
-              ? "AI Коробка-Сюрприз: Подарки под ваш бюджет и 3D анбоксинг"
-              : "AI Mystery Box: Budget-tailored surprise gift set with 3D unboxing"}
+          <h3 className="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight pt-1">
+            {language === "uz" ? "Syurpriz quti: byudjetingizga mos sovg'alar to'plami" : language === "ru" ? "Сюрприз-бокс: набор подарков под ваш бюджет" : "Mystery box: a gift set that fits your budget"}
           </h3>
 
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal">
-            {language === "uz"
-              ? "Sovg'a tanlashga vaqtingiz kammi? Byudjetingizni kiriting, AI 3-4 ta bir-birini to'ldiruvchi original sovg'alar jamlanmasini tuzib beradi va virtual 3D qutini ochadi."
-              : language === "ru"
-              ? "Мало времени на выбор? Укажите бюджет, и AI подберет идеальный сет из 3-4 подарков с эффектным 3D открытием коробки."
-              : "Short on time? Set your budget limit and let AI curate a harmonious 3-4 gift bundle with virtual 3D unboxing physics."}
+          <p className="text-sm text-slate-300/80 leading-relaxed font-normal">
+            {language === "uz" ? "Tanlashga vaqt yo'qmi? Byudjetni kiriting — biz bir-biriga mos 3-4 ta sovg'ani tanlab beramiz." : language === "ru" ? "Нет времени выбирать? Укажите бюджет — мы подберём 3–4 подарка, которые хорошо сочетаются." : "Short on time? Enter your budget and we'll pick 3–4 gifts that go well together."}
           </p>
 
-          <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] text-amber-900 dark:text-amber-300/80 font-mono">
-            <span className="flex items-center gap-1 bg-white/80 dark:bg-white/5 px-2.5 py-0.5 rounded-md border border-amber-200/80 dark:border-white/10 shadow-2xs">
-              <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />{" "}
-              {language === "uz" ? "100% Real Do'kon Narxlari" : language === "ru" ? "100% Реальные Цены" : "100% Real Store Prices"}
+          <div className="flex flex-wrap items-center gap-4 pt-1 text-sm text-slate-300">
+            <span className="flex items-center gap-1.5">
+              <span className="bullet-check is-emerald"><CheckCircle2 className="w-3 h-3" /></span>
+              {language === "uz" ? "Do'kon narxlari" : language === "ru" ? "Цены магазинов" : "Real store prices"}
             </span>
-            <span className="flex items-center gap-1 bg-white/80 dark:bg-white/5 px-2.5 py-0.5 rounded-md border border-amber-200/80 dark:border-white/10 shadow-2xs">
-              <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />{" "}
-              {language === "uz" ? "0% O'xshash bo'lmagan sovg'alar" : language === "ru" ? "0% Дубликатов" : "0% Duplicate Gifts"}
+            <span className="flex items-center gap-1.5">
+              <span className="bullet-check is-emerald"><CheckCircle2 className="w-3 h-3" /></span>
+              {language === "uz" ? "Takrorlanmaydi" : language === "ru" ? "Без повторов" : "No duplicates"}
             </span>
           </div>
         </div>
@@ -1043,25 +993,23 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 relative z-10 w-full lg:w-auto">
           <Link
             href="/mystery-box"
-            className="flex-1 sm:flex-initial px-6 py-3 rounded-2xl btn-luxury-gold text-xs font-bold transition flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+            className="flex-1 sm:flex-initial h-12 px-6 rounded-xl btn-luxury-gold text-sm transition flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Box className="w-4 h-4 text-slate-950" />
-            <span>{language === "uz" ? "Qutini Ochish" : language === "ru" ? "Открыть Коробку" : "Open Mystery Box"}</span>
+            <span>{language === "uz" ? "Qutini ochish" : language === "ru" ? "Открыть" : "Try it"}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
 
           <Link
             href="/gift-quiz"
-            className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl bg-amber-100/80 hover:bg-amber-200/80 dark:bg-white/10 dark:hover:bg-white/15 border border-amber-300/80 dark:border-white/20 text-amber-950 dark:text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer backdrop-blur-md shadow-xs"
+            className="flex-1 sm:flex-initial h-12 px-5 rounded-xl bg-white/5 border border-white/15 hover:bg-white/10 text-white text-sm font-medium transition flex items-center justify-center gap-2 cursor-pointer"
           >
-            <HelpCircle className="w-4 h-4 text-indigo-600 dark:text-indigo-300" />
-            <span>{language === "uz" ? "Test & Ruletka" : language === "ru" ? "Тест & Рулетка" : "Quiz & Wheel"}</span>
+            <span>{language === "uz" ? "Sovg'a testi" : language === "ru" ? "Тест подарка" : "Gift quiz"}</span>
           </Link>
         </div>
       </div>
 
       {/* ─── CATEGORY FILTER SWITCHER ───────────────────────── */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-none">
         {categories.map((cat) => {
           const isActive = activeCategory === cat.key;
           const CatIcon = cat.icon;
@@ -1074,20 +1022,15 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
                 cyberSound.playClick();
                 setActiveCategory(cat.key);
               }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer select-none ${
+              className={`flex items-center gap-2 h-9 px-3.5 rounded-full text-sm font-medium transition whitespace-nowrap cursor-pointer select-none border ${
                 isActive
-                  ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white shadow-md font-extrabold scale-102"
-                  : "bg-white dark:bg-slate-900/80 text-amber-950/80 dark:text-slate-300 hover:text-amber-950 dark:hover:text-white border border-amber-200/80 dark:border-slate-800 hover:border-amber-400 dark:hover:border-slate-700 shadow-2xs font-semibold"
+                  ? "btn-gold"
+                  : "bg-white dark:bg-white/5 text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]"
               }`}
             >
-              <CatIcon className={`w-3.5 h-3.5 ${isActive ? "text-white" : "text-amber-700 dark:text-slate-400"}`} />
               <span>{label}</span>
               <span
-                className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-                  isActive
-                    ? "bg-white/25 text-white"
-                    : "bg-amber-100/70 dark:bg-slate-800 text-amber-950 dark:text-slate-400"
-                }`}
+                className={`text-xs tabular-nums ${isActive ? "text-amber-950/60" : "text-slate-400"}`}
               >
                 {cat.count}
               </span>
@@ -1098,7 +1041,7 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
 
       {/* ─── FEATURE CARDS GRID ─────────────────────────────── */}
       {filteredFeatures.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8">
+        <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8">
           <Search className="w-10 h-10 text-slate-400 mx-auto mb-3" />
           <h4 className="font-bold text-slate-900 dark:text-white text-base">
             {language === "uz"
@@ -1125,7 +1068,7 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredFeatures.map((f) => {
             const Icon = f.icon;
             const title = language === "uz" ? f.titleUz : language === "ru" ? f.titleRu : f.titleEn;
@@ -1138,24 +1081,19 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
               <div
                 key={f.id}
                 onClick={() => handleCardClick(f)}
-                className="group card-luxury bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#10121d] dark:to-[#080a11] rounded-3xl p-6 border-2 border-amber-200/80 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-500/60 shadow-luxury hover:shadow-2xl transition-all duration-300 flex flex-col justify-between cursor-pointer hover:-translate-y-1 relative overflow-hidden"
+                className="surface-card is-interactive group rounded-2xl p-5 flex flex-col justify-between cursor-pointer relative"
               >
                 {/* Subtle Ambient Hover Glow */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 group-hover:bg-amber-500/20 rounded-full blur-2xl transition-all pointer-events-none" />
 
                 <div>
                   {/* Header row: Icon & Status Badge */}
                   <div className="flex items-center justify-between gap-3 mb-4">
-                    <div
-                      className="w-12 h-12 rounded-2xl icon-medallion icon-box-gold flex items-center justify-center shrink-0 shadow-xs group-hover:scale-110 transition-transform duration-300"
-                    >
-                      <Icon className="w-6 h-6 stroke-[2.2]" />
-                    </div>
+                    <span className={`tile ${FEATURE_TILES[featuresList.findIndex((x) => x.id === f.id) % FEATURE_TILES.length]}`}>
+                      <Icon className="w-5 h-5" />
+                    </span>
 
                     <div className="flex items-center gap-1.5">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${f.statusColor}`}>
-                        {status}
-                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">{badge}</span>
                       {/* Info / Quick Preview button */}
                       <button
                         onClick={(e) => handleOpenPreview(e, f)}
@@ -1166,7 +1104,8 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
                             ? "Быстрый просмотр"
                             : "Quick preview"
                         }
-                        className="w-7 h-7 rounded-xl bg-amber-100/70 hover:bg-amber-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-amber-900 dark:text-slate-400 hover:text-amber-950 dark:hover:text-white flex items-center justify-center transition border border-amber-200/60 dark:border-slate-700"
+                        className="w-7 h-7 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 flex items-center justify-center transition"
+                        aria-label="Info"
                       >
                         <Info className="w-3.5 h-3.5 stroke-[2.2]" />
                       </button>
@@ -1174,27 +1113,22 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
                   </div>
 
                   {/* Domain Category Pill */}
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 dark:text-amber-300 bg-amber-50/90 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-md border border-amber-200/80 dark:border-slate-700/60 inline-block mb-2">
-                    {badge}
-                  </span>
 
                   {/* Feature Title */}
-                  <h3 className="font-display font-bold text-lg text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors leading-snug mb-2">
+                  <h3 className="font-semibold text-base text-slate-900 dark:text-white leading-snug mb-1.5">
                     {title}
                   </h3>
 
                   {/* Feature Description */}
-                  <p className="text-xs text-slate-700 dark:text-slate-400 leading-relaxed font-normal">
+                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                     {desc}
                   </p>
                 </div>
 
                 {/* Bottom Action Footer */}
-                <div className="mt-5 pt-3.5 border-t border-amber-200/60 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold text-amber-950 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                <div className="mt-4 flex items-center gap-1 text-sm font-medium text-slate-900 dark:text-white">
                   <span>{action}</span>
-                  <div className="w-7 h-7 rounded-xl bg-amber-100/80 dark:bg-slate-800 group-hover:bg-gradient-to-r group-hover:from-amber-500 group-hover:to-amber-600 group-hover:text-white text-amber-900 dark:text-slate-300 flex items-center justify-center transition-all shadow-2xs">
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform stroke-[2.2]" />
-                  </div>
+                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white group-hover:translate-x-0.5 transition" />
                 </div>
               </div>
             );
@@ -1209,7 +1143,7 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
           onClick={() => setPreviewFeature(null)}
         >
           <div
-            className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-8 max-w-lg w-full max-h-[92dvh] overflow-y-auto border border-slate-200 dark:border-slate-800 shadow-2xl relative space-y-5 animate-scale-in"
+            className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-8 max-w-lg w-full max-h-[92dvh] overflow-y-auto border border-slate-200 dark:border-slate-800 shadow-sm relative space-y-5 animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1221,15 +1155,15 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
 
             <div className="flex items-center gap-3">
               <div
-                className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${previewFeature.iconGradient} bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-center`}
+                className={`w-12 h-12 rounded-2xl ${previewFeature.iconGradient} bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-center`}
               >
                 <previewFeature.icon className={`w-6 h-6 ${previewFeature.iconColor}`} />
               </div>
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-md border border-amber-200 dark:border-amber-800/40">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md border border-[var(--line)] bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                   {language === "uz" ? previewFeature.badgeUz : language === "ru" ? previewFeature.badgeRu : previewFeature.badgeEn}
                 </span>
-                <h3 className="font-display font-extrabold text-lg text-slate-900 dark:text-white mt-1">
+                <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white mt-1">
                   {language === "uz" ? previewFeature.titleUz : language === "ru" ? previewFeature.titleRu : previewFeature.titleEn}
                 </h3>
               </div>
@@ -1242,7 +1176,7 @@ export default function FeatureCommandCenter({ onSelectSimulatorTab }: FeatureCo
             {/* Highlights List */}
             <div className="space-y-2 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-xs">
               <h4 className="font-bold text-slate-900 dark:text-white text-[11px] uppercase tracking-wider mb-2">
-                {language === "uz" ? "Asosiy Afzalliklari:" : language === "ru" ? "Ключевые Возможности:" : "Key Advantages:"}
+                {language === "uz" ? "Imkoniyatlar" : language === "ru" ? "Возможности" : "What it does"}
               </h4>
               {(language === "uz"
                 ? previewFeature.highlightsUz

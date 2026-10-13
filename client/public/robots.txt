@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /merchant
 
-Sitemap: https://sovga.uz/sitemap.xml
+Sitemap: https://sovgatop.uz/sitemap.xml

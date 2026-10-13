@@ -100,11 +100,11 @@ export function extractCleanStoreSearchQuery(fullName: string, contextQuery?: st
   const ctx = (contextQuery || "").toLowerCase();
 
   // 1. Televizorlar: Map to exact Brand + "televizor"
+  // Decide the product type from the product's own name. The user's query is only context:
+  // a query like "onam uchun sovg'a" must not turn an air fryer link into a TV search.
+  const notTvOrPhone = /watch|band|buds|airpods|fryer|aerogril|changyutgich|vacuum|pilesos|kolonka|speaker|zaryad|charger|magsafe|chehol|g'ilof|soat/i.test(qLower);
   const isTv =
-    ctx.includes("televizor") ||
-    ctx.includes("tv") ||
-    ctx.includes("ekran") ||
-    /televizor|televizori|телевизор|\btv\b|smart\s*tv|android\s*tv|google\s*tv|\buhd\b|\boled\b|\bqled\b/i.test(qLower) ||
+    (/televizor|televizori|телевизор|\btv\b|smart\s*tv|android\s*tv|google\s*tv/i.test(qLower) && !/fryer|aerogril|changyutgich/i.test(qLower)) ||
     /artel.*(?:24|32|40|43|50|55|65|75|85|ah90|au20|h35|h37|a65)/i.test(qLower) ||
     /shivaki.*(?:24|32|40|43|50|55|65|75|shtv)/i.test(qLower) ||
     /samsung.*(?:ue32|ue43|ue50|ue55|ue65|cu7100|du7100)/i.test(qLower) ||
@@ -123,9 +123,6 @@ export function extractCleanStoreSearchQuery(fullName: string, contextQuery?: st
 
   // 2. Noutbuklar: Map to concise Brand + Model
   const isLaptop =
-    ctx.includes("noutbuk") ||
-    ctx.includes("laptop") ||
-    ctx.includes("kompyuter") ||
     /noutbuk|laptop|macbook|aspire|ideapad|vivobook|victus|thinkpad|pavilion|zenbook/i.test(qLower);
 
   if (isLaptop) {
@@ -145,9 +142,8 @@ export function extractCleanStoreSearchQuery(fullName: string, contextQuery?: st
 
   // 3. Smartfonlar: Map to concise Brand + Model
   const isPhone =
-    ctx.includes("smartfon") ||
-    ctx.includes("telefon") ||
-    ctx.includes("phone") ||
+    !notTvOrPhone &&
+    !/\bpad\b|\btab\b|ipad|kir yuvish|muzlatgich|konditsioner/i.test(qLower) &&
     /smartfon|telefon|iphone|samsung|galaxy|redmi|xiaomi|poco|honor/i.test(qLower);
 
   if (isPhone) {
@@ -194,27 +190,27 @@ export function extractCleanStoreSearchQuery(fullName: string, contextQuery?: st
   if (/marshall/i.test(qLower)) return "Marshall Major";
 
   // 5. Maishiy Texnika
-  if (ctx.includes("kir yuvish") || /kir\s*yuvish|stiralnaya/i.test(qLower)) {
+  if (/kir\s*yuvish|stiralnaya/i.test(qLower)) {
     if (/lg/i.test(qLower) || /lg/i.test(ctx)) return "LG kir yuvish";
     if (/artel/i.test(qLower) || /artel/i.test(ctx)) return "Artel kir yuvish";
     if (/samsung/i.test(qLower) || /samsung/i.test(ctx)) return "Samsung kir yuvish";
     return "kir yuvish mashinasi";
   }
-  if (ctx.includes("muzlatgich") || /muzlatgich|xolodilnik|kholodilnik/i.test(qLower)) {
+  if (/muzlatgich|xolodilnik|kholodilnik/i.test(qLower)) {
     if (/artel/i.test(qLower) || /artel/i.test(ctx)) return "Artel muzlatgich";
     if (/samsung/i.test(qLower) || /samsung/i.test(ctx)) return "Samsung muzlatgich";
     if (/lg/i.test(qLower) || /lg/i.test(ctx)) return "LG muzlatgich";
     if (/shivaki/i.test(qLower) || /shivaki/i.test(ctx)) return "Shivaki muzlatgich";
     return "muzlatgich";
   }
-  if (ctx.includes("changyutgich") || /changyutgich|pilesos|dyson/i.test(qLower)) {
+  if (/changyutgich|pilesos|dyson/i.test(qLower)) {
     if (/dyson/i.test(qLower) || /dyson/i.test(ctx)) return "Dyson";
     if (/artel/i.test(qLower) || /artel/i.test(ctx)) return "Artel changyutgich";
     if (/samsung/i.test(qLower) || /samsung/i.test(ctx)) return "Samsung changyutgich";
     if (/xiaomi/i.test(qLower) || /xiaomi/i.test(ctx)) return "Xiaomi changyutgich";
     return "changyutgich";
   }
-  if (ctx.includes("konditsioner") || /konditsioner|konditsaner/i.test(qLower)) {
+  if (/konditsioner|konditsaner/i.test(qLower)) {
     if (/artel/i.test(qLower) || /artel/i.test(ctx)) return "Artel konditsioner";
     if (/shivaki/i.test(qLower) || /shivaki/i.test(ctx)) return "Shivaki konditsioner";
     if (/aux/i.test(qLower)) return "Aux konditsioner";
@@ -271,12 +267,10 @@ export function extractCleanStoreSearchQuery(fullName: string, contextQuery?: st
   q = q.replace(/\s+/g, " ").trim();
   q = q.replace(/\s+\d\b$/g, "").trim();
 
-  const words = q.split(" ").filter((w) => w.length > 1 || /\d/.test(w));
-  if (words.length > 2) {
-    q = words.slice(0, 2).join(" ");
-  } else {
-    q = words.join(" ");
-  }
+  // Up to four words keeps the store search specific ("Samsung Galaxy Watch 6", not "Samsung Galaxy")
+  const words = q.split(" ").filter((w) => w.length > 1 || /\d/.test(w)).slice(0, 4);
+  while (words.length > 1 && /^(va|bilan|and|with|и|с|uchun|for)$/i.test(words[words.length - 1])) words.pop();
+  q = words.join(" ");
 
   if (!q || q.length < 2) {
     q = fullName.replace(/[^\w\s]/g, " ").trim().split(" ").slice(0, 2).join(" ");

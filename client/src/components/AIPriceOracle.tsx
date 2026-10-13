@@ -10,7 +10,7 @@ import {
   Clock,
   ArrowRight,
   Info,
-} from "lucide-react";
+} from "../lib/icons";
 import { useCurrency } from "../lib/currency";
 import { cyberSound } from "../lib/cyberSound";
 import { useTranslation } from "../lib/i18n";
@@ -203,12 +203,12 @@ export default function AIPriceOracle() {
                 : "AI MARKET ORACLE · REAL-TIME TELEMETRY"}
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-display font-black text-slate-900 dark:text-white mt-2">
+          <h2 className="text-2xl sm:text-3xl font-display font-bold text-slate-900 dark:text-white mt-2">
             {language === "uz"
               ? "Sun'iy Intellekt Narxlar Dinamikasi & Bashorati"
               : language === "ru"
               ? "Динамика и Прогноз Цен Искусственного Интеллекта"
-              : "Neural Price Dynamics & 14-Day Trajectory Forecast"}
+              : "Price history and 14-day outlook"}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             {language === "uz"
@@ -228,9 +228,9 @@ export default function AIPriceOracle() {
                 cyberSound.playClick(1100);
                 setSelectedProductId(p.id);
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 selectedProductId === p.id
-                  ? "bg-slate-950 dark:bg-amber-500 text-white dark:text-slate-950 shadow-md shadow-slate-900/20"
+                  ? "bg-slate-950 dark:bg-amber-500 text-white dark:text-white shadow-md"
                   : "text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/60"
               }`}
             >
@@ -241,10 +241,8 @@ export default function AIPriceOracle() {
       </div>
 
       {/* Main Glass Oracle Card */}
-      <div className="bg-slate-950 text-slate-100 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl relative overflow-hidden">
+      <div className="bg-slate-950 text-slate-100 rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-sm relative overflow-hidden">
         {/* Glowing backdrop spotlight */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative z-10">
           {/* Left Column: Product Info & Live Forecast Chart */}
@@ -274,7 +272,7 @@ export default function AIPriceOracle() {
                 <p className="text-[10px] uppercase font-mono text-amber-400 font-bold">
                   {language === "uz" ? "Bugungi Eng Past" : language === "ru" ? "Лучшая Сегодня" : "Today's Lowest"}
                 </p>
-                <p className="text-sm sm:text-base font-black text-amber-300">
+                <p className="text-sm sm:text-base font-bold text-amber-300">
                   {formatPrice(product.currentPrice)}
                 </p>
               </div>
@@ -309,8 +307,8 @@ export default function AIPriceOracle() {
                 >
                   <defs>
                     <linearGradient id="solidGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.0" />
+                      <stop offset="0%" stopColor="#d9431f" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="#d9431f" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
 
@@ -331,7 +329,7 @@ export default function AIPriceOracle() {
                   <path
                     d={solidPath}
                     fill="none"
-                    stroke="#f59e0b"
+                    stroke="#d9431f"
                     strokeWidth="3"
                     strokeLinecap="round"
                   />
@@ -356,7 +354,7 @@ export default function AIPriceOracle() {
                           cx={pt.x}
                           cy={pt.y}
                           r={isCurrent ? 6 : 4}
-                          fill={isProj ? "#06b6d4" : isCurrent ? "#f59e0b" : "#e2e8f0"}
+                          fill={isProj ? "#06b6d4" : isCurrent ? "#d9431f" : "#e2e8f0"}
                           stroke="#090d16"
                           strokeWidth="2"
                         />
@@ -366,9 +364,9 @@ export default function AIPriceOracle() {
                             cy={pt.y}
                             r="11"
                             fill="none"
-                            stroke="#f59e0b"
+                            stroke="#d9431f"
                             strokeWidth="1.5"
-                            className="animate-ping opacity-60"
+                            className="opacity-60"
                           />
                         )}
                         <text
@@ -392,7 +390,7 @@ export default function AIPriceOracle() {
           {/* Right Column: AI Analysis Verdict & Real Store Links */}
           <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
             {/* Verdict Badge */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 via-slate-900 to-slate-900 border border-amber-500/30">
+            <div className="p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-amber-400" />
                 <span className="text-xs font-mono font-bold text-amber-300 uppercase">
@@ -420,10 +418,10 @@ export default function AIPriceOracle() {
                     href={st.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-amber-500/50 transition group cursor-pointer active:scale-95 shadow-2xs"
+                    className="flex items-center justify-between p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800/90 border border-slate-800 hover:border-[var(--line-strong)] transition group cursor-pointer shadow-2xs"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                      <div className="w-2 h-2 rounded-full bg-emerald-400" />
                       <div>
                         <span className="text-xs font-bold text-white block group-hover:text-amber-300 transition">
                           {st.name}

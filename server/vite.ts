@@ -4,6 +4,8 @@ import path from "path";
 
 export async function setupVite(app: Express) {
   const vite = await createViteServer({
+    // use the project config so aliases like @shared resolve in dev too
+    configFile: path.resolve(process.cwd(), "vite.config.ts"),
     root: path.resolve(process.cwd(), "client"),
     server: { 
       middlewareMode: true,

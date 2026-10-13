@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
 import { useTranslation } from "../lib/i18n";
 
 interface FaqItem {
@@ -45,12 +44,12 @@ const faqs: FaqItem[] = [
     aEn: "Our platform integrates with Uzum Nasiya, Alif Nasiya, and Anorbank. Product views display monthly breakdowns for 3, 6, 12, or 24 months with zero interest markup and no late payment penalties under certified halal terms.",
   },
   {
-    qUz: "Sovg'a AI xizmatlaridan foydalanish bepulmi?",
-    qRu: "Бесплатен ли сервис Sovg'a AI?",
-    qEn: "Is Sovg'a AI free to use?",
-    aUz: "Ha, Sovg'a AI platformasi xaridorlar va to'y egalari uchun mutlaqo 100% bepul. Biz do'konlar narxiga hech qanday qo'shimcha foiz yoki ustama qo'shmaymiz.",
-    aRu: "Да, сервис Sovg'a AI на 100% бесплатен для покупателей и организаторов свадеб. Мы не взимаем наценок, комиссий и дополнительных платежей сверх цен магазинов.",
-    aEn: "Yes, Sovg'a AI is 100% free for gift shoppers and registry organizers. We never add markups, hidden surcharges, or store broker fees.",
+    qUz: "Sovg'a bepulmi?",
+    qRu: "Sovg'a бесплатный?",
+    qEn: "Is Sovg'a free?",
+    aUz: "Asosiy qismi bepul: kuniga 5 ta qidiruv va 2 ta narx kuzatuvi. Ko'proq kerak bo'lsa, oyiga 14 999 so'mdan boshlanadigan tarif bor. Do'kon narxiga hech qanday ustama qo'shmaymiz.",
+    aRu: "Основное бесплатно: 5 поисков в день и 2 отслеживания цены. Если нужно больше, есть тарифы от 14 999 сум в месяц. Мы не добавляем наценку к ценам магазинов.",
+    aEn: "The basics are free: 5 searches a day and 2 price alerts. If you need more, plans start at 14,999 UZS a month. We never add a markup to store prices.",
   },
   {
     qUz: "AI Tabriknoma (Dedication Card) nima va uni qanday olish mumkin?",
@@ -71,68 +70,38 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/90 dark:bg-amber-500/10 text-amber-900 dark:text-amber-400 border border-amber-300/80 dark:border-amber-500/20 text-xs font-bold uppercase tracking-wider shadow-2xs">
-          <HelpCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-          <span>
-            {language === "uz"
-              ? "Ko'p Beriladigan Savollar"
-              : language === "ru"
-              ? "Часто Задаваемые Вопросы"
-              : "Frequently Asked Questions"}
-          </span>
-        </div>
-        <h2 className="font-display font-black text-2xl sm:text-4xl text-slate-900 dark:text-white">
-          {language === "uz"
-            ? "Sovg'a AI haqida bilishingiz kerak bo'lgan barcha narsalar"
-            : language === "ru"
-            ? "Все, что нужно знать о платформе Sovg'a AI"
-            : "Everything You Need to Know About Sovg'a AI"}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+      <div className="lg:col-span-4">
+        <p className="text-sm font-semibold text-[var(--anor)] mb-3">FAQ</p>
+        <h2 className="text-[2rem] sm:text-[2.5rem] leading-[1.1]">
+          {language === "uz" ? "Ko'p beriladigan savollar" : language === "ru" ? "Частые вопросы" : "Frequently asked questions"}
         </h2>
-        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-normal">
-          {language === "uz"
-            ? "Xaridlarni rejalashtirish, to'y registri va narxlarni taqqoslash bo'yicha asosiy javoblar."
-            : language === "ru"
-            ? "Главные ответы по планированию подарков, свадебному реестру и сравнению цен."
-            : "Essential guidance on smart shopping, wedding registries, and price arbitrage across Uzbekistan."}
+        <p className="mt-4 text-[17px] text-[var(--ink-2)] max-w-xs">
+          {language === "uz" ? "Javob topilmasa, Telegramda yozing: " : language === "ru" ? "Не нашли ответ — напишите в Telegram: " : "Didn't find it? Message us on Telegram: "}
+          <a href="https://t.me/sovga_ai_bot" target="_blank" rel="noreferrer" className="font-semibold text-[var(--anor)] hover:underline">@sovga_ai_bot</a>
         </p>
       </div>
 
-      <div className="space-y-3">
+      <ol className="lg:col-span-8 space-y-3">
         {faqs.map((faq, idx) => {
           const isOpen = openIdx === idx;
           const question = language === "uz" ? faq.qUz : language === "ru" ? faq.qRu : faq.qEn;
           const answer = language === "uz" ? faq.aUz : language === "ru" ? faq.aRu : faq.aEn;
-
           return (
-            <div
-              key={idx}
-              className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#11131f] dark:to-[#080a11] rounded-2xl border-2 border-amber-200/80 dark:border-slate-800 overflow-hidden shadow-luxury transition hover:border-amber-400 dark:hover:border-amber-500/60"
-            >
+            <li key={idx} className={`rounded-2xl border transition-colors ${isOpen ? "border-[var(--line-hover)] bg-white shadow-sm" : "border-[var(--rule-soft)] bg-white hover:border-[var(--line-hover)]"}`}>
               <button
                 onClick={() => toggle(idx)}
-                className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 hover:bg-amber-50/60 dark:hover:bg-slate-800/50 transition cursor-pointer"
+                aria-expanded={isOpen}
+                className="w-full px-5 sm:px-6 py-5 text-left flex items-center justify-between gap-4 cursor-pointer group"
               >
-                <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base leading-snug">
-                  {question}
-                </span>
-                <ChevronDown
-                  className={`w-5 h-5 transition-transform duration-300 flex-shrink-0 ${
-                    isOpen ? "rotate-180 text-amber-600 dark:text-amber-400" : "text-slate-400"
-                  }`}
-                />
+                <span className="text-[17px] font-semibold text-[var(--ink)] leading-snug">{question}</span>
+                <span className={`w-8 h-8 rounded-full flex-shrink-0 inline-flex items-center justify-center text-lg leading-none transition ${isOpen ? "bg-[var(--anor)] text-white" : "bg-[var(--paper-2)] text-[var(--ink)]"}`}>{isOpen ? "−" : "+"}</span>
               </button>
-
-              {isOpen && (
-                <div className="px-4 sm:px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed border-t border-amber-200/60 dark:border-slate-800 bg-amber-50/40 dark:bg-slate-900/40">
-                  {answer}
-                </div>
-              )}
-            </div>
+              {isOpen && <p className="px-5 sm:px-6 pb-6 -mt-1 text-[15px] text-[var(--ink-2)] leading-relaxed max-w-2xl">{answer}</p>}
+            </li>
           );
         })}
-      </div>
-    </section>
+      </ol>
+    </div>
   );
 }

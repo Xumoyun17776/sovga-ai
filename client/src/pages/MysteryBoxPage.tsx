@@ -1,6 +1,9 @@
-import { useState, useRef, Suspense } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { PresentationControls, Float, Sparkles as DreiSparkles } from "@react-three/drei";
+import { useState, useRef, useEffect, Suspense } from "react";
+import { PMREMGenerator } from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { useTranslation, tr } from "../lib/i18n";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { PresentationControls, Float, RoundedBox, ContactShadows, Sparkles as DreiSparkles } from "@react-three/drei";
 import {
   Sparkles,
   Gift,
@@ -13,7 +16,7 @@ import {
   Flame,
   Award,
   Zap,
-} from "lucide-react";
+} from "../lib/icons";
 import { useLocation } from "wouter";
 import confetti from "canvas-confetti";
 import { cyberSound } from "../lib/cyberSound";
@@ -33,7 +36,7 @@ interface MysteryPrize {
   description: string;
 }
 
-const TIER_CONFIG: Record<
+const get_TIER_CONFIG = (): Record<
   TierType,
   {
     name: string;
@@ -45,14 +48,14 @@ const TIER_CONFIG: Record<
     badgeBg: string;
     prizes: MysteryPrize[];
   }
-> = {
+> => ({
   bronze: {
-    name: "Bronza Quti",
+    name: tr("Bronza Quti", "Бронзовая коробка", "Bronze box"),
     range: "150,000 — 350,000 UZS",
-    boxColor: "#b45309",
-    lidColor: "#d97706",
-    ribbonColor: "#78350f",
-    sparkleColor: "#f59e0b",
+    boxColor: "#5a3320",
+    lidColor: "#6d3f27",
+    ribbonColor: "#e0b77a",
+    sparkleColor: "#e8b984",
     badgeBg: "bg-amber-900/40 text-amber-300 border-amber-700/50",
     prizes: [
       {
@@ -63,7 +66,7 @@ const TIER_CONFIG: Record<
         store: "Uzum Market",
         storeUrl: "https://uzum.uz/uz/search?q=Xiaomi+Smart+Band+8",
         rarity: "Oddiy",
-        description: "50+ sport rejimi, 14 kunlik batareya va suvga chidamli aqlli bilaguzuk.",
+        description: tr("50+ sport rejimi, 14 kunlik batareya va suvga chidamli aqlli bilaguzuk.", "50+ спортивных режимов, 14 дней работы, водозащита.", "50+ sport modes, 14-day battery, water resistant."),
       },
       {
         name: "Baseus Bowie E16 Simsiz Quloqchin",
@@ -73,7 +76,7 @@ const TIER_CONFIG: Record<
         store: "Texnomart",
         storeUrl: "https://texnomart.uz/uz/katalog/?q=Baseus+Bowie",
         rarity: "Oddiy",
-        description: "Chuqur bass, Bluetooth 5.3 va 30 soatlik umumiy avtonom quvvat.",
+        description: tr("Chuqur bass, Bluetooth 5.3 va 30 soatlik umumiy avtonom quvvat.", "Глубокий бас, Bluetooth 5.3, до 30 часов работы.", "Deep bass, Bluetooth 5.3, up to 30 hours of playback."),
       },
       {
         name: "Xiaomi Mijia Elektr Choynak 1.5L",
@@ -83,17 +86,17 @@ const TIER_CONFIG: Record<
         store: "MediaPark",
         storeUrl: "https://mediapark.uz/search?q=Xiaomi+Mijia+Choynak",
         rarity: "Oddiy",
-        description: "Zanglamaydigan po'lat, tez qaynatish va ikki qavatli xavfsiz korpus.",
+        description: tr("Zanglamaydigan po'lat, tez qaynatish va ikki qavatli xavfsiz korpus.", "Нержавеющая сталь, быстрый нагрев, двойной корпус.", "Stainless steel, fast boil, double-wall body."),
       },
     ],
   },
   silver: {
-    name: "Kumush Quti",
+    name: tr("Kumush Quti", "Серебряная коробка", "Silver box"),
     range: "400,000 — 1,200,000 UZS",
-    boxColor: "#94a3b8",
-    lidColor: "#cbd5e1",
-    ribbonColor: "#3b82f6",
-    sparkleColor: "#60a5fa",
+    boxColor: "#8e9bb0",
+    lidColor: "#a9b4c6",
+    ribbonColor: "#2350d6",
+    sparkleColor: "#cfd8e6",
     badgeBg: "bg-blue-900/40 text-blue-300 border-blue-700/50",
     prizes: [
       {
@@ -104,7 +107,7 @@ const TIER_CONFIG: Record<
         store: "Uzum Market",
         storeUrl: "https://uzum.uz/uz/search?q=Yandex+Station+Midi",
         rarity: "Noyob",
-        description: "Zigbee qo'llab-quvvatlash, 24W kuchli ovoz va aqlli xonadon boshqaruvi.",
+        description: tr("Zigbee qo'llab-quvvatlash, 24W kuchli ovoz va aqlli xonadon boshqaruvi.", "Zigbee, мощный звук 24 Вт и управление умным домом.", "Zigbee, 24W sound and smart-home control."),
       },
       {
         name: "DeLonghi Dolce Gusto Mini Me Kofemashina",
@@ -114,7 +117,7 @@ const TIER_CONFIG: Record<
         store: "Texnomart",
         storeUrl: "https://texnomart.uz/uz/katalog/?q=DeLonghi+Mini+Me",
         rarity: "Noyob",
-        description: "15 bar bosim, qalin krem-penka va ixcham Yevropa dizayni.",
+        description: tr("15 bar bosim, qalin krem-penka va ixcham Yevropa dizayni.", "15 бар, плотная пенка, компактный дизайн.", "15 bar pressure, rich crema, compact design."),
       },
       {
         name: "Marshall Major IV Simsiz Naushnik",
@@ -124,17 +127,17 @@ const TIER_CONFIG: Record<
         store: "Asaxiy",
         storeUrl: "https://asaxiy.uz/product?search=Marshall+Major+IV",
         rarity: "Noyob",
-        description: "80+ soat uzluksiz musiqa, simsiz zaryadlash va afsonaviy Marshall ovozi.",
+        description: tr("80+ soat uzluksiz musiqa, simsiz zaryadlash va afsonaviy Marshall ovozi.", "80+ часов музыки, беспроводная зарядка, звук Marshall.", "80+ hours of music, wireless charging, classic Marshall sound."),
       },
     ],
   },
   gold: {
-    name: "Oltin Qirollik Qutisi",
+    name: tr("Oltin Qirollik Qutisi", "Золотая коробка", "Gold box"),
     range: "1,500,000 — 5,000,000+ UZS",
-    boxColor: "#f59e0b",
-    lidColor: "#fbbf24",
-    ribbonColor: "#dc2626",
-    sparkleColor: "#fde047",
+    boxColor: "#163aa8",
+    lidColor: "#1d47c9",
+    ribbonColor: "#e2b866",
+    sparkleColor: "#f3dca3",
     badgeBg: "bg-amber-500/20 text-amber-300 border-amber-500/40",
     prizes: [
       {
@@ -145,33 +148,49 @@ const TIER_CONFIG: Record<
         store: "Uzum Market",
         storeUrl: "https://uzum.uz/uz/search?q=AirPods+Pro+2",
         rarity: "Afsonaviy",
-        description: "Faol shovqin so'ndirish (ANC), shaffoflik rejimi va fazoviy ovoz.",
+        description: tr("Faol shovqin so'ndirish (ANC), shaffoflik rejimi va fazoviy ovoz.", "Активное шумоподавление, режим прозрачности, пространственный звук.", "Active noise cancelling, transparency mode, spatial audio."),
       },
       {
         name: "Dyson Supersonic Soch Quritgich",
-        category: "Premium Go'zallik",
+        category: tr("Premium Go'zallik", "Премиум-уход", "Premium beauty"),
         originalPrice: 5800000,
         discountedPrice: 4600000,
         store: "Texnomart",
         storeUrl: "https://texnomart.uz/uz/katalog/?q=Dyson+Supersonic",
         rarity: "Afsonaviy",
-        description: "Aqlli issiqlik nazorati, kuchli V9 raqamli motor va 5 ta magnit nasadka.",
+        description: tr("Aqlli issiqlik nazorati, kuchli V9 raqamli motor va 5 ta magnit nasadka.", "Умный контроль температуры, мотор V9, 5 насадок.", "Smart heat control, V9 motor, 5 magnetic attachments."),
       },
       {
         name: "Xiaomi Robot Vacuum X20+ Aqlli Changyutgich",
-        category: "Flagman Tozalik",
+        category: tr("Flagman Tozalik", "Флагманская уборка", "Flagship cleaning"),
         originalPrice: 5100000,
         discountedPrice: 3990000,
         store: "MediaPark",
         storeUrl: "https://mediapark.uz/search?q=Xiaomi+Robot+X20",
         rarity: "Afsonaviy",
-        description: "6000 Pa quvvat, avtomatik tozalash va quritish stansiyasi bilan.",
+        description: tr("6000 Pa quvvat, avtomatik tozalash va quritish stansiyasi bilan.", "6000 Па, станция самоочистки и сушки.", "6000 Pa suction with a self-cleaning and drying dock."),
       },
     ],
   },
-};
+});
 
-// 3D Procedural Gift Box Component
+// Studio reflections without downloading an HDR file.
+function StudioEnvironment() {
+  const { gl, scene } = useThree();
+  useEffect(() => {
+    const pmrem = new PMREMGenerator(gl);
+    const tex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environment = tex;
+    return () => {
+      scene.environment = null;
+      tex.dispose();
+      pmrem.dispose();
+    };
+  }, [gl, scene]);
+  return null;
+}
+
+// 3D gift box: lacquered body, satin ribbon, bow — the lid flies off when opened.
 function GiftBox3D({
   isOpened,
   tier,
@@ -183,75 +202,69 @@ function GiftBox3D({
 }) {
   const groupRef = useRef<any>(null);
   const lidRef = useRef<any>(null);
-  const cfg = TIER_CONFIG[tier];
+  const cfg = get_TIER_CONFIG()[tier];
+  const metallicRibbon = tier !== "silver";
 
   useFrame((state, delta) => {
     if (groupRef.current && !isOpened) {
-      groupRef.current.rotation.y += delta * 0.45;
+      groupRef.current.rotation.y += delta * 0.35;
     }
-    if (isOpened && lidRef.current) {
-      lidRef.current.position.y += delta * 4;
-      lidRef.current.position.x += delta * 1.5;
-      lidRef.current.rotation.z += delta * 1.5;
+    if (isOpened && lidRef.current && lidRef.current.position.y < 6) {
+      lidRef.current.position.y += delta * 3.2;
+      lidRef.current.position.x += delta * 1.2;
+      lidRef.current.rotation.z += delta * 1.1;
+      lidRef.current.rotation.x += delta * 0.6;
     }
   });
 
+  const lacquer = (color: string) => (
+    <meshPhysicalMaterial color={color} roughness={0.26} metalness={0.2} clearcoat={1} clearcoatRoughness={0.06} envMapIntensity={0.9} />
+  );
+  const ribbon = (
+    <meshPhysicalMaterial color={cfg.ribbonColor} roughness={0.3} metalness={metallicRibbon ? 0.8 : 0.1} clearcoat={0.6} envMapIntensity={1.2} />
+  );
+
   return (
     <group ref={groupRef} onClick={onClick}>
-      <Float speed={2.5} rotationIntensity={0.4} floatIntensity={0.8}>
-        {/* Box Base */}
-        <mesh castShadow receiveShadow position={[0, -0.5, 0]}>
-          <boxGeometry args={[2, 2, 2]} />
-          <meshStandardMaterial color={cfg.boxColor} roughness={0.15} metalness={0.7} />
-        </mesh>
+      <Float speed={2} rotationIntensity={0.3} floatIntensity={0.7}>
+        {/* body */}
+        <RoundedBox args={[2, 1.7, 2]} radius={0.1} smoothness={5} position={[0, -0.55, 0]} castShadow receiveShadow>
+          {lacquer(cfg.boxColor)}
+        </RoundedBox>
+        {/* body ribbons */}
+        <RoundedBox args={[0.34, 1.71, 2.06]} radius={0.015} smoothness={2} position={[0, -0.55, 0]}>{ribbon}</RoundedBox>
+        <RoundedBox args={[2.06, 1.71, 0.34]} radius={0.015} smoothness={2} position={[0, -0.55, 0]}>{ribbon}</RoundedBox>
 
-        {/* Ribbons */}
-        <mesh position={[0, -0.5, 1.01]}>
-          <boxGeometry args={[0.38, 2, 0.04]} />
-          <meshStandardMaterial color={cfg.ribbonColor} roughness={0.3} metalness={0.2} />
-        </mesh>
-        <mesh position={[0, -0.5, -1.01]}>
-          <boxGeometry args={[0.38, 2, 0.04]} />
-          <meshStandardMaterial color={cfg.ribbonColor} roughness={0.3} metalness={0.2} />
-        </mesh>
-        <mesh position={[1.01, -0.5, 0]}>
-          <boxGeometry args={[0.04, 2, 0.38]} />
-          <meshStandardMaterial color={cfg.ribbonColor} roughness={0.3} metalness={0.2} />
-        </mesh>
-        <mesh position={[-1.01, -0.5, 0]}>
-          <boxGeometry args={[0.04, 2, 0.38]} />
-          <meshStandardMaterial color={cfg.ribbonColor} roughness={0.3} metalness={0.2} />
-        </mesh>
-
-        {/* Box Lid */}
-        <group ref={lidRef} position={[0, 0.6, 0]}>
-          <mesh castShadow receiveShadow>
-            <boxGeometry args={[2.1, 0.4, 2.1]} />
-            <meshStandardMaterial color={cfg.lidColor} roughness={0.15} metalness={0.75} />
+        {/* lid + bow */}
+        <group ref={lidRef} position={[0, 0.5, 0]}>
+          <RoundedBox args={[2.16, 0.42, 2.16]} radius={0.09} smoothness={5} castShadow>
+            {lacquer(cfg.lidColor)}
+          </RoundedBox>
+          <RoundedBox args={[0.34, 0.44, 2.2]} radius={0.015} smoothness={2}>{ribbon}</RoundedBox>
+          <RoundedBox args={[2.2, 0.44, 0.34]} radius={0.015} smoothness={2}>{ribbon}</RoundedBox>
+          <mesh position={[-0.42, 0.5, 0]} rotation={[0.1, 0.25, 0.42]} scale={[1, 0.7, 0.5]}>
+            <torusGeometry args={[0.46, 0.12, 24, 64]} />
+            {ribbon}
           </mesh>
-          <mesh position={[0, 0.21, 0]}>
-            <boxGeometry args={[0.38, 0.04, 2.1]} />
-            <meshStandardMaterial color={cfg.ribbonColor} />
+          <mesh position={[0.42, 0.5, 0]} rotation={[0.1, -0.25, -0.42]} scale={[1, 0.7, 0.5]}>
+            <torusGeometry args={[0.46, 0.12, 24, 64]} />
+            {ribbon}
           </mesh>
-          <mesh position={[0, 0.21, 0]}>
-            <boxGeometry args={[2.1, 0.04, 0.38]} />
-            <meshStandardMaterial color={cfg.ribbonColor} />
-          </mesh>
-          {/* Ribbon Bow */}
-          <mesh position={[0, 0.4, 0]}>
-            <sphereGeometry args={[0.28, 16, 16]} />
-            <meshStandardMaterial color={cfg.ribbonColor} />
+          <mesh position={[0, 0.32, 0]} scale={[1.1, 0.85, 0.95]}>
+            <sphereGeometry args={[0.2, 32, 24]} />
+            {ribbon}
           </mesh>
         </group>
       </Float>
       {!isOpened && (
-        <DreiSparkles count={45} scale={4} size={3.5} speed={0.4} color={cfg.sparkleColor} />
+        <DreiSparkles count={40} scale={4.2} size={3} speed={0.35} color={cfg.sparkleColor} />
       )}
     </group>
   );
 }
 
 export default function MysteryBoxPage() {
+  const { language } = useTranslation();
   const toast = useToast();
   const [, navigate] = useLocation();
 
@@ -260,7 +273,7 @@ export default function MysteryBoxPage() {
   const [wonPrize, setWonPrize] = useState<MysteryPrize | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const currentCfg = TIER_CONFIG[tier];
+  const currentCfg = get_TIER_CONFIG()[tier];
 
   const handleOpenBox = () => {
     if (isOpened) return;
@@ -281,14 +294,14 @@ export default function MysteryBoxPage() {
         angle: 60,
         spread: 60,
         origin: { x: 0 },
-        colors: ["#fbbf24", "#f59e0b", "#ffffff", "#ef4444"],
+        colors: ["#818cf8", "#d9431f", "#ffffff", "#ef4444"],
       });
       confetti({
         particleCount: 6,
         angle: 120,
         spread: 60,
         origin: { x: 1 },
-        colors: ["#fbbf24", "#f59e0b", "#ffffff", "#ef4444"],
+        colors: ["#818cf8", "#d9431f", "#ffffff", "#ef4444"],
       });
 
       if (Date.now() < end) {
@@ -300,7 +313,7 @@ export default function MysteryBoxPage() {
     setTimeout(() => {
       setWonPrize(randomPrize);
       cyberSound.play("success");
-      toast.success("Syurpriz quti ochildi!", randomPrize.name);
+      toast.success(tr("Syurpriz quti ochildi!", "Коробка открыта!", "Box opened!"), randomPrize.name);
     }, 1200);
   };
 
@@ -332,29 +345,24 @@ export default function MysteryBoxPage() {
       } else {
         const filtered = saved.filter((s: any) => s.name !== wonPrize.name);
         localStorage.setItem("sovga_wishlist", JSON.stringify(filtered));
-        toast.info("Wishlistdan olib tashlandi");
+        toast.info(tr("Wishlistdan olib tashlandi", "Удалено из избранного", "Removed from your wishlist"));
       }
     } catch {}
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-between relative overflow-hidden bg-gradient-to-br from-[#faf6ec] via-[#f7f0df] to-[#f0e4c8] dark:from-[#0b0e18] dark:via-[#070912] dark:to-[#04050a] text-slate-900 dark:text-white py-8 px-4 transition-colors">
+    <div className="bg-white dark:bg-[#0b1224] min-h-[calc(100vh-80px)] flex flex-col items-center justify-between relative overflow-hidden text-slate-900 dark:text-white py-8 px-4 transition-colors">
       {/* Background radial glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-400/15 via-transparent to-transparent pointer-events-none" />
+      
 
       {/* Top Header & Tier Selection */}
       <div className="z-10 text-center max-w-xl mx-auto space-y-3.5">
-        <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-amber-500/10 border border-amber-300/70 dark:border-amber-500/30 text-amber-900 dark:text-amber-300 text-xs font-bold uppercase tracking-wider shadow-xs">
-          <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-          <span>Interaktiv 3D Syurpriz Qutisi</span>
-        </div>
-
-        <h1 className="text-3xl sm:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-700 via-amber-600 to-yellow-600 dark:from-amber-200 dark:via-yellow-300 dark:to-amber-500 tracking-tight">
-          AI Mystery Box
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-normal">
-          Qutini ochish uchun ustiga bosing va haqiqiy O'zbekiston do'konlaridagi eng katta chegirmali sovg'ani qo'lga kiriting!
-        </p>
+        <h1 className="lux-title text-[2.4rem] sm:text-[3.2rem] text-slate-900 dark:text-white leading-[1.05]">
+            {language === "uz" ? "Syurpriz quti" : language === "ru" ? "Сюрприз-бокс" : "Mystery box"}
+          </h1>
+        <p className="text-base text-slate-500 dark:text-slate-400 mt-3 max-w-2xl mx-auto leading-relaxed">
+            {language === "uz" ? "Qutini bosing — do'konlardagi chegirmali mahsulotlardan sovg'a chiqadi." : language === "ru" ? "Нажмите на коробку — внутри подарок из товаров со скидкой." : "Tap the box to reveal a gift picked from discounted products."}
+          </p>
 
         {/* Tier Selector Chips */}
         {!isOpened && (
@@ -368,11 +376,11 @@ export default function MysteryBoxPage() {
                 }}
                 className={`px-4 py-2 rounded-2xl text-xs font-bold transition border cursor-pointer active:scale-95 ${
                   tier === t
-                    ? `${TIER_CONFIG[t].badgeBg} ring-2 ring-amber-400/80 shadow-md`
-                    : "bg-white/80 dark:bg-slate-900/60 text-slate-700 dark:text-slate-400 border-amber-200/60 dark:border-slate-800 hover:border-amber-400"
+                    ? `${get_TIER_CONFIG()[t].badgeBg} ring-2 ring-amber-400/80 shadow-md`
+                    : "bg-white/80 dark:bg-slate-900/60 text-slate-700 dark:text-slate-400 border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)]"
                 }`}
               >
-                {TIER_CONFIG[t].name}
+                {get_TIER_CONFIG()[t].name}
               </button>
             ))}
           </div>
@@ -384,9 +392,13 @@ export default function MysteryBoxPage() {
         className="w-full max-w-2xl h-[min(340px,42vh)] sm:h-[420px] z-10 cursor-pointer relative"
         onClick={handleOpenBox}
       >
-        <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 2, 6], fov: 45 }}>
-          <ambientLight intensity={0.6} />
-          <spotLight position={[10, 10, 10]} angle={0.2} penumbra={1} intensity={1.2} castShadow />
+        <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1.6, 6.4], fov: 42 }} gl={{ antialias: true, toneMappingExposure: 0.95 }}>
+          <StudioEnvironment />
+          <ambientLight intensity={0.15} />
+          <directionalLight position={[4, 6, 5]} intensity={1.4} castShadow />
+          <directionalLight position={[-5, 2, -3]} intensity={1.8} color="#6f9bff" />
+          <pointLight position={[2, -1, 3]} intensity={10} color="#ffd59a" />
+          <ContactShadows position={[0, -1.75, 0]} opacity={0.45} scale={8} blur={2.6} far={3} />
           <PresentationControls
             global
             config={{ mass: 2, tension: 500 }}
@@ -403,9 +415,9 @@ export default function MysteryBoxPage() {
 
         {!isOpened && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 pointer-events-none text-center">
-            <span className="text-[11px] font-bold tracking-widest uppercase text-amber-900 dark:text-amber-300 bg-white/90 dark:bg-slate-900/90 px-4 py-1.5 rounded-full border border-amber-300/80 dark:border-amber-400/30 shadow-md backdrop-blur-sm animate-pulse">
-              👆 Ochish uchun bosing
-            </span>
+            <span className="text-[11px] font-bold tracking-wide uppercase text-amber-900 dark:text-amber-300 bg-white/90 dark:bg-slate-900/90 px-4 py-1.5 rounded-full border border-[var(--line)] dark:border-amber-400/30 shadow-md backdrop-blur-sm animate-pulse">
+ {tr("Ochish uchun bosing", "Нажмите, чтобы открыть", "Click to open")}
+ </span>
           </div>
         )}
       </div>
@@ -413,8 +425,8 @@ export default function MysteryBoxPage() {
       {/* Won Prize Revelation Card */}
       {wonPrize && (
         <div className="z-20 w-full max-w-md px-4 animate-scale-in">
-          <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] backdrop-blur-md p-6 sm:p-7 rounded-3xl border-2 border-amber-300/90 dark:border-amber-500/40 text-center relative overflow-hidden shadow-2xl space-y-4 text-slate-900 dark:text-white">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent pointer-events-none" />
+          <div className="bg-white dark:bg-[#0b1224] backdrop-blur-md p-6 sm:p-7 rounded-2xl border border-[var(--line)] dark:border-amber-500/40 text-center relative overflow-hidden shadow-sm space-y-4 text-slate-900 dark:text-white">
+            
 
             <div className="flex items-center justify-between text-xs font-bold">
               <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-500/30">
@@ -424,14 +436,14 @@ export default function MysteryBoxPage() {
             </div>
 
             <div>
-              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-tight">
+              <h3 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white leading-tight">
                 {wonPrize.name}
               </h3>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{wonPrize.description}</p>
             </div>
 
             {/* Price Box */}
-            <div className="bg-white/90 dark:bg-slate-900/90 p-3.5 rounded-2xl border border-amber-200/80 dark:border-slate-800 flex items-center justify-around shadow-xs">
+            <div className="bg-white/90 dark:bg-slate-900/90 p-3.5 rounded-2xl border border-[var(--line)] dark:border-slate-800 flex items-center justify-around shadow-xs">
               <div>
                 <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block">Asl narxi</span>
                 <span className="text-xs text-slate-400 dark:text-slate-400 line-through">
@@ -443,7 +455,7 @@ export default function MysteryBoxPage() {
                 <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block">
                   Syurpriz Chegirmada
                 </span>
-                <span className="text-base sm:text-lg font-black text-amber-600 dark:text-amber-300">
+                <span className="text-base sm:text-lg font-bold text-amber-600 dark:text-amber-300">
                   {formatPrice(wonPrize.discountedPrice)}
                 </span>
               </div>
@@ -455,7 +467,7 @@ export default function MysteryBoxPage() {
                 href={wonPrize.storeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-3 btn-luxury-gold text-slate-950 font-black rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-lg active:scale-95 cursor-pointer"
+                className="py-3 btn-luxury-gold text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-sm cursor-pointer"
               >
                 <span>{wonPrize.store}da Ko'rish</span>
                 <ExternalLink className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -463,10 +475,10 @@ export default function MysteryBoxPage() {
 
               <button
                 onClick={handleToggleWishlist}
-                className={`py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border cursor-pointer active:scale-95 ${
+                className={`py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 border cursor-pointer ${
                   isWishlisted
                     ? "bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-300 border-rose-300 dark:border-rose-500/40 shadow-xs"
-                    : "bg-white/90 dark:bg-slate-800 hover:bg-amber-50 text-slate-700 dark:text-white border-amber-200/80 dark:border-slate-700"
+                    : "bg-white/90 dark:bg-slate-800 hover:bg-amber-50 text-slate-700 dark:text-white border-[var(--line)] dark:border-slate-700"
                 }`}
               >
                 <Heart className={`w-3.5 h-3.5 stroke-[2.2] ${isWishlisted ? "fill-current text-rose-500" : ""}`} />
@@ -477,10 +489,10 @@ export default function MysteryBoxPage() {
             {/* Reset Re-roll button */}
             <button
               onClick={handleReset}
-              className="text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition flex items-center justify-center gap-1.5 mx-auto pt-1 cursor-pointer active:scale-95"
+              className="text-xs font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition flex items-center justify-center gap-1.5 mx-auto pt-1 cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5 stroke-[2.2]" />
-              <span>Boshqa Qutini Ochib Ko'rish</span>
+              <span>{tr("Boshqa Qutini Ochib Ko'rish", "Открыть другую коробку", "Open another box")}</span>
             </button>
           </div>
         </div>
@@ -489,7 +501,7 @@ export default function MysteryBoxPage() {
       {/* Footer hint */}
       {!wonPrize && (
         <div className="z-10 text-center text-xs text-slate-500 dark:text-slate-400 pb-2">
-          <span>Haqiqiy narxlar Uzum Market, Texnomart va MediaPark omborlari orqali sinxronlashtirilgan.</span>
+          <span>{tr("Narxlar taxminiy — xariddan oldin do'kon sahifasida tekshiring.", "Цены ориентировочные — проверьте их на сайте магазина перед покупкой.", "Prices are estimates — check them on the store page before buying.")}</span>
         </div>
       )}
     </div>

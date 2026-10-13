@@ -26,7 +26,7 @@ import {
   ChevronLeft,
   Smartphone,
   RotateCcw,
-} from "lucide-react";
+} from "../lib/icons";
 
 // Utility to format 9-digit UZ phone: "90 123 45 67"
 function formatUzPhone(digitsOnly: string): string {
@@ -167,7 +167,7 @@ export default function AuthPage() {
     onSuccess: (res: any) => {
       setOtpStep("code");
       setOtpTimer(60);
-      if (res.demoCode) {
+      if (res?.demoCode) {
         setDemoHint(res.demoCode);
       }
       toast.info(
@@ -381,16 +381,14 @@ export default function AuthPage() {
         />
       )}
 
-      <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#07080c] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden transition-colors">
+      <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden transition-colors">
         {/* Ambient Glow Effects */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-xl h-[400px] bg-gradient-to-b from-amber-500/10 via-amber-400/5 to-transparent blur-3xl pointer-events-none -z-10" />
-        <div className="absolute bottom-1/4 left-1/3 w-80 h-80 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
 
         {/* Back Link */}
         <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 mb-4">
           <button
             onClick={() => navigate("/")}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4 stroke-[2.2]" />
             <span>
@@ -405,10 +403,10 @@ export default function AuthPage() {
 
         {/* Header Branding */}
         <div className="sm:mx-auto sm:w-full sm:max-w-md px-4 text-center">
-          <div className="w-16 h-16 bg-gradient-to-tr from-slate-950 via-slate-900 to-amber-500/90 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-amber-500/10 border border-amber-400/20">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-amber-400/20 bg-slate-950">
             <Gift className="w-8 h-8 text-amber-400 stroke-[2.2]" />
           </div>
-          <h1 className="font-display font-black text-3xl text-slate-900 dark:text-white tracking-tight">
+          <h1 className="lux-title text-[2.4rem] text-slate-900 dark:text-white leading-[1.05]">
             {forgotPasswordActive
               ? language === "uz" ? "Parolni tiklash" : language === "ru" ? "Сброс пароля" : "Password Recovery"
               : otpStep === "code"
@@ -442,7 +440,7 @@ export default function AuthPage() {
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md px-4">
           {otpStep === "code" ? (
             /* OTP VERIFICATION VIEW */
-            <div className="bg-white dark:bg-[#111422] rounded-3xl p-6 sm:p-8 shadow-luxury border-2 border-amber-200/80 dark:border-slate-800 space-y-6">
+            <div className="bg-white dark:bg-[#111422] rounded-2xl p-6 sm:p-8 shadow-sm border border-[var(--line)] dark:border-slate-800 space-y-6">
               {/* 4-Box PIN Code Input */}
               <div className="flex justify-center gap-3 py-2">
                 {[0, 1, 2, 3].map((idx) => (
@@ -456,7 +454,7 @@ export default function AuthPage() {
                     onChange={(e) => handleOtpChange(idx, e.target.value)}
                     onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                     onPaste={handleOtpPaste}
-                    className="w-14 h-15 text-center text-2xl font-mono font-bold bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-slate-900 dark:text-white transition"
+                    className="w-14 h-15 text-center text-2xl font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 text-slate-900 dark:text-white transition"
                   />
                 ))}
               </div>
@@ -509,7 +507,7 @@ export default function AuthPage() {
             </div>
           ) : forgotPasswordActive ? (
             /* FORGOT PASSWORD VIEW */
-            <div className="bg-white dark:bg-[#111422] rounded-3xl p-6 sm:p-8 shadow-luxury border-2 border-amber-200/80 dark:border-slate-800 space-y-4">
+            <div className="bg-white dark:bg-[#111422] rounded-2xl p-6 sm:p-8 shadow-sm border border-[var(--line)] dark:border-slate-800 space-y-4">
               {forgotSent ? (
                 <div className="text-center p-6 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-3">
                   <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto stroke-[2.2]" />
@@ -529,7 +527,7 @@ export default function AuthPage() {
                       setForgotPasswordActive(false);
                       setForgotSent(false);
                     }}
-                    className="w-full py-2.5 bg-slate-900 dark:bg-amber-500 hover:bg-slate-800 dark:hover:bg-amber-600 text-white dark:text-slate-950 rounded-xl text-xs font-bold transition mt-2 cursor-pointer active:scale-95"
+                    className="w-full py-2.5 bg-slate-900 dark:bg-amber-500 hover:bg-slate-800 dark:hover:bg-amber-600 text-white dark:text-white rounded-xl text-xs font-bold transition mt-2 cursor-pointer"
                   >
                     {language === "uz" ? "Kirish oynasiga qaytish" : language === "ru" ? "Вернуться ко входу" : "Back to Sign In"}
                   </button>
@@ -558,7 +556,7 @@ export default function AuthPage() {
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2 active:scale-95"
+                    className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-md cursor-pointer flex items-center justify-center gap-2"
                   >
                     <span>
                       {language === "uz"
@@ -573,7 +571,7 @@ export default function AuthPage() {
                     <button
                       type="button"
                       onClick={() => setForgotPasswordActive(false)}
-                      className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 font-semibold cursor-pointer active:scale-95"
+                      className="text-xs text-slate-500 hover:text-slate-800 dark:hover:text-slate-300 font-semibold cursor-pointer"
                     >
                       {language === "uz" ? "← Bekor qilish va kirish" : language === "ru" ? "← Отмена и вход" : "← Cancel & Sign In"}
                     </button>
@@ -591,7 +589,7 @@ export default function AuthPage() {
                     setMode("login");
                     setError("");
                   }}
-                  className={`flex-1 py-2.5 rounded-xl transition cursor-pointer font-bold active:scale-95 ${
+                  className={`flex-1 py-2.5 rounded-xl transition cursor-pointer font-bold ${
                     mode === "login"
                       ? "bg-white dark:bg-[#111422] shadow-xs text-slate-900 dark:text-white"
                       : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
@@ -605,7 +603,7 @@ export default function AuthPage() {
                     setMode("register");
                     setError("");
                   }}
-                  className={`flex-1 py-2.5 rounded-xl transition cursor-pointer font-bold active:scale-95 ${
+                  className={`flex-1 py-2.5 rounded-xl transition cursor-pointer font-bold ${
                     mode === "register"
                       ? "bg-white dark:bg-[#111422] shadow-xs text-slate-900 dark:text-white"
                       : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
@@ -618,7 +616,7 @@ export default function AuthPage() {
               {/* Main Auth Form Card */}
               <form
                 onSubmit={handleSubmit}
-                className="bg-white dark:bg-[#111422] rounded-3xl p-6 sm:p-8 shadow-luxury border-2 border-amber-200/80 dark:border-slate-800 space-y-4"
+                className="bg-white dark:bg-[#111422] rounded-2xl p-6 sm:p-8 shadow-sm border border-[var(--line)] dark:border-slate-800 space-y-4"
               >
                 {/* Telegram 1-Click Fast Auth Button */}
                 <button
@@ -626,7 +624,7 @@ export default function AuthPage() {
                   onClick={() => {
                     window.location.href = "https://t.me/SovgaUzBot?start=auth_" + Date.now();
                   }}
-                  className="w-full py-3 px-4 bg-[#2AABEE] hover:bg-[#229ED9] text-white rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2.5 shadow-md shadow-sky-500/10 cursor-pointer active:scale-95"
+                  className="w-full py-3 px-4 btn-telegram text-white rounded-2xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2.5 shadow-md cursor-pointer"
                 >
                   <Send className="w-4 h-4 text-white stroke-[2.2]" />
                   <span>
@@ -665,9 +663,9 @@ export default function AuthPage() {
                         setMethod("phone");
                         setError("");
                       }}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
+                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
                         method === "phone"
-                          ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-slate-950 border-slate-900 dark:border-amber-500 shadow-xs"
+                          ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-white border-slate-900 dark:border-amber-500 shadow-xs"
                           : "bg-slate-50 dark:bg-[#0c0e18] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
                     >
@@ -681,9 +679,9 @@ export default function AuthPage() {
                         setError("");
                         setUseOtp(false);
                       }}
-                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 ${
+                      className={`py-2 px-3 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 cursor-pointer ${
                         method === "email"
-                          ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-slate-950 border-slate-900 dark:border-amber-500 shadow-xs"
+                          ? "bg-slate-900 dark:bg-amber-500 text-white dark:text-white border-slate-900 dark:border-amber-500 shadow-xs"
                           : "bg-slate-50 dark:bg-[#0c0e18] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800"
                       }`}
                     >
@@ -695,7 +693,7 @@ export default function AuthPage() {
 
                 {/* Phone Sub-mode: Password VS SMS OTP */}
                 {method === "phone" && (
-                  <div className="flex items-center justify-between p-2.5 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl border border-amber-200/60 dark:border-amber-900/40 text-xs">
+                  <div className="flex items-center justify-between p-2.5 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl border border-[var(--line)] dark:border-amber-900/40 text-xs">
                     <span className="font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
                       <Smartphone className="w-3.5 h-3.5 text-amber-600 stroke-[2.2]" />
                       <span>
@@ -707,7 +705,7 @@ export default function AuthPage() {
                     <button
                       type="button"
                       onClick={() => setUseOtp(!useOtp)}
-                      className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer active:scale-95"
+                      className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
                     >
                       {useOtp
                         ? language === "uz" ? "Parol bilan kirish →" : language === "ru" ? "Войти по паролю →" : "Use password →"
@@ -942,7 +940,7 @@ export default function AuthPage() {
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="w-full py-3.5 bg-slate-900 dark:bg-amber-500 hover:bg-slate-800 dark:hover:bg-amber-600 text-white dark:text-slate-950 font-black text-xs sm:text-sm rounded-2xl transition shadow-lg shadow-slate-900/20 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer border border-amber-500/20 active:scale-95"
+                  className="w-full py-3.5 bg-slate-900 dark:bg-amber-500 hover:bg-slate-800 dark:hover:bg-amber-600 text-white dark:text-white font-bold text-xs sm:text-sm rounded-2xl transition shadow-sm disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer border border-amber-500/20"
                 >
                   <span>
                     {isPending

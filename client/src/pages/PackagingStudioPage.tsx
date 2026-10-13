@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useTranslation, tr } from "../lib/i18n";
 import { Link } from "wouter";
 import { useCurrency } from "../lib/currency";
 import { useToast } from "../components/Toast";
@@ -21,7 +22,8 @@ import {
   Award,
   Box,
   Eye,
-} from "lucide-react";
+} from "../lib/icons";
+import { copyText } from "../lib/clipboard";
 
 interface BoxTheme {
   id: string;
@@ -36,27 +38,27 @@ interface BoxTheme {
   price: number;
 }
 
-const BOX_THEMES: BoxTheme[] = [
+const get_BOX_THEMES = (): BoxTheme[] => [
   {
     id: "obsidian",
     nameUz: "Royal Midnight Obsidian",
-    descUz: "To'q qora baxmal qoplama va platina hoshiya. Eng hashamatli va nufuzli sovg'alar uchun.",
+    descUz: tr("To'q qora baxmal qoplama va platina hoshiya. Eng hashamatli va nufuzli sovg'alar uchun.", "Чёрный бархат и платиновая окантовка. Для самых особых подарков.", "Black velvet with a platinum edge. For the most special gifts."),
     boxBg: "bg-slate-950",
-    borderStyle: "border-slate-700/80 shadow-2xl shadow-slate-950/40",
+    borderStyle: "border-slate-700/80 shadow-2xl",
     textColor: "text-slate-100",
-    tagBg: "bg-gradient-to-r from-slate-200 via-white to-slate-300",
+    tagBg: "bg-slate-200",
     tagBorder: "border-slate-400",
     tagText: "text-slate-950",
     price: 55000,
   },
   {
     id: "silk",
-    nameUz: "Milliy Zardo'zi & Adras Silk",
-    descUz: "O'zbek xonatlas va zardo'zi nozik naqshlari bilan bezatilgan milliy qiymatdagi quti.",
-    boxBg: "bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-950",
-    borderStyle: "border-indigo-500/40 shadow-2xl shadow-indigo-950/40",
+    nameUz: tr("Milliy Zardo'zi & Adras Silk", "Национальная зардози и адрас", "Uzbek zardozi & adras silk"),
+    descUz: tr("O'zbek xonatlas va zardo'zi nozik naqshlari bilan bezatilgan milliy qiymatdagi quti.", "Коробка с узорами хан-атласа и золотой вышивкой зардози.", "A box decorated with khan-atlas patterns and zardozi gold embroidery."),
+    boxBg: "bg-indigo-950",
+    borderStyle: "border-indigo-500/40 shadow-2xl",
     textColor: "text-indigo-100",
-    tagBg: "bg-gradient-to-r from-amber-100 via-amber-200 to-amber-300",
+    tagBg: "bg-amber-100",
     tagBorder: "border-amber-400",
     tagText: "text-amber-950",
     price: 65000,
@@ -64,9 +66,9 @@ const BOX_THEMES: BoxTheme[] = [
   {
     id: "swiss",
     nameUz: "Swiss Matte Porcelain",
-    descUz: "Minimalist Shveytsariya uslubidagi matli qor-oq qadoq. Zamonaviy estetik ixlosmandlariga.",
+    descUz: tr("Minimalist Shveytsariya uslubidagi matli qor-oq qadoq. Zamonaviy estetik ixlosmandlariga.", "Минималистичная матовая белая упаковка в швейцарском стиле.", "Minimalist matte white packaging in Swiss style."),
     boxBg: "bg-white",
-    borderStyle: "border-slate-200 shadow-xl shadow-slate-200/50",
+    borderStyle: "border-slate-200 shadow-xl",
     textColor: "text-slate-900",
     tagBg: "bg-slate-900",
     tagBorder: "border-slate-900",
@@ -76,32 +78,33 @@ const BOX_THEMES: BoxTheme[] = [
   {
     id: "emerald",
     nameUz: "Toshkent Zumrad & Gold Leaf",
-    descUz: "Chuqur zumrad rangli silliq mato va tilla zarli muhr. To'y va yubileylar ramzi.",
-    boxBg: "bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950",
-    borderStyle: "border-emerald-500/40 shadow-2xl shadow-emerald-950/40",
+    descUz: tr("Chuqur zumrad rangli silliq mato va tilla zarli muhr. To'y va yubileylar ramzi.", "Изумрудная ткань и золотая печать. Для свадеб и юбилеев.", "Emerald fabric with a gold seal. For weddings and anniversaries."),
+    boxBg: "bg-emerald-950",
+    borderStyle: "border-emerald-500/40 shadow-2xl",
     textColor: "text-emerald-100",
-    tagBg: "bg-gradient-to-r from-yellow-200 via-amber-300 to-yellow-400",
+    tagBg: "bg-yellow-200",
     tagBorder: "border-amber-500",
     tagText: "text-amber-950",
     price: 60000,
   },
 ];
 
-const RIBBON_COLORS = [
-  { id: "gold", name: "Imperial Tilla", colorClass: "bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500", glow: "shadow-amber-400/30" },
-  { id: "indigo", name: "Royal Indigo", colorClass: "bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-700", glow: "shadow-indigo-500/30" },
-  { id: "ruby", name: "Buxoro Yoqut", colorClass: "bg-gradient-to-r from-rose-600 via-rose-500 to-rose-700", glow: "shadow-rose-500/30" },
-  { id: "silver", name: "Platina Kumush", colorClass: "bg-gradient-to-r from-slate-300 via-slate-100 to-slate-400", glow: "shadow-slate-300/30" },
+const get_RIBBON_COLORS = () => [
+  { id: "gold", name: tr("Imperial Tilla", "Императорское золото", "Imperial gold"), colorClass: "bg-amber-400", glow: "shadow-amber-400/30" },
+  { id: "indigo", name: "Royal Indigo", colorClass: "bg-indigo-600", glow: "shadow-indigo-500/30" },
+  { id: "ruby", name: tr("Buxoro Yoqut", "Бухарский рубин", "Bukhara ruby"), colorClass: "bg-rose-600", glow: "shadow-rose-500/30" },
+  { id: "silver", name: tr("Platina Kumush", "Платиновое серебро", "Platinum silver"), colorClass: "bg-slate-300", glow: "shadow-slate-300/30" },
 ];
 
-const WAX_SEALS = [
-  { id: "baxt", label: "Baxt & Saodat", symbol: "✦" },
-  { id: "hurmat", label: "Hurmat & Ehtirom", symbol: "⚜" },
-  { id: "omad", label: "Omad & Muvaffaqiyat", symbol: "★" },
-  { id: "mehr", label: "Mehr & Muhabbat", symbol: "❤" },
+const get_WAX_SEALS = () => [
+  { id: "baxt", label: tr("Baxt & Saodat", "Счастье и радость", "Happiness & joy"), symbol: "✦" },
+  { id: "hurmat", label: tr("Hurmat & Ehtirom", "Уважение", "Respect"), symbol: "⚜" },
+  { id: "omad", label: tr("Omad & Muvaffaqiyat", "Удача и успех", "Luck & success"), symbol: "★" },
+  { id: "mehr", label: tr("Mehr & Muhabbat", "Любовь и тепло", "Love & warmth"), symbol: "❤" },
 ];
 
 export default function PackagingStudioPage() {
+  const { language } = useTranslation();
   const toast = useToast();
   const printRef = useRef<HTMLDivElement>(null);
   const boxCardRef = useRef<HTMLDivElement>(null);
@@ -110,10 +113,10 @@ export default function PackagingStudioPage() {
   const [selectedBox, setSelectedBox] = useState<string>("obsidian");
   const [selectedRibbon, setSelectedRibbon] = useState<string>("gold");
   const [selectedSeal, setSelectedSeal] = useState<string>("baxt");
-  const [recipientName, setRecipientName] = useState("Aziz Do'stim");
-  const [senderName, setSenderName] = useState("Samimiyat bilan");
+  const [recipientName, setRecipientName] = useState(tr("Aziz Do'stim", "Дорогой друг", "Dear friend"));
+  const [senderName, setSenderName] = useState(tr("Samimiyat bilan", "С теплом", "With warm wishes"));
   const [customMessage, setCustomMessage] = useState(
-    "Ushbu sovg'a sizga quvonch, baraka va eng yorqin lahzalarni hadya etsin!"
+    tr("Ushbu sovg'a sizga quvonch, baraka va eng yorqin lahzalarni hadya etsin!", "Пусть этот подарок принесёт вам радость и самые яркие моменты!", "May this gift bring you joy and your brightest moments!")
   );
   const [copied, setCopied] = useState(false);
   const [isOpened, setIsOpened] = useState(false);
@@ -147,9 +150,9 @@ export default function PackagingStudioPage() {
     }
   };
 
-  const currentTheme = BOX_THEMES.find((b) => b.id === selectedBox) || BOX_THEMES[0];
-  const currentRibbon = RIBBON_COLORS.find((r) => r.id === selectedRibbon) || RIBBON_COLORS[0];
-  const currentSeal = WAX_SEALS.find((s) => s.id === selectedSeal) || WAX_SEALS[0];
+  const currentTheme = get_BOX_THEMES().find((b) => b.id === selectedBox) || get_BOX_THEMES()[0];
+  const currentRibbon = get_RIBBON_COLORS().find((r) => r.id === selectedRibbon) || get_RIBBON_COLORS()[0];
+  const currentSeal = get_WAX_SEALS().find((s) => s.id === selectedSeal) || get_WAX_SEALS()[0];
 
   const handlePrint = () => {
     cyberSound.playConfirm();
@@ -158,41 +161,34 @@ export default function PackagingStudioPage() {
 
   const handleCopyCode = () => {
     cyberSound.playConfirm();
-    const text = `SOVG'A AI | PREMIUM QADOQLASH PASPORTI\n` +
-      `──────────────────────\n` +
-      `Quti Uslubi: ${currentTheme.nameUz}\n` +
-      `Lenta Turi: ${currentRibbon.name}\n` +
-      `Mumlu Muhr: ${currentSeal.label}\n` +
-      `Kimga: ${recipientName}\n` +
-      `Kimdan: ${senderName}\n` +
-      `Dildan so'zlar: "${customMessage}"\n` +
-      `Qadoqlash narxi: ${formatPrice(currentTheme.price)}\n` +
-      `Manzil: sovga.uz/packaging-studio`;
+    const text = `Sovg'a — ${tr("sovg'a qadog'i", "упаковка подарка", "gift wrapping")}\n` +
+      `${tr("Quti", "Коробка", "Box")}: ${currentTheme.nameUz}\n` +
+      `${tr("Lenta", "Лента", "Ribbon")}: ${currentRibbon.name}\n` +
+      `${tr("Muhr", "Печать", "Seal")}: ${currentSeal.label}\n` +
+      `${tr("Kimga", "Кому", "To")}: ${recipientName}\n` +
+      `${tr("Kimdan", "От кого", "From")}: ${senderName}\n` +
+      `${tr("Tilak", "Пожелание", "Message")}: "${customMessage}"\n` +
+      `${tr("Narxi", "Цена", "Price")}: ${formatPrice(currentTheme.price)}\n` +
+      `sovga.uz/packaging-studio`;
 
-    navigator.clipboard.writeText(text);
+    copyText(text);
     setCopied(true);
-    toast.success("Qadoqlash pasporti ma'lumotlari nusxalandi!", "Nusxalandi");
+    toast.success(tr("Qadoqlash pasporti ma'lumotlari nusxalandi!", "Данные упаковки скопированы", "Wrapping details copied"), "Nusxalandi");
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 transition-colors bg-[#fcfbf9] dark:bg-[#07080c] relative overflow-hidden">
+    <div className="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 transition-colors relative overflow-hidden">
       {/* Ambient luxury glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[360px] bg-gradient-to-b from-amber-500/10 via-amber-400/5 to-transparent blur-3xl pointer-events-none -z-10" />
 
       <div className="max-w-7xl mx-auto space-y-10 animate-fade-in">
         {/* Page Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-100/90 dark:bg-amber-500/10 text-amber-900 dark:text-amber-400 border border-amber-300/80 dark:border-amber-500/20 text-xs font-bold uppercase tracking-wider shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-            <span>SOVG'A ATELIER · 3D INTERACTIVE</span>
-          </div>
-          <h1 className="font-display font-black text-3xl sm:text-5xl text-slate-900 dark:text-white tracking-tight">
-            Hashamatli Qadoqlash & 3D Muhr Studiyasi
+          <h1 className="lux-title text-[2.4rem] sm:text-[3.2rem] text-slate-900 dark:text-white leading-[1.05]">
+            {language === "uz" ? "Sovg'a qadoqlash" : language === "ru" ? "Упаковка подарка" : "Gift wrapping"}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-400 leading-relaxed font-normal">
-            Har qanday xaridingizni qirollik darajasidagi sovg'aga aylantiring. Haqiqiy ipak lentalar, 
-            qo'lda quyilgan mumli muhr va recipient nomiga yozilgan metall o'ymakorlik lavhasi.
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-3 max-w-2xl mx-auto leading-relaxed">
+            {language === "uz" ? "Xaridingizni sovg'aga tayyorlang: quti, ipak lenta, muhr va ism yozilgan kartochkani tanlang." : language === "ru" ? "Подготовьте покупку к вручению: выберите коробку, ленту, печать и именную карточку." : "Get your purchase ready to give: choose a box, ribbon, seal and a name card."}
           </p>
         </div>
 
@@ -204,14 +200,14 @@ export default function PackagingStudioPage() {
               ref={boxCardRef}
               onMouseMove={handleMouseMove}
               onMouseLeave={handleMouseLeave}
-              className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f8f3e5] dark:from-[#121420] dark:to-[#090b12] p-3 sm:p-4 rounded-3xl border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury transition-all duration-200"
+              className="bg-white dark:bg-[#0b1224] p-3 sm:p-4 rounded-2xl border border-[var(--line)] dark:border-slate-800 shadow-sm transition-all duration-200"
               style={{
                 perspective: "1000px",
               }}
             >
               <div
                 ref={printRef}
-                className={`relative rounded-3xl p-5 sm:p-12 min-h-[400px] sm:min-h-[480px] flex flex-col justify-between overflow-hidden max-w-full ${currentTheme.boxBg} ${currentTheme.borderStyle}`}
+                className={`relative rounded-2xl p-5 sm:p-12 min-h-[400px] sm:min-h-[480px] flex flex-col justify-between overflow-hidden max-w-full ${currentTheme.boxBg} ${currentTheme.borderStyle}`}
                 style={{
                   transform: "perspective(1000px) rotateX(0deg) rotateY(0deg)",
                   transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -223,37 +219,37 @@ export default function PackagingStudioPage() {
 
                 {/* Opened Box Silk Interior Preview */}
                 {isOpened ? (
-                  <div className="absolute inset-4 rounded-2xl bg-gradient-to-br from-amber-950/90 via-slate-900/95 to-slate-950 border border-amber-500/40 p-6 flex flex-col items-center justify-center text-center z-30 animate-fade-in">
-                    <div className="w-16 h-16 rounded-2xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 mb-4 shadow-lg shadow-amber-500/20">
-                      <Gift className="w-8 h-8 animate-bounce stroke-[2.2]" />
+                  <div className="absolute inset-4 rounded-2xl border border-amber-500/40 p-6 flex flex-col items-center justify-center text-center z-30 animate-fade-in bg-amber-950/90">
+                    <div className="w-16 h-16 rounded-2xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 mb-4 shadow-sm">
+                      <Gift className="w-8 h-8 stroke-[2.2]" />
                     </div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold mb-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wide text-amber-400 font-bold mb-1">
                       Atelier Ichki Baxmal Qoplama
                     </span>
-                    <h4 className="text-xl font-bold text-white mb-2">Sovg'angiz xavfsiz himoyada</h4>
+                    <h4 className="text-xl font-bold text-white mb-2">{tr("Sovg'angiz xavfsiz himoyada", "Ваш подарок надёжно защищён", "Your gift is well protected")}</h4>
                     <p className="text-xs text-slate-300 max-w-sm mb-4">
-                      Ikki qatlamli ipak mato va zardo'zi o'ralgan maxsus bo'lma ichida joylashtiriladi.
+                      {tr("Ikki qatlamli ipak mato va zardo'zi o'ralgan maxsus bo'lma ichida joylashtiriladi.", "Укладывается в отдельный отсек с двойной шёлковой обивкой.", "Packed in a separate compartment lined with two layers of silk.")}
                     </p>
                     <button
                       onClick={() => {
                         cyberSound.playClick();
                         setIsOpened(false);
                       }}
-                      className="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 text-xs font-bold hover:bg-amber-300 transition cursor-pointer active:scale-95"
+                      className="px-4 py-2 rounded-xl bg-amber-400 text-white text-xs font-bold hover:bg-amber-300 transition cursor-pointer"
                     >
-                      Qutini yopish ✕
-                    </button>
+ {tr("Qutini yopish", "Закрыть коробку", "Close the box")} 
+ </button>
                   </div>
                 ) : (
                   <>
                     {/* Vertical Ribbon Cross */}
                     <div
-                      className={`absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-9 sm:w-14 ${currentRibbon.colorClass} shadow-lg ${currentRibbon.glow} opacity-95 pointer-events-none`}
+                      className={`absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-9 sm:w-14 ${currentRibbon.colorClass} shadow-sm ${currentRibbon.glow} opacity-95 pointer-events-none`}
                     />
 
                     {/* Horizontal Ribbon Cross */}
                     <div
-                      className={`absolute left-0 right-0 top-1/2 -translate-y-1/2 h-9 sm:h-14 ${currentRibbon.colorClass} shadow-lg ${currentRibbon.glow} opacity-95 pointer-events-none`}
+                      className={`absolute left-0 right-0 top-1/2 -translate-y-1/2 h-9 sm:h-14 ${currentRibbon.colorClass} shadow-sm ${currentRibbon.glow} opacity-95 pointer-events-none`}
                     />
 
                     {/* Center Royal Wax Seal (Mumlu Muhr) */}
@@ -263,14 +259,14 @@ export default function PackagingStudioPage() {
                           cyberSound.playHoloChime();
                           setIsOpened(true);
                         }}
-                        className="relative group cursor-pointer active:scale-95 transition-transform"
-                        title="Qutini ochish uchun bosing"
+                        className="relative group cursor-pointer transition-transform"
+                        title={tr("Qutini ochish uchun bosing", "Нажмите, чтобы открыть коробку", "Click to open the box")}
                       >
                         {/* Wax drip edge simulation */}
-                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-amber-700 via-amber-800 to-amber-950 p-1.5 shadow-2xl flex items-center justify-center border-2 border-amber-600/50 group-hover:scale-105 transition-all">
-                          <div className="w-full h-full rounded-full border border-amber-500/40 flex flex-col items-center justify-center text-amber-200 text-center shadow-inner bg-gradient-to-br from-amber-800 via-amber-900 to-slate-950">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full p-1.5 shadow-sm flex items-center justify-center border border-amber-600/50 transition-all bg-amber-700">
+                          <div className="w-full h-full rounded-full border border-amber-500/40 flex flex-col items-center justify-center text-amber-200 text-center shadow-inner bg-amber-800">
                             <span className="text-xl sm:text-2xl font-bold">{currentSeal.symbol}</span>
-                            <span className="text-[8px] font-black uppercase tracking-widest text-amber-300">
+                            <span className="text-[8px] font-bold uppercase tracking-wide text-amber-300">
                               {currentSeal.id}
                             </span>
                           </div>
@@ -284,31 +280,31 @@ export default function PackagingStudioPage() {
                 <div className="relative z-10 flex items-center justify-between">
                   <div className="bg-black/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-white flex items-center gap-2 text-xs font-semibold">
                     <Award className="w-3.5 h-3.5 text-amber-400 stroke-[2.2]" />
-                    <span>Sovg'a AI Atelier</span>
+                    <span>{tr("Sovg'a AI Atelier", "Мастерская упаковки", "Gift wrapping studio")}</span>
                   </div>
                   <button
                     onClick={() => {
                       cyberSound.playHoloChime();
                       setIsOpened(!isOpened);
                     }}
-                    className="text-[11px] font-mono tracking-wider text-amber-300 bg-black/40 hover:bg-black/60 px-3 py-1 rounded-xl border border-white/10 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    className="text-[11px] font-mono tracking-wider text-amber-300 bg-black/40 hover:bg-black/60 px-3 py-1 rounded-xl border border-white/10 transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <Eye className="w-3.5 h-3.5 stroke-[2.2]" />
-                    <span>{isOpened ? "Yopish" : "Ochib ko'rish"}</span>
+                    <span>{isOpened ? "Yopish" : tr("Ochib ko'rish", "Открыть", "Open")}</span>
                   </button>
                 </div>
 
                 {/* Bottom Custom Engraved Plaque (Metall O'ymakorlik Lavhasi) */}
                 <div className="relative z-10 mt-auto pt-24 sm:pt-32">
                   <div
-                    className={`p-5 rounded-2xl border shadow-xl ${currentTheme.tagBg} ${currentTheme.tagBorder} ${currentTheme.tagText} transition-all duration-300 backdrop-blur-sm`}
+                    className={`p-5 rounded-2xl border shadow-sm ${currentTheme.tagBg} ${currentTheme.tagBorder} ${currentTheme.tagText} transition-all duration-300 backdrop-blur-sm`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
-                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60 block">
-                          Maxsus bag'ishlov:
+                        <span className="text-[10px] font-bold uppercase tracking-wide opacity-60 block">
+                          {tr("Maxsus bag'ishlov:", "Посвящение:", "Dedication:")}
                         </span>
-                        <h3 className="font-display font-extrabold text-base sm:text-lg tracking-tight">
+                        <h3 className="font-display font-semibold text-base sm:text-lg tracking-tight">
                           {recipientName || "Hurmatli Mehmon"}
                         </h3>
                         <p className="text-xs italic leading-relaxed opacity-85 line-clamp-2">
@@ -316,8 +312,8 @@ export default function PackagingStudioPage() {
                         </p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <span className="text-[9px] uppercase font-bold opacity-60 block">Kimdan:</span>
-                        <span className="text-xs font-extrabold block">{senderName}</span>
+                        <span className="text-[9px] uppercase font-bold opacity-60 block">{tr("Kimdan:", "От кого:", "From:")}</span>
+                        <span className="text-xs font-semibold block">{senderName}</span>
                       </div>
                     </div>
                   </div>
@@ -329,17 +325,17 @@ export default function PackagingStudioPage() {
             <div className="flex items-center gap-2 pt-1">
               <button
                 onClick={handlePrint}
-                className="flex-1 py-3.5 btn-luxury-gold text-slate-950 font-extrabold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md cursor-pointer active:scale-95"
+                className="flex-1 py-3.5 btn-luxury-gold text-slate-950 font-semibold rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2 transition shadow-md cursor-pointer"
               >
                 <Printer className="w-4 h-4 text-slate-950 stroke-[2.2]" />
                 <span>Chop etish (Print)</span>
               </button>
               <button
                 onClick={handleCopyCode}
-                className="py-3.5 px-4 bg-amber-100/70 hover:bg-amber-200/70 dark:bg-slate-800 dark:hover:bg-slate-750 text-amber-950 dark:text-slate-200 font-bold rounded-2xl text-xs sm:text-sm flex items-center gap-2 transition border border-amber-200/80 dark:border-slate-700 cursor-pointer shadow-2xs active:scale-95"
+                className="py-3.5 px-4 bg-amber-100/70 hover:bg-amber-200/70 dark:bg-slate-800 dark:hover:bg-slate-750 text-amber-950 dark:text-slate-200 font-bold rounded-2xl text-xs sm:text-sm flex items-center gap-2 transition border border-[var(--line)] dark:border-slate-700 cursor-pointer shadow-2xs"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-600 stroke-[2.2]" /> : <Copy className="w-4 h-4 stroke-[2.2]" />}
-                <span>{copied ? "Nusxalandi" : "Pasportni nusxalash"}</span>
+                <span>{copied ? "Nusxalandi" : tr("Pasportni nusxalash", "Скопировать детали", "Copy details")}</span>
               </button>
             </div>
           </div>
@@ -347,19 +343,19 @@ export default function PackagingStudioPage() {
         {/* Right Column: Customization Controls Panel */}
         <div className="lg:col-span-6 space-y-6">
           {/* Step 1: Select Box Material */}
-          <div className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#121420] dark:to-[#0a0c14] rounded-3xl p-6 border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury space-y-4">
+          <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 border border-[var(--line)] dark:border-slate-800 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <PackageCheck className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-                <span>1. Quti uslubi va materialini tanlang</span>
+                <span>{tr("1. Quti uslubi va materialini tanlang", "1. Выберите стиль и материал коробки", "1. Choose the box style and material")}</span>
               </h2>
-              <span className="text-xs font-bold text-amber-900 dark:text-amber-400 bg-amber-100/90 dark:bg-amber-500/10 px-3 py-1 rounded-full border border-amber-300/80 dark:border-amber-500/20 shadow-2xs">
+              <span className="text-xs font-bold text-amber-900 dark:text-amber-400 bg-amber-100/90 dark:bg-amber-500/10 px-3 py-1 rounded-full border border-[var(--line)] dark:border-amber-500/20 shadow-2xs">
                 {formatPrice(currentTheme.price)}
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {BOX_THEMES.map((theme) => {
+              {get_BOX_THEMES().map((theme) => {
                 const isSelected = selectedBox === theme.id;
                 return (
                   <button
@@ -368,15 +364,15 @@ export default function PackagingStudioPage() {
                       cyberSound.playClick(1300);
                       setSelectedBox(theme.id);
                     }}
-                    className={`p-4 rounded-2xl text-left border-2 transition cursor-pointer active:scale-95 ${
+                    className={`p-4 rounded-2xl text-left border transition cursor-pointer ${
                       isSelected
                         ? "border-amber-500 bg-amber-50/90 dark:bg-amber-950/30 ring-2 ring-amber-400/20 shadow-md"
-                        : "border-amber-200/70 dark:border-slate-800 hover:border-amber-400 dark:hover:border-slate-700 bg-white dark:bg-slate-900/60 shadow-2xs"
+                        : "border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)] dark:hover:border-slate-700 bg-white dark:bg-slate-900/60 shadow-2xs"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="font-bold text-xs text-slate-900 dark:text-white">{theme.nameUz}</span>
-                      <span className="text-[11px] font-extrabold text-amber-700 dark:text-amber-400">
+                      <span className="text-[11px] font-semibold text-amber-700 dark:text-amber-400">
                         {formatPrice(theme.price)}
                       </span>
                     </div>
@@ -388,14 +384,14 @@ export default function PackagingStudioPage() {
           </div>
 
           {/* Step 2: Select Satin Ribbon Color */}
-          <div className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#121420] dark:to-[#0a0c14] rounded-3xl p-6 border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury space-y-4">
+          <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 border border-[var(--line)] dark:border-slate-800 shadow-sm space-y-4">
             <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
               <Palette className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-              <span>2. Ipak lenta rangini tanlang</span>
+              <span>{tr("2. Ipak lenta rangini tanlang", "2. Выберите цвет ленты", "2. Choose the ribbon colour")}</span>
             </h2>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {RIBBON_COLORS.map((ribbon) => {
+              {get_RIBBON_COLORS().map((ribbon) => {
                 const isSelected = selectedRibbon === ribbon.id;
                 return (
                   <button
@@ -404,10 +400,10 @@ export default function PackagingStudioPage() {
                       cyberSound.playClick(1500);
                       setSelectedRibbon(ribbon.id);
                     }}
-                    className={`p-3 rounded-2xl text-center border-2 transition flex flex-col items-center gap-2 cursor-pointer active:scale-95 ${
+                    className={`p-3 rounded-2xl text-center border transition flex flex-col items-center gap-2 cursor-pointer ${
                       isSelected
                         ? "border-amber-500 bg-amber-50/90 dark:bg-amber-950/30 ring-2 ring-amber-400/20 shadow-md"
-                        : "border-amber-200/70 dark:border-slate-800 hover:border-amber-400 dark:hover:border-slate-700 bg-white dark:bg-slate-900/60 shadow-2xs"
+                        : "border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)] dark:hover:border-slate-700 bg-white dark:bg-slate-900/60 shadow-2xs"
                     }`}
                   >
                     <span className={`w-8 h-8 rounded-full ${ribbon.colorClass} shadow-md`} />
@@ -419,14 +415,14 @@ export default function PackagingStudioPage() {
           </div>
 
           {/* Step 3: Select Wax Seal (Mumlu Muhr) */}
-          <div className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#121420] dark:to-[#0a0c14] rounded-3xl p-6 border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury space-y-4">
+          <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 border border-[var(--line)] dark:border-slate-800 shadow-sm space-y-4">
             <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
               <Stamp className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-              <span>3. Mumli muhr ramzini tanlang (Wax Seal)</span>
+              <span>{tr("3. Mumli muhr ramzini tanlang (Wax Seal)", "3. Выберите сургучную печать", "3. Choose the wax seal")}</span>
             </h2>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {WAX_SEALS.map((seal) => {
+              {get_WAX_SEALS().map((seal) => {
                 const isSelected = selectedSeal === seal.id;
                 return (
                   <button
@@ -435,10 +431,10 @@ export default function PackagingStudioPage() {
                       cyberSound.playConfirm();
                       setSelectedSeal(seal.id);
                     }}
-                    className={`p-3 rounded-2xl text-center border-2 transition cursor-pointer active:scale-95 ${
+                    className={`p-3 rounded-2xl text-center border transition cursor-pointer ${
                       isSelected
                         ? "border-amber-500 bg-amber-50/90 dark:bg-amber-950/30 ring-2 ring-amber-400/20 font-bold shadow-md"
-                        : "border-amber-200/70 dark:border-slate-800 hover:border-amber-400 dark:hover:border-slate-700 bg-white dark:bg-slate-900/60 shadow-2xs"
+                        : "border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)] dark:hover:border-slate-700 bg-white dark:bg-slate-900/60 shadow-2xs"
                     }`}
                   >
                     <span className="text-xl block mb-1 text-amber-700 dark:text-amber-400">{seal.symbol}</span>
@@ -450,10 +446,10 @@ export default function PackagingStudioPage() {
           </div>
 
           {/* Step 4: Calligraphy Plaque Engraving */}
-          <div className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#121420] dark:to-[#0a0c14] rounded-3xl p-6 border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury space-y-4">
+          <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 border border-[var(--line)] dark:border-slate-800 shadow-sm space-y-4">
             <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
               <Sliders className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-              <span>4. Metall lavhadagi bag'ishlov matni</span>
+              <span>{tr("4. Metall lavhadagi bag'ishlov matni", "4. Текст на металлической табличке", "4. Text for the metal plate")}</span>
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -463,32 +459,32 @@ export default function PackagingStudioPage() {
                   type="text"
                   value={recipientName}
                   onChange={(e) => setRecipientName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-amber-50/60 dark:bg-slate-800/80 rounded-xl border border-amber-200/80 dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
+                  className="w-full px-3.5 py-2.5 bg-amber-50/60 dark:bg-slate-800/80 rounded-xl border border-[var(--line)] dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
                   placeholder="e.g. Malika Karimova"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1">Kimdan (From):</label>
+                <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1">{tr("Kimdan (From):", "От кого:", "From:")}</label>
                 <input
                   type="text"
                   value={senderName}
                   onChange={(e) => setSenderName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-amber-50/60 dark:bg-slate-800/80 rounded-xl border border-amber-200/80 dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
-                  placeholder="e.g. Jamshid va Oila a'zolari"
+                  className="w-full px-3.5 py-2.5 bg-amber-50/60 dark:bg-slate-800/80 rounded-xl border border-[var(--line)] dark:border-slate-700 font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 shadow-2xs"
+                  placeholder={tr("e.g. Jamshid va Oila a'zolari", "например, Джамшид и семья", "e.g. Jamshid and family")}
                 />
               </div>
 
               <div className="sm:col-span-2">
                 <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1">
-                  Bag'ishlov so'zlari (Engraved dedication):
+                  {tr("Bag'ishlov so'zlari (Engraved dedication):", "Текст посвящения (гравировка):", "Engraved dedication:")}
                 </label>
                 <textarea
                   rows={2}
                   value={customMessage}
                   onChange={(e) => setCustomMessage(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-amber-50/60 dark:bg-slate-800/80 rounded-xl border border-amber-200/80 dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 text-xs shadow-2xs"
-                  placeholder="Samimiy tilak matnini kiriting..."
+                  className="w-full px-3.5 py-2.5 bg-amber-50/60 dark:bg-slate-800/80 rounded-xl border border-[var(--line)] dark:border-slate-700 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 text-xs shadow-2xs"
+                  placeholder={tr("Samimiy tilak matnini kiriting...", "Введите пожелание...", "Write your wish...")}
                 />
               </div>
             </div>
@@ -501,20 +497,20 @@ export default function PackagingStudioPage() {
                 cyberSound.playConfirm();
                 setShowOrderModal(true);
               }}
-              className="w-full py-4.5 btn-luxury-gold text-slate-950 font-black rounded-2xl text-sm sm:text-base transition shadow-xl flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+              className="w-full py-4.5 btn-luxury-gold text-slate-950 font-bold rounded-2xl text-sm sm:text-base transition shadow-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               <PackageCheck className="w-5 h-5 text-slate-950 stroke-[2.2]" />
-              <span>Ushbu Qadoqda Xarid Qilish / Buyurtma Berish ({formatPrice(currentTheme.price)})</span>
+              <span>{tr("Shu qadoqda buyurtma berish", "Заказать в этой упаковке", "Order with this wrapping")} ({formatPrice(currentTheme.price)})</span>
             </button>
           </div>
 
           {/* Delivery & Trust Guarantee */}
-          <div className="bg-amber-50/80 dark:bg-slate-900/80 p-4.5 rounded-2xl border border-amber-200/80 dark:border-slate-800 flex items-center gap-3 text-xs text-slate-700 dark:text-slate-300 shadow-2xs">
+          <div className="bg-amber-50/80 dark:bg-slate-900/80 p-4.5 rounded-2xl border border-[var(--line)] dark:border-slate-800 flex items-center gap-3 text-xs text-slate-700 dark:text-slate-300 shadow-2xs">
             <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 stroke-[2.2]" />
             <div>
-              <span className="font-bold text-slate-900 dark:text-white block">Atelier Kafolati</span>
+              <span className="font-bold text-slate-900 dark:text-white block">{tr("Atelier Kafolati", "Гарантия упаковки", "Packaging guarantee")}</span>
               <span>
-                Barcha qutilar xavfsiz ikki qatlamli termopaketda yetkaziladi. Quti shikastlanishdan 100% himoyalangan.
+                {tr("Barcha qutilar xavfsiz ikki qatlamli termopaketda yetkaziladi. Quti shikastlanishdan 100% himoyalangan.", "Все коробки доставляются в двойном защитном пакете.", "Every box ships in a double protective bag.")}
               </span>
             </div>
           </div>
@@ -525,7 +521,7 @@ export default function PackagingStudioPage() {
       {showOrderModal && (
         <DirectOrderModal
           product={{
-            name: `Sovg'a Atelier Qadoq: ${currentTheme.nameUz} (Lenta: ${currentRibbon.name}, Muhr: ${currentSeal.label})`,
+            name: `${tr("Sovg'a qadog'i", "Подарочная упаковка", "Gift wrapping")}: ${currentTheme.nameUz} (${tr("lenta", "лента", "ribbon")}: ${currentRibbon.name}, ${tr("muhr", "печать", "seal")}: ${currentSeal.label})`,
             price: currentTheme.price,
             originalPrice: null,
             imageUrl: null,
@@ -534,16 +530,16 @@ export default function PackagingStudioPage() {
             lastChecked: new Date().toISOString(),
             priceVerified: true,
             availabilityVerified: true,
-            store: "Sovg'a AI Atelier",
+            store: tr("Sovg'a AI Atelier", "Мастерская упаковки", "Gift wrapping studio"),
             url: "https://sovga.uz/packaging-studio",
             currency: "UZS",
             rating: 5,
             reviewCount: 42,
-            availability: "Mavjud",
+            availability: tr("Mavjud", "В наличии", "Available"),
             category: "premium",
             reason: customMessage,
-            warranty: "100% Sifat kafolati",
-            deliveryEstimate: "1 ish kunida Toshkent va viloyatlar",
+            warranty: tr("Sifat kafolati", "Гарантия качества", "Quality guarantee"),
+            deliveryEstimate: tr("1 ish kunida Toshkent va viloyatlar", "1 рабочий день — Ташкент и регионы", "1 business day, Tashkent and regions"),
           }}
           isOpen={showOrderModal}
           onClose={() => setShowOrderModal(false)}

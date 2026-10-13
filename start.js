@@ -1,1 +1,2 @@
-import './dist/server/index.js';
+process.env.NODE_ENV = 'production';
+await import('./dist/server/index.js');

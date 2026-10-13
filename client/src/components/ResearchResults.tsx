@@ -42,12 +42,13 @@ import {
   Tag,
   Smartphone,
   BookOpen,
-} from "lucide-react";
+} from "../lib/icons";
 import type { ResearchResult, ResearchProduct } from "@shared/types";
 import { formatPrice } from "../lib/api";
 import { ensureProductUrl } from "../lib/urlHelper";
 import { cyberSound } from "../lib/cyberSound";
 import ProductQuickViewModal from "./ProductQuickViewModal";
+import { copyText } from "../lib/clipboard";
 
 const getCategoryBadgeLabel = (category: string, lang: string): string => {
   if (lang === "uz") {
@@ -84,11 +85,11 @@ const getCategoryBadgeLabel = (category: string, lang: string): string => {
 };
 
 const categoryBadgeColors: Record<string, string> = {
-  best_overall: "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white shadow-xs font-bold",
+  best_overall: "text-white shadow-xs font-bold bg-amber-500",
   best_value: "bg-emerald-600 text-white shadow-xs font-bold",
   cheapest: "bg-blue-600 text-white shadow-xs font-bold",
-  premium: "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs font-bold",
-  most_unique: "bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-xs font-bold",
+  premium: "text-white shadow-xs font-bold bg-purple-600",
+  most_unique: "text-white shadow-xs font-bold bg-rose-500",
   alternative: "bg-slate-700 text-white font-bold",
 };
 
@@ -121,12 +122,35 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
 
   // Arbitrage intelligence calculations
   const validProducts = (result.products || []).filter((p) => typeof p.price === "number" && (p.price || 0) > 0);
-  const minPriceProduct = validProducts.length > 0
-    ? validProducts.reduce((min, p) => ((p.price || 0) < (min.price || 0) ? p : min), validProducts[0])
-    : null;
-  const maxPriceProduct = validProducts.length > 0
-    ? validProducts.reduce((max, p) => ((p.price || 0) > (max.price || 0) ? p : max), validProducts[0])
-    : null;
+  // Savings only make sense for the same product sold by different stores,
+  // not between a 300k perfume and a 4M one.
+  const modelKey = (name: string) =>
+    (name || "")
+      .toLowerCase()
+      .replace(/\([^)]*\)/g, " ")
+      .replace(/\s+(model|seriya|partiya|edition|to'plam|uslub)-\d+$/i, "")
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
+  const sameProductGroups = validProducts.reduce<Record<string, typeof validProducts>>((acc, p) => {
+    const k = modelKey(p.name);
+    (acc[k] = acc[k] || []).push(p);
+    return acc;
+  }, {});
+  let minPriceProduct: (typeof validProducts)[number] | null = null;
+  let maxPriceProduct: (typeof validProducts)[number] | null = null;
+  let bestSpread = 0;
+  for (const group of Object.values(sameProductGroups)) {
+    if (group.length < 2 || new Set(group.map((p) => p.store)).size < 2) continue;
+    const lo = group.reduce((m, p) => ((p.price || 0) < (m.price || 0) ? p : m), group[0]);
+    const hi = group.reduce((m, p) => ((p.price || 0) > (m.price || 0) ? p : m), group[0]);
+    const spread = (hi.price || 0) - (lo.price || 0);
+    if (spread > bestSpread) {
+      bestSpread = spread;
+      minPriceProduct = lo;
+      maxPriceProduct = hi;
+    }
+  }
+  const cheapestOverall = validProducts.length > 0 ? Math.min(...validProducts.map((p) => p.price || 0)) : null;
   const priceSpread = minPriceProduct && maxPriceProduct ? (maxPriceProduct.price || 0) - (minPriceProduct.price || 0) : 0;
   const savingsPercent = maxPriceProduct && maxPriceProduct.price && priceSpread > 0
     ? Math.round((priceSpread / maxPriceProduct.price) * 100)
@@ -180,7 +204,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
       `──────────────────────\n` +
       `Sovg'a AI — Uzbekistan's Premier Shopping Intelligence\nhttps://sovga.uz`;
 
-    navigator.clipboard.writeText(reportText);
+    copyText(reportText);
     setCopiedReport(true);
     toast.success(
       language === "uz"
@@ -207,23 +231,23 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
   return (
     <div className="animate-fade-in space-y-7">
       {/* Research Summary Header Card */}
-      <div className="card-luxury-elevated rounded-3xl p-6 sm:p-7 space-y-4 print:border-none print:shadow-none border-2 border-amber-200/80 dark:border-slate-800 bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#10121d] dark:to-[#080a11] shadow-luxury">
+      <div className="bg-white dark:bg-[#0b1224] card-luxury-elevated rounded-2xl p-6 sm:p-7 space-y-4 print:border-none print:shadow-none border border-[var(--line)] dark:border-slate-800 shadow-sm">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <span className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-950 luxury-gold-chip px-3.5 py-1.5 rounded-full border">
             <Search className="w-3.5 h-3.5 text-amber-700" />
-            AI {result.totalSourcesResearched} {t("results.sourcesResearched")}
+            {result.totalSourcesResearched} {t("results.sourcesResearched")}
           </span>
-          <span className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 bg-amber-50/80 dark:bg-slate-800/60 px-3 py-1.5 rounded-full border border-amber-200/60 dark:border-slate-700/60 font-medium">
+          <span className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 bg-amber-50/80 dark:bg-slate-800/60 px-3 py-1.5 rounded-full border border-[var(--line)] dark:border-slate-700/60 font-medium">
             <Clock className="w-3.5 h-3.5 text-amber-600 dark:text-slate-400" />
             {t("results.lastChecked")}: {new Date(result.lastChecked).toLocaleTimeString()}
           </span>
           {result.isDemo && (
-            <span className="text-xs font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50 px-3 py-1.5 rounded-full">
+            <span className="text-xs font-semibold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-[var(--line)] dark:border-amber-800/50 px-3 py-1.5 rounded-full">
               {t("results.demoData")}
             </span>
           )}
           {result.cached && (
-            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 bg-amber-50/80 dark:bg-slate-800 px-2.5 py-1.5 rounded-full border border-amber-200/80 dark:border-slate-700">
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 bg-amber-50/80 dark:bg-slate-800 px-2.5 py-1.5 rounded-full border border-[var(--line)] dark:border-slate-700">
               {language === "uz" ? "Keshdan olingan" : language === "ru" ? "Из кэша" : "Cached"}
             </span>
           )}
@@ -231,7 +255,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
           {/* Action buttons (Copy, Telegram, Print, View Mode) */}
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             {/* View Mode Toggle: Grid vs Matrix Table */}
-            <div className="flex items-center bg-amber-100/70 dark:bg-slate-800/80 p-1 rounded-2xl border border-amber-300/70 dark:border-slate-700/80 text-xs font-semibold mr-1">
+            <div className="flex items-center bg-amber-100/70 dark:bg-slate-800/80 p-1 rounded-2xl border border-[var(--line)] dark:border-slate-700/80 text-xs font-semibold mr-1">
               <button
                 onClick={() => {
                   cyberSound.playClick();
@@ -239,8 +263,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer ${
                   viewMode === "grid"
-                    ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white shadow-xs font-bold"
-                    : "text-amber-950 dark:text-slate-400 hover:text-black dark:hover:text-white"
+                    ? "text-white shadow-xs font-bold bg-amber-500"
+                    : "text-slate-700 dark:text-slate-400 hover:text-black dark:hover:text-white"
                 }`}
                 title="Grid Card View"
               >
@@ -256,8 +280,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 }}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition cursor-pointer ${
                   viewMode === "table"
-                    ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white shadow-xs font-bold"
-                    : "text-amber-950 dark:text-slate-400 hover:text-black dark:hover:text-white"
+                    ? "text-white shadow-xs font-bold bg-amber-500"
+                    : "text-slate-700 dark:text-slate-400 hover:text-black dark:hover:text-white"
                 }`}
                 title="Side-by-Side Comparison Matrix"
               >
@@ -273,7 +297,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 cyberSound.playConfirm();
                 handleCopyReport();
               }}
-              className="text-xs font-semibold text-amber-950 dark:text-slate-200 hover:text-black dark:hover:text-white flex items-center gap-1.5 bg-amber-50/80 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-slate-700 px-3 py-2 rounded-xl border border-amber-200/80 dark:border-slate-700 transition cursor-pointer"
+              className="text-xs font-semibold text-amber-950 dark:text-slate-200 hover:text-black dark:hover:text-white flex items-center gap-1.5 bg-amber-50/80 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-slate-700 px-3 py-2 rounded-xl border border-[var(--line)] dark:border-slate-700 transition cursor-pointer"
               title="Copy formatted research report"
             >
               {copiedReport ? <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.2]" /> : <Copy className="w-3.5 h-3.5 stroke-[2.2]" />}
@@ -309,7 +333,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 cyberSound.playClick();
                 handlePrint();
               }}
-              className="text-xs font-semibold text-amber-950 dark:text-slate-300 hover:text-black dark:hover:text-white flex items-center gap-1.5 bg-amber-50/80 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-slate-700 px-3 py-2 rounded-xl border border-amber-200/80 dark:border-slate-700 transition cursor-pointer"
+              className="text-xs font-semibold text-amber-950 dark:text-slate-300 hover:text-black dark:hover:text-white flex items-center gap-1.5 bg-amber-50/80 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-slate-700 px-3 py-2 rounded-xl border border-[var(--line)] dark:border-slate-700 transition cursor-pointer"
               title="Chop etish / Print"
             >
               <Printer className="w-3.5 h-3.5 stroke-[2.2]" />
@@ -388,7 +412,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   href={uzumUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-1 py-2.5 px-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl transition shadow-xs hover:scale-102 active:scale-95"
+                  className="store-link flex items-center justify-between gap-1 py-2.5 px-3 text-xs font-semibold rounded-xl transition"
+                  style={{ ["--dot" as any]: "#8b5cf6" }}
                   title={`Uzum Market'da "${targetItem}" mahsulot sahifasini ochish`}
                 >
                   <div className="flex items-center gap-1.5 truncate">
@@ -402,7 +427,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   href={olchaUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-1 py-2.5 px-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl transition shadow-xs hover:scale-102 active:scale-95"
+                  className="store-link flex items-center justify-between gap-1 py-2.5 px-3 text-xs font-semibold rounded-xl transition"
+                  style={{ ["--dot" as any]: "#f43f5e" }}
                   title={`Olcha'da "${targetItem}" mahsulot sahifasini ochish`}
                 >
                   <div className="flex items-center gap-1.5 truncate">
@@ -416,7 +442,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   href={texnomartUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-1 py-2.5 px-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-xl transition shadow-xs hover:scale-102 active:scale-95"
+                  className="store-link flex items-center justify-between gap-1 py-2.5 px-3 text-xs font-semibold rounded-xl transition"
+                  style={{ ["--dot" as any]: "#ef4444" }}
                   title={`Texnomart'da "${targetItem}" mahsulot sahifasini ochish`}
                 >
                   <div className="flex items-center gap-1.5 truncate">
@@ -430,7 +457,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   href={mediaparkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-1 py-2.5 px-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition shadow-xs hover:scale-102 active:scale-95"
+                  className="store-link flex items-center justify-between gap-1 py-2.5 px-3 text-xs font-semibold rounded-xl transition"
+                  style={{ ["--dot" as any]: "#10b981" }}
                   title={`MediaPark'da "${targetItem}" mahsulot sahifasini ochish`}
                 >
                   <div className="flex items-center gap-1.5 truncate">
@@ -444,7 +472,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   href={asaxiyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-1 py-2.5 px-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-xl transition shadow-xs hover:scale-102 active:scale-95"
+                  className="store-link flex items-center justify-between gap-1 py-2.5 px-3 text-xs font-semibold rounded-xl transition"
+                  style={{ ["--dot" as any]: "#0ea5e9" }}
                   title={`Asaxiy'da "${targetItem}" mahsulot sahifasini ochish`}
                 >
                   <div className="flex items-center gap-1.5 truncate">
@@ -458,7 +487,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   href={ideaUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-1 py-2.5 px-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl transition shadow-xs hover:scale-102 active:scale-95"
+                  className="store-link flex items-center justify-between gap-1 py-2.5 px-3 text-xs font-semibold rounded-xl transition"
+                  style={{ ["--dot" as any]: "#d6a84f" }}
                   title={`Idea Store'da "${targetItem}" mahsulot sahifasini ochish`}
                 >
                   <div className="flex items-center gap-1.5 truncate">
@@ -517,7 +547,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                     description: language === "uz" ? "Shubhali e'lonlar va g'iloflarni ajratish" : language === "ru" ? "Отсеивание чехлов и дубликатов" : "Stripping accessories & duplicate listings",
                   },
                   {
-                    label: language === "uz" ? "7. Narxlar Taqqoslami" : language === "ru" ? "7. Сравнение цен" : "7. Price Arbitrage",
+                    label: language === "uz" ? "7. Narxlar Taqqoslami" : language === "ru" ? "7. Сравнение цен" : "7. Price comparison",
                     description: language === "uz" ? "Eng arzon do'kon va tejovni hisoblash" : language === "ru" ? "Расчет максимальной экономии" : "Computing cheapest retailer & spread",
                   },
                   {
@@ -544,24 +574,22 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
 
       {/* ─── BOZOR ARBITRAJI & TEJAMKORLIK BANNER ─────────────────── */}
       {validProducts.length >= 2 && priceSpread > 0 && minPriceProduct && maxPriceProduct && (
-        <div className="relative overflow-hidden rounded-3xl p-5 sm:p-6 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/80 border border-emerald-500/30 shadow-[0_10px_35px_rgba(16,185,129,0.14)] text-white animate-fade-in">
+        <div className="relative overflow-hidden rounded-2xl p-5 sm:p-6 border border-emerald-500/30 shadow-[0_10px_35px_rgba(16,185,129,0.14)] text-white animate-fade-in bg-slate-950">
           {/* Ambient glow in background */}
-          <div className="absolute -right-16 -top-16 w-64 h-64 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3.5">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-2.5 w-2.5 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                 </span>
                 <span className="text-xs font-mono font-bold tracking-wider uppercase text-emerald-400">
                   {language === "uz"
-                    ? "⚡ Jonli Bozor Arbitraji & Tejamkorlik Tahlili"
+                    ? "Jonli Bozor Arbitraji & Tejamkorlik Tahlili"
                     : language === "ru"
-                    ? "⚡ Арбитраж Цен и Анализ Экономии"
-                    : "⚡ Live Market Arbitrage & Direct Savings"}
+                    ? "Арбитраж Цен и Анализ Экономии"
+                    : "Store prices and savings"}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs">
@@ -596,7 +624,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                       {minPriceProduct.store}
                     </span>
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  <div className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                     {formatPrice(minPriceProduct.price || 0, minPriceProduct.currency || "UZS")}
                   </div>
                   <p className="text-[11px] text-slate-300 truncate mt-1" title={minPriceProduct.name}>
@@ -607,7 +635,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   href={ensureProductUrl(minPriceProduct.name, minPriceProduct.store, minPriceProduct.url)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-3 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-sm active:scale-95 cursor-pointer"
+                  className="mt-3 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-sm cursor-pointer"
                 >
                   <span>
                     {language === "uz"
@@ -625,7 +653,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 <div>
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <span className="font-medium text-slate-400">
-                      {language === "uz" ? "Eng yuqori narx" : language === "ru" ? "Самая высокая цена" : "Highest Market Price"}
+                      {language === "uz" ? "Shu mahsulot, eng qimmat do'kon" : language === "ru" ? "Тот же товар, самая высокая цена" : "Same product, highest price"}
                     </span>
                     <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-white/10 text-slate-300 font-semibold">
                       {maxPriceProduct.store}
@@ -648,7 +676,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
               </div>
 
               {/* Net Savings Callout */}
-              <div className="rounded-2xl p-4 bg-gradient-to-br from-amber-500/15 to-amber-600/5 border border-amber-500/30 flex flex-col justify-between">
+              <div className="rounded-2xl p-4 border border-amber-500/30 flex flex-col justify-between bg-amber-500/15">
                 <div>
                   <div className="flex items-center justify-between text-xs mb-1.5">
                     <span className="font-bold text-amber-400 flex items-center gap-1">
@@ -659,7 +687,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                       -{savingsPercent}%
                     </span>
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-amber-400 tracking-tight">
+                  <div className="text-xl sm:text-2xl font-bold text-amber-400 tracking-tight">
                     +{formatPrice(priceSpread, "UZS")}
                   </div>
                   <p className="text-[11px] text-amber-200/90 mt-1">
@@ -693,7 +721,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
       )}
 
       {/* Interactive Filter & Sort Toolbar */}
-      <div className="bg-gradient-to-b from-white via-[#fcfaf5] to-[#f7f2e4] dark:from-[#12141f] dark:to-[#0a0c14] rounded-2xl border-2 border-amber-200/80 dark:border-slate-800 p-3.5 sm:p-4 shadow-luxury space-y-3">
+      <div className="bg-white dark:bg-[#0b1224] rounded-2xl border border-[var(--line)] dark:border-slate-800 p-3.5 sm:p-4 shadow-sm space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5">
           {/* Store Filter Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
@@ -701,8 +729,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
               onClick={() => setSelectedStore("all")}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
                 selectedStore === "all"
-                  ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white shadow-xs font-black"
-                  : "bg-amber-50/80 hover:bg-amber-100 text-amber-950 border border-amber-200/70 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+                  ? "text-white shadow-xs font-bold bg-amber-500"
+                  : "bg-amber-50/80 hover:bg-amber-100 text-white border border-[var(--line)] dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
               }`}
             >
               <span>{language === "uz" ? "Barcha do'konlar" : language === "ru" ? "Все магазины" : "All Stores"}</span>
@@ -716,12 +744,12 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 onClick={() => setSelectedStore(st)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shrink-0 cursor-pointer ${
                   selectedStore === st
-                    ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white shadow-xs font-black"
-                    : "bg-amber-50/80 hover:bg-amber-100 text-amber-950 border border-amber-200/70 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+                    ? "text-white shadow-xs font-bold bg-amber-500"
+                    : "bg-amber-50/80 hover:bg-amber-100 text-white border border-[var(--line)] dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
                 }`}
               >
                 <span>{st}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-200/60 dark:bg-slate-700 text-amber-950 dark:text-slate-300 font-bold">
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full dark:bg-slate-700 dark:text-slate-300 font-bold border bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                   {storeCounts[st]}
                 </span>
               </button>
@@ -739,7 +767,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
               <select
                 value={sortBy}
                 onChange={(e: any) => setSortBy(e.target.value)}
-                className="text-xs font-semibold bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-amber-300/80 dark:border-white/10 rounded-xl px-2.5 py-1.5 outline-none cursor-pointer focus:ring-2 focus:ring-amber-500/20"
+                className="text-xs font-semibold bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-[var(--line)] dark:border-white/10 rounded-xl px-2.5 py-1.5 outline-none cursor-pointer focus:ring-2 focus:ring-amber-500/20"
               >
                 <option value="cheapest">
                   {language === "uz" ? "Narx: Eng arzonidan boshlab" : language === "ru" ? "Цена: по возрастанию" : "Price: Low to High"}
@@ -759,7 +787,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
         </div>
 
         {/* Budget Bracket Quick Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-2.5 border-t border-amber-200/60 dark:border-white/10">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none pt-2.5 border-t border-[var(--line)] dark:border-white/10">
           <span className="text-xs font-bold text-amber-900 dark:text-slate-400 shrink-0 mr-1 flex items-center gap-1">
             <Coins className="w-3.5 h-3.5 text-amber-600" />
             <span>{language === "uz" ? "Byudjet:" : language === "ru" ? "Бюджет:" : "Budget:"}</span>
@@ -774,8 +802,8 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 onClick={() => setPriceRange(range.id)}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition shrink-0 cursor-pointer flex items-center gap-1.5 ${
                   priceRange === range.id
-                    ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white font-bold shadow-xs"
-                    : "bg-amber-50/80 hover:bg-amber-100 text-amber-950 border border-amber-200/70 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+                    ? "text-white font-bold shadow-xs bg-amber-500"
+                    : "bg-amber-50/80 hover:bg-amber-100 text-white border border-[var(--line)] dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
                 }`}
               >
                 <span>{label}</span>
@@ -797,12 +825,12 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 key={i}
                 product={product}
                 isDemo={result.isDemo}
-                isCheapest={product.category === "cheapest" || (minPriceProduct !== null && product.price === minPriceProduct.price)}
+                isCheapest={product.category === "cheapest" || (cheapestOverall !== null && product.price === cheapestOverall)}
               />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white dark:bg-[#10121d] rounded-3xl border border-slate-200/90 dark:border-slate-800 p-8 space-y-3 shadow-sm">
+          <div className="text-center py-12 bg-white dark:bg-[#0d1530] rounded-2xl border border-slate-200/90 dark:border-slate-800 p-8 space-y-3 shadow-sm">
             <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
               Tanlangan filtrlar bo'yicha mahsulot topilmadi.
             </p>
@@ -813,7 +841,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   setSelectedStore("all");
                   setPriceRange("all");
                 }}
-                className="px-4 py-2 bg-slate-900 dark:bg-amber-500 hover:bg-slate-800 dark:hover:bg-amber-400 text-white dark:text-slate-950 rounded-xl text-xs font-bold transition cursor-pointer"
+                className="px-4 py-2 bg-slate-900 dark:bg-amber-500 hover:bg-slate-800 dark:hover:bg-amber-400 text-white dark:text-white rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 Filtrlarni tozalash ({result.products.length})
               </button>
@@ -822,10 +850,10 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
         )
       ) : (
         /* Side-by-Side Comparison Matrix Table */
-        <div className="bg-white dark:bg-[#10121d] rounded-3xl border-2 border-amber-200/80 dark:border-slate-800 shadow-luxury overflow-hidden animate-fade-in">
-          <div className="p-4 sm:p-5 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 dark:from-slate-900/90 dark:via-slate-800/60 dark:to-slate-900/90 border-b border-amber-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div className="bg-white dark:bg-[#0d1530] rounded-2xl border border-[var(--line)] dark:border-slate-800 shadow-sm overflow-hidden animate-fade-in">
+          <div className="bg-white dark:bg-[#0b1224] p-4 sm:p-5 border-b border-[var(--line)] dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="font-display font-extrabold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="font-display font-semibold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
                 <TableIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 <span>
                   {language === "uz"
@@ -843,7 +871,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   : `Side-by-side pricing, installment plans, warranties & specs for all ${result.products.length} verified items.`}
               </p>
             </div>
-            <span className="text-xs font-bold bg-amber-100/90 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 px-3 py-1 rounded-full border border-amber-300 dark:border-amber-800/50">
+            <span className="text-xs font-bold bg-amber-100/90 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 px-3 py-1 rounded-full border border-[var(--line)] dark:border-amber-800/50">
               {sortedProducts.length}{" "}
               {language === "uz"
                 ? "ta mahsulot taqqoslanmoqda"
@@ -857,7 +885,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
             <table className="w-full text-left border-collapse min-w-[750px]">
               {/* Product Header Row */}
               <thead>
-                <tr className="border-b border-amber-200/80 dark:border-slate-800 bg-amber-50/40 dark:bg-slate-800/30">
+                <tr className="border-b border-[var(--line)] dark:border-slate-800 bg-amber-50/40 dark:bg-slate-800/30">
                   <th className="p-4 w-44 font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-400 bg-amber-100/40 dark:bg-slate-800/50">
                     {language === "uz"
                       ? "Mezonlar / Mahsulot"
@@ -880,7 +908,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                           title="Quick View"
                         >
                           {p.imageUrl ? (
-                            <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                            <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover transition duration-300" />
                           ) : (
                             <ShoppingBag className="w-8 h-8 text-slate-400 stroke-[1.25]" />
                           )}
@@ -912,7 +940,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                   {sortedProducts.map((p, idx) => (
                     <td key={idx} className="p-4">
                       <div className="space-y-0.5">
-                        <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                        <div className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white">
                           {formatPrice(p.price, p.currency)}
                         </div>
                         {p.originalPrice && p.originalPrice > (p.price || 0) && (
@@ -1027,14 +1055,14 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 <tr className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
                   <td className="p-4 font-bold text-slate-700 dark:text-slate-300 bg-slate-50/60 dark:bg-slate-800/40">
                     <div className="flex items-center gap-2">
-                      <Star className="w-3.5 h-3.5 text-amber-500" />
+                      <Star className="w-3.5 h-3.5 text-yellow-400" />
                       <span>{language === "uz" ? "Reyting & Sharhlar" : language === "ru" ? "Рейтинг и отзывы" : "Rating & Reviews"}</span>
                     </div>
                   </td>
                   {sortedProducts.map((p, idx) => (
                     <td key={idx} className="p-4">
                       <div className="flex items-center gap-1 font-bold text-slate-900 dark:text-white">
-                        <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                        <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
                         <span>{p.rating || "4.8"}</span>
                         <span className="text-slate-400 font-normal">({p.reviewCount || 100}+)</span>
                       </div>
@@ -1112,7 +1140,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => cyberSound.playConfirm()}
-                          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-slate-950 font-semibold rounded-xl text-xs transition shadow-xs cursor-pointer"
+                          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-slate-900 hover:bg-slate-800 dark:bg-amber-500 dark:hover:bg-amber-400 text-white dark:text-white font-semibold rounded-xl text-xs transition shadow-xs cursor-pointer"
                         >
                           <ShoppingBag className="w-3.5 h-3.5" />
                           <span>{language === "uz" ? "Do'konda ochish" : language === "ru" ? "В магазин" : "Open Store"}</span>
@@ -1199,10 +1227,10 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
       )}
 
       {/* Research Details & Rejections Audit */}
-      <div className="card-luxury bg-gradient-to-b from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#080a11] rounded-3xl shadow-luxury border-2 border-amber-200/80 dark:border-slate-800 overflow-hidden">
+      <div className="bg-white dark:bg-[#0b1224] card-luxury rounded-2xl shadow-sm border border-[var(--line)] dark:border-slate-800 overflow-hidden">
         <button
           onClick={() => setShowDetails(!showDetails)}
-          className="w-full flex items-center justify-between p-5 text-sm font-bold text-slate-900 dark:text-white hover:bg-amber-50/50 dark:hover:bg-slate-800/50 transition cursor-pointer active:scale-95"
+          className="w-full flex items-center justify-between p-5 text-sm font-bold text-slate-900 dark:text-white hover:bg-amber-50/50 dark:hover:bg-slate-800/50 transition cursor-pointer"
         >
           <span className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
@@ -1213,7 +1241,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                 ? "Аудит исследования и методология"
                 : "Research Audit & Methodology Dossier"}
             </span>
-            <span className="text-xs bg-amber-100/90 dark:bg-slate-800 text-amber-900 dark:text-amber-300 px-2.5 py-0.5 rounded-full font-bold border border-amber-300/80 dark:border-slate-700 shadow-2xs">
+            <span className="text-xs bg-amber-100/90 dark:bg-slate-800 text-amber-900 dark:text-amber-300 px-2.5 py-0.5 rounded-full font-bold border border-[var(--line)] dark:border-slate-700 shadow-2xs">
               {language === "uz"
                 ? `${result.totalProductsConsidered || (result.products || []).length} ko'rildi · ${(result.rejectedProducts || []).length} rad etildi`
                 : language === "ru"
@@ -1225,7 +1253,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
         </button>
 
         {showDetails && (
-          <div className="px-5 pb-5 space-y-5 animate-fade-in border-t border-amber-200/60 dark:border-slate-800 pt-5">
+          <div className="px-5 pb-5 space-y-5 animate-fade-in border-t border-[var(--line)] dark:border-slate-800 pt-5">
             {/* Search Strategies */}
             {(result.searchStrategies || []).length > 0 && (
               <div>
@@ -1234,13 +1262,13 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
                     ? "Tadqiqot yo'nalishlari va skan qilingan kanallar"
                     : language === "ru"
                     ? "Направления поиска и сканированные каналы"
-                    : "Telemetry Vectors & Scanned Channels"}
+                    : "Sources checked"}
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {(result.searchStrategies || []).map((s, i) => (
                     <span
                       key={i}
-                      className="text-xs font-medium bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-amber-200/80 dark:border-slate-700 px-3 py-1.5 rounded-xl shadow-2xs"
+                      className="text-xs font-medium bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-[var(--line)] dark:border-slate-700 px-3 py-1.5 rounded-xl shadow-2xs"
                     >
                       {s}
                     </span>
@@ -1333,7 +1361,7 @@ export default function ResearchResults({ result }: { result: ResearchResult }) 
 export function ResearchSkeleton() {
   return (
     <div className="animate-pulse space-y-6">
-      <div className="bg-white rounded-3xl p-6 border border-gray-100 space-y-3">
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 space-y-3">
         <div className="skeleton h-5 w-48 rounded-lg" />
         <div className="skeleton h-4 w-full rounded-lg" />
         <div className="skeleton h-4 w-3/4 rounded-lg" />

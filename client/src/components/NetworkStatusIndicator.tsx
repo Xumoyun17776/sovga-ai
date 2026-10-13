@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { WifiOff, Wifi } from "lucide-react";
+import { WifiOff, Wifi } from "../lib/icons";
 import { useTranslation } from "../lib/i18n";
 
 export default function NetworkStatusIndicator() {
@@ -33,7 +33,7 @@ export default function NetworkStatusIndicator() {
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] animate-slide-down">
       <div
-        className={`px-4 py-2.5 rounded-full flex items-center gap-2.5 shadow-2xl backdrop-blur-xl border font-bold text-xs ${
+        className={`px-4 py-2.5 rounded-full flex items-center gap-2.5 shadow-sm backdrop-blur-xl border font-bold text-xs ${
           isOnline
             ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
             : "bg-rose-500/90 text-white border-rose-600"
@@ -52,7 +52,7 @@ export default function NetworkStatusIndicator() {
           </>
         ) : (
           <>
-            <WifiOff className="w-4 h-4 animate-pulse" />
+            <WifiOff className="w-4 h-4" />
             <span>
               {language === "uz"
                 ? "Internet uzildi. Oflaynsiz"

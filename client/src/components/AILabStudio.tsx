@@ -19,7 +19,7 @@ import {
   ShieldCheck,
   Zap,
   ArrowUpRight,
-} from "lucide-react";
+} from "../lib/icons";
 
 export type AILabTab = "duel" | "oracle" | "installment" | "cultural" | "logistics";
 
@@ -47,164 +47,100 @@ export default function AILabStudio({ currentTab, onTabChange }: AILabStudioProp
     {
       id: "duel" as AILabTab,
       shortcut: "1",
-      labelUz: "AI Duel Qiyoslagich",
-      labelRu: "AI Дуэль Сравнение",
-      labelEn: "Neural Spec Duel",
+      labelUz: "Solishtirish",
+      labelRu: "Сравнение",
+      labelEn: "Compare",
       icon: Swords,
       badge: "VS",
-      hintUz: "2 modelni boshma-bosh solishtirish",
-      hintRu: "Очное сравнение моделей",
-      hintEn: "Head-to-head comparison",
-      summaryUz: "Ikkita raqobatchi mahsulot xususiyatlari, obro' balli va xolis AI g'oliblik xulosasi.",
-      summaryRu: "Сравнение спецификаций, надежности и итоговый вердикт победителя от AI.",
-      summaryEn: "Deep specification analysis, reliability scores, and definitive AI winner verdict.",
+      hintUz: "Ikki model yonma-yon",
+      hintRu: "Две модели рядом",
+      hintEn: "Two models side by side",
+      summaryUz: "Ikki mahsulotning xususiyatlari, narxi va qaysi biri kimga mosroq ekani.",
+      summaryRu: "Характеристики, цена и кому какой вариант подойдёт больше.",
+      summaryEn: "Specs, price and which one suits whom.",
     },
     {
       id: "oracle" as AILabTab,
       shortcut: "2",
-      labelUz: "Narx Bashoratchisi (Oracle)",
-      labelRu: "Оракул Цен (Oracle)",
-      labelEn: "Market Price Oracle",
+      labelUz: "Narx tarixi",
+      labelRu: "История цен",
+      labelEn: "Price history",
       icon: Sparkles,
       badge: "AI",
-      hintUz: "30 kunlik narx va qachon olish maslahati",
-      hintRu: "30-дневный прогноз цен",
-      hintEn: "30-day price trends & drops",
-      summaryUz: "30 kunlik narx grafigi, bozor medianasi va qachon xarid qilish maqbulligi bashorati.",
-      summaryRu: "30-дневная динамика, рыночная медиана и рекомендация оптимального времени покупки.",
-      summaryEn: "30-day verified historical curve, median value, and optimal purchase timing advice.",
+      hintUz: "30 kun va xarid vaqti",
+      hintRu: "30 дней и когда покупать",
+      hintEn: "30 days and when to buy",
+      summaryUz: "30 kunlik narx o'zgarishi, o'rtacha narx va hozir olish kerakmi yoki kutish.",
+      summaryRu: "Изменение цены за 30 дней, средняя цена и стоит ли покупать сейчас.",
+      summaryEn: "How the price moved over 30 days, the typical price, and whether to buy now or wait.",
     },
     {
       id: "installment" as AILabTab,
       shortcut: "3",
-      labelUz: "Nasiya & To'lov Simulyatori",
-      labelRu: "Калькулятор Рассрочки",
-      labelEn: "Installment Simulator",
+      labelUz: "Muddatli to'lov",
+      labelRu: "Рассрочка",
+      labelEn: "Installments",
       icon: Wallet,
       badge: "0%",
-      hintUz: "Texnomart va Uzum Nasiya 0-0-12",
-      hintRu: "Рассрочка без переплат",
-      hintEn: "0-0-12 Halal installments",
-      summaryUz: "Uzum Nasiya va Texnomart bo'yicha 3, 6 va 12 oylik muddatli to'lovlar shaffof hisoblagichi.",
-      summaryRu: "Прозрачный калькулятор рассрочки на 3, 6 и 12 месяцев без скрытых надбавок.",
-      summaryEn: "Transparent 3, 6, and 12-month installment payment schedule comparison.",
+      hintUz: "3, 6 yoki 12 oy",
+      hintRu: "3, 6 или 12 месяцев",
+      hintEn: "3, 6 or 12 months",
+      summaryUz: "Uzum Nasiya va Texnomart shartlarida oylik to'lovni hisoblang.",
+      summaryRu: "Рассчитайте ежемесячный платёж по условиям Uzum Nasiya и Texnomart.",
+      summaryEn: "Work out the monthly payment on Uzum Nasiya and Texnomart terms.",
     },
     {
       id: "cultural" as AILabTab,
       shortcut: "4",
-      labelUz: "Milliy Urf-odat & Odob AI",
-      labelRu: "Этикет & Традиции AI",
-      labelEn: "Cultural Etiquette AI",
+      labelUz: "Sovg'a odobi",
+      labelRu: "Этикет",
+      labelEn: "Etiquette",
       icon: BookOpen,
       badge: "UZ",
-      hintUz: "Kelin salom, qudalar va duolar",
-      hintRu: "Традиции, сватья и дуа",
-      hintEn: "Traditions & national etiquette",
-      summaryUz: "O'zbekona to'y va mehmondorchilik odoblari, taboolar hamda samimiy tilaklar.",
-      summaryRu: "Национальные обычаи для свадеб и сватов, табу и формулы традиционных благословений.",
-      summaryEn: "Traditional Uzbek celebration etiquette, gift taboos, and heartfelt prayers.",
+      hintUz: "Urf-odat va tilaklar",
+      hintRu: "Традиции и пожелания",
+      hintEn: "Customs and wishes",
+      summaryUz: "To'y va mehmondorchilikda nima sovg'a qilinadi, nimadan qochiladi va qanday tilak aytiladi.",
+      summaryRu: "Что дарят на свадьбу и в гости, чего избегать и какие пожелания говорить.",
+      summaryEn: "What to bring to weddings and visits, what to avoid, and what to say.",
     },
     {
       id: "logistics" as AILabTab,
       shortcut: "5",
-      labelUz: "14 Viloyat & Do'konlar Radari",
-      labelRu: "Радар Магазинов & PVZ",
-      labelEn: "Stores & Logistics Radar",
+      labelUz: "Yetkazish",
+      labelRu: "Доставка",
+      labelEn: "Delivery",
       icon: Truck,
       badge: "GPS",
-      hintUz: "Uzum PVZ, Texnomart va ekspress yetkazish",
-      hintRu: "ПВЗ Uzum, Texnomart и доставка",
-      hintEn: "Live store transit & pickup nodes",
-      summaryUz: "O'zbekistonning 14 viloyati bo'yicha Uzum PVZ tarmoqlari, do'konlar va yetkazish vaqtlari.",
-      summaryRu: "География пунктов выдачи Uzum, розничные сети и транзитные сроки по 14 регионам.",
-      summaryEn: "Ground transit timeline, Uzum pickup nodes, and Texnomart store directory across 14 regions.",
+      hintUz: "Punktlar va muddatlar",
+      hintRu: "Пункты и сроки",
+      hintEn: "Pickup points and times",
+      summaryUz: "14 hudud bo'yicha topshirish punktlari, do'konlar va yetkazish muddatlari.",
+      summaryRu: "Пункты выдачи, магазины и сроки доставки по 14 регионам.",
+      summaryEn: "Pickup points, stores and delivery times across all 14 regions.",
     },
   ];
 
   const currentTabObj = tabs.find((t) => t.id === activeTab) || tabs[0];
 
   return (
-    <section id="ai-lab-studio" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
+    <section id="ai-lab-studio" className="reveal max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24">
       {/* ─── LAB HEADER CONTAINER ─────────────────────────── */}
-      <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f6f0e2] dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 rounded-3xl p-6 sm:p-8 text-slate-900 dark:text-white border-2 border-amber-300/80 dark:border-slate-800 shadow-luxury relative overflow-hidden mb-6">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-400/20 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-amber-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        {/* ─── LIVE TELEMETRY STRIP ─────────────────────────── */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-5 mb-6 border-b border-amber-200/80 dark:border-slate-800/80 text-[11px] font-mono text-slate-600 dark:text-slate-400">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold">NEURAL ENGINE ACTIVE</span>
-            <span className="text-amber-300 dark:text-slate-600">|</span>
-            <span className="text-slate-700 dark:text-slate-300">GEMINI 3.8 FLASH GROUNDED</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="flex items-center gap-1.5 bg-white/80 dark:bg-slate-900 px-2.5 py-1 rounded-full border border-amber-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 shadow-2xs">
-              <Cpu className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-              <span>LATENCY: ~22ms</span>
-            </span>
-            <span className="flex items-center gap-1.5 bg-white/80 dark:bg-slate-900 px-2.5 py-1 rounded-full border border-amber-200/80 dark:border-slate-800 text-slate-700 dark:text-slate-300 shadow-2xs">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>UZUM · TEXNOMART · MEDIAPARK</span>
-            </span>
-          </div>
-        </div>
+      <div className="surface-card rounded-3xl p-6 sm:p-8 text-slate-900 dark:text-white relative overflow-hidden mb-6">
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 relative z-10">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100/90 dark:bg-amber-500/10 border border-amber-300/80 dark:border-amber-500/30 text-amber-900 dark:text-amber-400 text-xs font-mono font-bold tracking-wider uppercase mb-2 shadow-2xs">
-              <Activity className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 animate-pulse" />
-              <span>
-                {language === "uz"
-                  ? "JONLI AI SINOV LABORATORIYASI"
-                  : language === "ru"
-                  ? "ЖИВАЯ ЛАБОРАТОРИЯ AI"
-                  : "LIVE INTERACTIVE AI LAB"}
-              </span>
-              <span className="text-amber-400 dark:text-slate-600">•</span>
-              <span className="text-amber-950 dark:text-slate-300 font-normal">
-                {language === "uz"
-                  ? "5 TA INTERAKTIV WIDGET"
-                  : language === "ru"
-                  ? "5 ИНТЕРАКТИВНЫХ ВИДЖЕТОВ"
-                  : "5 INTERACTIVE WIDGETS"}
-              </span>
-            </div>
-
-            <h2 className="font-display font-black text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight">
-              {language === "uz" ? (
-                <>
-                  Interaktiv Simulyatorlar & <span className="gold-gradient-text">Jonli AI Sinovlari</span>
-                </>
-              ) : language === "ru" ? (
-                <>
-                  Интерактивные Симуляторы & <span className="gold-gradient-text">Живые AI Инструменты</span>
-                </>
-              ) : (
-                <>
-                  Interactive Simulators & <span className="gold-gradient-text">Live AI Testbench</span>
-                </>
-              )}
+          <div className="max-w-2xl">
+            <span className="eyebrow mb-3">{language === "uz" ? "Hisob-kitob" : language === "ru" ? "Расчёты" : "Workbench"}</span>
+            <h2 className="font-display font-semibold text-[1.75rem] leading-tight sm:text-4xl tracking-[-0.035em] text-slate-900 dark:text-white">
+              {language === "uz" ? <>Kalkulyatorlar va <span className="text-gold-gradient">qo'llanmalar</span></> : language === "ru" ? <>Калькуляторы и <span className="text-gold-gradient">справочники</span></> : <>Calculators <span className="text-gold-gradient">and guides</span></>}
             </h2>
-
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-400 max-w-2xl mt-1.5 font-normal leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
               {language === "uz"
-                ? "Bitta qulay boshqaruv panelida: mahsulotlarni boshma-bosh to'qnashtiring, 30 kunlik narx grafigini ko'ring yoki nasiya to'lovlarini hisoblang."
+                ? "Ikki mahsulotni solishtiring, narx tarixini ko'ring, muddatli to'lovni hisoblang yoki yetkazish muddatini bilib oling."
                 : language === "ru"
-                ? "В едином удобном интерфейсе: дуэль товаров, оракул 30-дневных цен, калькулятор рассрочки и логистика по Узбекистану."
-                : "Switch effortlessly between live duel comparisons, price oracle predictions, installment calculators, and logistics radars."}
+                ? "Сравните два товара, посмотрите историю цен, рассчитайте рассрочку или узнайте сроки доставки."
+                : "Compare two products, look at price history, work out installments or check delivery times."}
             </p>
-          </div>
-
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-700 dark:text-slate-400 bg-white/80 dark:bg-slate-900/90 px-3.5 py-2 rounded-2xl border border-amber-200/80 dark:border-slate-800 self-start md:self-auto shadow-2xs">
-            <Layers className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-            <span>
-              {language === "uz" ? "Rejimni tanlang:" : language === "ru" ? "Режим:" : "Select Mode:"}
-            </span>
           </div>
         </div>
 
@@ -220,44 +156,31 @@ export default function AILabStudio({ currentTab, onTabChange }: AILabStudioProp
               <button
                 key={tab.id}
                 onClick={() => handleTabClick(tab.id)}
-                className={`p-3.5 rounded-2xl text-left transition-all duration-200 cursor-pointer border flex flex-col justify-between group ${
+                className={`p-3.5 rounded-xl text-left transition cursor-pointer border flex flex-col justify-between group ${
                   isActive
-                    ? "bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white border-amber-400 shadow-lg scale-102"
-                    : "bg-white/90 dark:bg-slate-900/60 hover:bg-amber-50/80 dark:hover:bg-slate-900 border-amber-200/80 dark:border-slate-800 hover:border-amber-400 dark:hover:border-slate-700 text-slate-700 dark:text-slate-400 hover:text-amber-950 dark:hover:text-slate-200 shadow-2xs"
+                    ? "bg-slate-900 border-slate-900 dark:bg-white dark:border-white"
+                    : "bg-white dark:bg-white/5 border-[var(--line)] hover:border-[var(--line-strong)]"
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div
-                    className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${
-                      isActive
-                        ? "bg-white text-amber-700 font-bold shadow-xs"
-                        : "bg-amber-100/70 dark:bg-slate-800 text-amber-800 dark:text-slate-400 group-hover:text-amber-600"
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                      isActive ? "bg-white/10 text-amber-400 dark:bg-slate-100 dark:text-slate-900" : "bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-400"
                     }`}
                   >
                     <Icon className="w-4 h-4" />
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-md ${
-                        isActive
-                          ? "bg-white/20 text-white border border-white/30"
-                          : "bg-amber-100/70 dark:bg-slate-800 text-amber-900 dark:text-slate-500"
-                      }`}
-                    >
-                      {tab.badge}
-                    </span>
                   </div>
                 </div>
 
                 <div>
                   <h4
-                    className={`font-bold text-xs leading-snug transition-colors line-clamp-1 ${
-                      isActive ? "text-white font-extrabold" : "text-slate-900 dark:text-slate-300 group-hover:text-amber-900 dark:group-hover:text-white"
+                    className={`font-semibold text-sm leading-snug line-clamp-1 ${
+                      isActive ? "text-white dark:text-slate-900" : "text-slate-900 dark:text-slate-200"
                     }`}
                   >
                     {label}
                   </h4>
-                  <p className={`text-[10px] line-clamp-1 mt-0.5 ${isActive ? "text-amber-100" : "text-slate-500"}`}>{hint}</p>
+                  <p className={`text-xs line-clamp-1 mt-0.5 ${isActive ? "text-slate-300 dark:text-slate-600" : "text-slate-500"}`}>{hint}</p>
                 </div>
               </button>
             );
@@ -265,9 +188,8 @@ export default function AILabStudio({ currentTab, onTabChange }: AILabStudioProp
         </div>
 
         {/* ─── ACTIVE TOOL DESCRIPTOR STRIP ─────────────────── */}
-        <div className="mt-5 pt-4 border-t border-amber-200/80 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-700 dark:text-slate-300">
+        <div className="mt-5 pt-4 border-t border-[var(--line)] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm text-slate-700 dark:text-slate-300">
           <div className="flex items-center gap-2">
-            <Zap className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 flex-shrink-0" />
             <span className="font-semibold text-amber-950 dark:text-white">
               {language === "uz" ? currentTabObj.labelUz : language === "ru" ? currentTabObj.labelRu : currentTabObj.labelEn}:
             </span>
@@ -276,9 +198,6 @@ export default function AILabStudio({ currentTab, onTabChange }: AILabStudioProp
             </span>
           </div>
 
-          <span className="text-[10px] font-mono text-slate-500">
-            {language === "uz" ? "Jonli hisob-kitoblar faol" : language === "ru" ? "Живые расчеты активны" : "Real-time calculation active"}
-          </span>
         </div>
       </div>
 

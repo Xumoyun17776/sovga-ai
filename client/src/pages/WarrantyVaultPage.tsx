@@ -4,7 +4,7 @@ import confetti from "canvas-confetti";
 import { useToast } from "../components/Toast";
 import { formatPrice } from "../lib/api";
 import { cyberSound } from "../lib/cyberSound";
-import { useTranslation } from "../lib/i18n";
+import { useTranslation, tr } from "../lib/i18n";
 import {
   ShieldCheck,
   Plus,
@@ -26,7 +26,7 @@ import {
   Filter,
   Check,
   X,
-} from "lucide-react";
+} from "../lib/icons";
 
 interface WarrantyItem {
   id: string;
@@ -76,30 +76,30 @@ const DEFAULT_ITEMS: WarrantyItem[] = [
   },
 ];
 
-const SERVICE_CENTERS = [
+const get_SERVICE_CENTERS = () => [
   {
     store: "Texnomart",
     phone: "+998 71 209-99-44",
-    hours: "09:00 - 21:00 (Har kuni)",
-    address: "Toshkent sh., barcha Texnomart filiallari orqali qabul qilinadi",
+    hours: tr("09:00 - 21:00 (Har kuni)", "09:00 - 21:00 (ежедневно)", "09:00 - 21:00 (daily)"),
+    address: tr("Toshkent sh., barcha Texnomart filiallari orqali qabul qilinadi", "Ташкент, приём во всех филиалах Texnomart", "Tashkent, accepted at all Texnomart branches"),
   },
   {
     store: "MediaPark",
     phone: "+998 71 203-33-33",
     hours: "09:00 - 20:00",
-    address: "Toshkent sh., Qoratosh ko'chasi 11A / barcha do'konlar",
+    address: tr("Toshkent sh., Qoratosh ko'chasi 11A / barcha do'konlar", "Ташкент, ул. Коратош 11А / все магазины", "Tashkent, 11A Qoratosh St. / all stores"),
   },
   {
     store: "Uzum Market",
     phone: "+998 78 777-07-99",
-    hours: "24/7 Qo'llab-quvvatlash",
-    address: "Istalgan Uzum topshirish punkti (PVZ) orqali rasmiylashtirish",
+    hours: tr("24/7 Qo'llab-quvvatlash", "Поддержка 24/7", "24/7 support"),
+    address: tr("Istalgan Uzum topshirish punkti (PVZ) orqali rasmiylashtirish", "Оформление через любой пункт выдачи Uzum", "Through any Uzum pickup point"),
   },
   {
     store: "Asaxiy",
     phone: "+998 71 200-01-05",
     hours: "09:00 - 20:00",
-    address: "Toshkent sh., Chilonzor 2-mavze / kuryer orqali olib ketish",
+    address: tr("Toshkent sh., Chilonzor 2-mavze / kuryer orqali olib ketish", "Ташкент, Чиланзар-2 / курьер заберёт", "Tashkent, Chilanzar-2 / courier pickup"),
   },
 ];
 
@@ -157,7 +157,7 @@ export default function WarrantyVaultPage() {
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.productName.trim()) {
-      toast.error("Mahsulot nomini kiriting!", "Xatolik");
+      toast.error(tr("Mahsulot nomini kiriting!", "Введите название товара", "Enter the product name"), "Xatolik");
       return;
     }
 
@@ -195,13 +195,13 @@ export default function WarrantyVaultPage() {
       colors: ["#10b981", "#3b82f6"],
     });
 
-    toast.success("Kafolat kartasi saqlandi!", "Kafolat Seyfiga muvaffaqiyatli qo'shildi");
+    toast.success(tr("Kafolat kartasi saqlandi!", "Гарантийная карта сохранена", "Warranty card saved"), tr("Kafolat Seyfiga muvaffaqiyatli qo'shildi", "Добавлено в хранилище гарантий", "Added to your warranty vault"));
   };
 
   const handleDeleteItem = (id: string) => {
     cyberSound.playClick();
     setItems(items.filter((i) => i.id !== id));
-    toast.success("Kafolat kartasi o'chirildi", "O'chirildi");
+    toast.success(tr("Kafolat kartasi o'chirildi", "Гарантийная карта удалена", "Warranty card deleted"), tr("O'chirildi", "Удалено", "Deleted"));
   };
 
   const handleExportJson = () => {
@@ -213,7 +213,7 @@ export default function WarrantyVaultPage() {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    toast.success("Kafolat ma'lumotlari eksport qilindi!", "JSON fayl yuklab olindi");
+    toast.success(tr("Kafolat ma'lumotlari eksport qilindi!", "Данные гарантий экспортированы", "Warranty data exported"), "JSON fayl yuklab olindi");
   };
 
   // Filtered Items
@@ -236,38 +236,31 @@ export default function WarrantyVaultPage() {
   }, [items, searchQuery, statusFilter]);
 
   return (
-    <div className="min-h-screen bg-[#fcfbf9] dark:bg-[#07080c] text-slate-900 dark:text-white py-10 px-4 sm:px-6 lg:px-8 transition-colors relative overflow-hidden animate-fade-in">
+    <div className="min-h-screen text-slate-900 dark:text-white py-10 px-4 sm:px-6 lg:px-8 transition-colors relative overflow-hidden animate-fade-in">
       {/* Artisanal Ambient Vignette & Warm Gold Lighting */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(1000px,100vw)] max-w-full h-[400px] bg-gradient-to-b from-amber-500/10 via-indigo-500/5 to-transparent blur-3xl pointer-events-none" />
-      <div className="absolute top-48 right-10 w-80 h-80 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-6xl mx-auto space-y-10 relative z-10">
         {/* Header */}
         <div className="text-center space-y-3.5 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/15 via-gold-500/20 to-amber-500/15 border border-gold-500/30 text-amber-900 dark:text-amber-300 text-xs font-black uppercase tracking-widest shadow-xs">
-            <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-            <span>Kafolat & Chek Saqlovchi "Sovg'a Hamyoni"</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight font-display text-slate-900 dark:text-white">
-            Kafolat Talonlari & <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 dark:from-amber-300 dark:to-yellow-400">Rasmiy Servis</span>
+          <h1 className="lux-title text-[2.4rem] sm:text-[3.2rem] text-slate-900 dark:text-white leading-[1.05]">
+            {language === "uz" ? "Kafolatlar" : language === "ru" ? "Гарантии" : "Warranty tracker"}
           </h1>
-          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed font-normal">
-            Sovg'aga olingan yoki yaqinlaringizga berilgan har bir texnika va qimmatbaho buyum kafolatini bir joyda saqlang.
-            Muddati tugashidan oldin xabardor bo'ling va servis markazi bilan bevosita bog'laning.
+          <p className="text-base text-slate-500 dark:text-slate-400 mt-3 max-w-2xl mx-auto leading-relaxed">
+            {language === "uz" ? "Texnika va qimmatbaho buyumlar cheklarini bir joyda saqlang, kafolat tugashidan oldin eslatma oling va servis markazi bilan bog'laning." : language === "ru" ? "Храните чеки на технику и ценные вещи в одном месте, получайте напоминание до конца гарантии и связывайтесь с сервисным центром." : "Keep receipts for electronics and valuables in one place, get a reminder before the warranty ends, and contact the service center."}
           </p>
         </div>
 
         {/* Action Header & Search & Stats */}
-        <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] p-6 sm:p-7 rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury space-y-5">
+        <div className="bg-white dark:bg-[#0b1224] p-6 sm:p-7 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 shadow-sm space-y-5">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl icon-medallion icon-box-gold text-slate-950 font-black text-xl flex items-center justify-center shrink-0">
+              <div className="w-12 h-12 rounded-2xl icon-medallion icon-box-gold text-slate-950 font-bold text-xl flex items-center justify-center shrink-0">
                 {items.length}
               </div>
               <div>
-                <h2 className="text-base font-extrabold text-slate-900 dark:text-white">Saqlangan Kafolat Kartalari</h2>
+                <h2 className="text-base font-semibold text-slate-900 dark:text-white">{tr("Saqlangan Kafolat Kartalari", "Сохранённые гарантийные карты", "Saved warranty cards")}</h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Barcha cheklar va servis ma'lumotlari qurilmangizda xavfsiz saqlanmoqda
+                  {tr("Barcha cheklar va servis ma'lumotlari qurilmangizda xavfsiz saqlanmoqda", "Все чеки и сервисные данные хранятся на вашем устройстве", "All receipts and service details are stored on your device")}
                 </p>
               </div>
             </div>
@@ -275,11 +268,11 @@ export default function WarrantyVaultPage() {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <button
                 onClick={handleExportJson}
-                className="px-4 py-3 bg-white/90 dark:bg-slate-900/90 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-800 dark:text-amber-200 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-amber-200/80 dark:border-slate-800 cursor-pointer shadow-2xs active:scale-95"
-                title="Kafolat pasportlarini zaxiralash"
+                className="px-4 py-3 bg-white/90 dark:bg-slate-900/90 hover:bg-amber-50 dark:hover:bg-slate-800 text-slate-800 dark:text-amber-200 rounded-2xl text-xs font-bold transition flex items-center justify-center gap-1.5 border border-[var(--line)] dark:border-slate-800 cursor-pointer shadow-2xs"
+                title={tr("Kafolat pasportlarini zaxiralash", "Сохранить резервную копию гарантий", "Back up your warranties")}
               >
                 <Download className="w-4 h-4 text-amber-600 dark:text-amber-400 stroke-[2.2]" />
-                <span>Eksport (JSON)</span>
+                <span>{tr("Eksport (JSON)", "Экспорт (JSON)", "Export (JSON)")}</span>
               </button>
 
               <button
@@ -287,7 +280,7 @@ export default function WarrantyVaultPage() {
                   cyberSound.playClick();
                   setShowAddModal(true);
                 }}
-                className="flex-1 sm:flex-none px-6 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 rounded-2xl text-xs sm:text-sm font-black shadow-md shadow-amber-500/25 transition flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                className="flex-1 sm:flex-none px-6 py-3 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-md transition flex items-center justify-center gap-2 cursor-pointer bg-amber-500 hover:bg-amber-400"
               >
                 <Plus className="w-4 h-4 text-slate-950 stroke-[2.2]" />
                 <span>
@@ -298,24 +291,24 @@ export default function WarrantyVaultPage() {
           </div>
 
           {/* Search bar & Status filter chips */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-amber-100 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-[var(--line)] dark:border-slate-800">
             <div className="relative w-full sm:w-80">
               <Search className="w-4 h-4 text-amber-600/70 dark:text-amber-400/70 absolute left-3.5 top-1/2 -translate-y-1/2 stroke-[2.2]" />
               <input
                 type="text"
-                placeholder="Mahsulot yoki do'kon bo'yicha qidirish..."
+                placeholder={tr("Mahsulot yoki do'kon bo'yicha qidirish...", "Поиск по товару или магазину...", "Search by product or store...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-xl text-xs font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
+                className="w-full pl-10 pr-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-xl text-xs font-semibold outline-none text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500/40 shadow-2xs"
               />
             </div>
 
             <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
               {[
-                { id: "all", label: "Barchasi" },
-                { id: "active", label: "🟢 Faol" },
-                { id: "expiring", label: "🟡 Tez kunda tugaydi" },
-                { id: "expired", label: "🔴 Tugagan" },
+                { id: "all", label: tr("Barchasi", "Все", "All") },
+                { id: "active", label: tr("🟢 Faol", "🟢 Действует", "🟢 Active") },
+                { id: "expiring", label: tr("🟡 Tez kunda tugaydi", "🟡 Скоро истекает", "🟡 Expiring soon") },
+                { id: "expired", label: tr("Tugagan", "Истекла", "Expired") },
               ].map((f) => (
                 <button
                   key={f.id}
@@ -323,10 +316,10 @@ export default function WarrantyVaultPage() {
                     cyberSound.playClick();
                     setStatusFilter(f.id as any);
                   }}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition border whitespace-nowrap cursor-pointer shadow-2xs active:scale-95 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition border whitespace-nowrap cursor-pointer shadow-2xs ${
                     statusFilter === f.id
-                      ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black border-amber-500 shadow-xs"
-                      : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border-amber-200/70 dark:border-slate-800 hover:border-amber-400"
+                      ? "text-white font-bold border-amber-500 shadow-xs bg-amber-500"
+                      : "bg-white/90 dark:bg-slate-900/90 text-slate-700 dark:text-slate-300 border-[var(--line)] dark:border-slate-800 hover:border-[var(--line-strong)]"
                   }`}
                 >
                   {f.label}
@@ -344,18 +337,18 @@ export default function WarrantyVaultPage() {
             return (
               <div
                 key={item.id}
-                className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 p-6 shadow-luxury flex flex-col justify-between hover:border-amber-400 dark:hover:border-amber-500/40 transition space-y-5"
+                className="bg-white dark:bg-[#0b1224] rounded-2xl border border-[var(--line)] dark:border-amber-500/20 p-6 shadow-sm flex flex-col justify-between hover:border-[var(--line-strong)] dark:hover:border-amber-500/40 transition space-y-5"
               >
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-300/70 dark:border-amber-500/30 font-bold">
+                        <span className="text-[10px] px-2.5 py-0.5 rounded-full border border-[var(--line)] font-bold bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
                           {item.store}
                         </span>
                         {item.warrantyType === "official" && (
-                          <span className="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800 px-2 py-0.5 rounded-full font-bold">
-                            Rasmiy
+                          <span className="text-[10px] border px-2 py-0.5 rounded-full font-bold bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
+                            {tr("Rasmiy", "Официальная", "Official")}
                           </span>
                         )}
                       </div>
@@ -363,7 +356,7 @@ export default function WarrantyVaultPage() {
                         {item.productName}
                       </h3>
                       {item.price && (
-                        <p className="text-xs font-black text-amber-600 dark:text-amber-400">
+                        <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
                           {formatPrice(item.price)}
                         </p>
                       )}
@@ -371,8 +364,8 @@ export default function WarrantyVaultPage() {
 
                     <button
                       onClick={() => handleDeleteItem(item.id)}
-                      className="w-8 h-8 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-amber-200/70 dark:border-slate-800 text-slate-400 hover:text-rose-600 flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-95"
-                      title="O'chirish"
+                      className="w-8 h-8 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 text-slate-400 hover:text-rose-600 flex items-center justify-center transition cursor-pointer shadow-2xs"
+                      title={tr("O'chirish", "Удалить", "Delete")}
                     >
                       <Trash2 className="w-4 h-4 stroke-[2.2]" />
                     </button>
@@ -384,7 +377,7 @@ export default function WarrantyVaultPage() {
                       status.isExpired
                         ? "bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300"
                         : status.isNearExpiry
-                        ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300"
+                        ? "bg-amber-50 dark:bg-amber-950/30 border-[var(--line)] dark:border-amber-800 text-amber-800 dark:text-amber-300"
                         : "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300"
                     }`}
                   >
@@ -393,31 +386,31 @@ export default function WarrantyVaultPage() {
                       <div>
                         <span className="font-bold block">
                           {status.isExpired
-                            ? "Kafolat muddati tugagan"
-                            : `${status.daysRemaining} kun qoldi`}
+                            ? tr("Kafolat muddati tugagan", "Гарантия истекла", "Warranty expired")
+                            : tr(`${status.daysRemaining} kun qoldi`, `Осталось ${status.daysRemaining} дн.`, `${status.daysRemaining} days left`)}
                         </span>
-                        <span className="text-[10px] opacity-80 block">Tugash: {status.expiryDate}</span>
+                        <span className="text-[10px] opacity-80 block">{tr("Tugash", "Истекает", "Ends")}: {status.expiryDate}</span>
                       </div>
                     </div>
 
                     <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-lg bg-white/90 dark:bg-slate-900/90 shadow-2xs">
-                      {status.isExpired ? "Tugadi" : "Faol"}
+                      {status.isExpired ? tr("Tugadi", "Истекла", "Expired") : tr("Faol", "Действует", "Active")}
                     </span>
                   </div>
 
                   {/* Metadata */}
-                  <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 pt-1 border-t border-amber-100 dark:border-slate-800">
+                  <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 pt-1 border-t border-[var(--line)] dark:border-slate-800">
                     <div className="flex justify-between">
-                      <span className="text-slate-400 dark:text-slate-400">Xarid sanasi:</span>
+                      <span className="text-slate-400 dark:text-slate-400">{tr("Xarid sanasi:", "Дата покупки:", "Purchase date:")}</span>
                       <span className="font-semibold text-slate-800 dark:text-slate-200">{item.purchaseDate}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-400 dark:text-slate-400">Kafolat muddati:</span>
+                      <span className="text-slate-400 dark:text-slate-400">{tr("Kafolat muddati:", "Срок гарантии:", "Warranty period:")}</span>
                       <span className="font-semibold text-slate-800 dark:text-slate-200">{item.warrantyMonths} oy</span>
                     </div>
                     {item.receiptNumber && (
                       <div className="flex justify-between">
-                        <span className="text-slate-400 dark:text-slate-400">Chek / Talon №:</span>
+                        <span className="text-slate-400 dark:text-slate-400">{tr("Chek / Talon №:", "Чек / талон №:", "Receipt / coupon no.:")}</span>
                         <span className="font-mono font-bold text-amber-700 dark:text-amber-400">{item.receiptNumber}</span>
                       </div>
                     )}
@@ -429,21 +422,21 @@ export default function WarrantyVaultPage() {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-amber-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="pt-3 border-t border-[var(--line)] dark:border-slate-800 flex items-center justify-between">
                   <span className="text-[11px] text-slate-400 flex items-center gap-1">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[2.2]" />
-                    <span>Rasmiy ro'yxat</span>
+                    <span>{tr("Rasmiy ro'yxat", "Официальный список", "Official list")}</span>
                   </span>
 
                   <a
                     href={`tel:${
-                      SERVICE_CENTERS.find((s) => s.store === item.store)?.phone.replace(/\s+/g, "") ||
+                      get_SERVICE_CENTERS().find((s) => s.store === item.store)?.phone.replace(/\s+/g, "") ||
                       "+998712000105"
                     }`}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-300/60 dark:border-amber-500/30 transition cursor-pointer active:scale-95 shadow-2xs"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-300 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-[var(--line)] dark:border-amber-500/30 transition cursor-pointer shadow-2xs"
                   >
                     <PhoneCall className="w-3.5 h-3.5 stroke-[2.2]" />
-                    <span>Servisga qo'ng'iroq</span>
+                    <span>{tr("Servisga qo'ng'iroq", "Позвонить в сервис", "Call service")}</span>
                   </a>
                 </div>
               </div>
@@ -453,41 +446,41 @@ export default function WarrantyVaultPage() {
 
         {/* Empty state */}
         {filteredItems.length === 0 && (
-          <div className="text-center py-12 bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 space-y-2 shadow-luxury">
+          <div className="bg-white dark:bg-[#0b1224] text-center py-12 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 space-y-2 shadow-sm">
             <ShieldCheck className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Kafolat kartasi topilmadi</h3>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">{tr("Kafolat kartasi topilmadi", "Гарантийная карта не найдена", "No warranty card found")}</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Qidiruv so'zini o'zgartiring yoki yangi kafolat kartasi qo'shing.
+              {tr("Qidiruv so'zini o'zgartiring yoki yangi kafolat kartasi qo'shing.", "Измените запрос или добавьте новую гарантийную карту.", "Change your search or add a new warranty card.")}
             </p>
           </div>
         )}
 
         {/* Store Service Directory */}
-        <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:to-[#0a0c16] p-6 sm:p-8 rounded-3xl border-2 border-amber-200/80 dark:border-amber-500/20 shadow-luxury space-y-5">
+        <div className="bg-white dark:bg-[#0b1224] p-6 sm:p-8 rounded-2xl border border-[var(--line)] dark:border-amber-500/20 shadow-sm space-y-5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl icon-medallion icon-box-gold flex items-center justify-center shrink-0">
               <PhoneCall className="w-5 h-5 text-amber-500 stroke-[2.2]" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                O'zbekiston Do'konlari Rasmiy Servis Markazlari Telefonlari
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                {tr("O'zbekiston Do'konlari Rasmiy Servis Markazlari Telefonlari", "Телефоны сервисных центров магазинов", "Store service centre phone numbers")}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                To'g'ridan-to'g'ri bog'lanish va bepul kafolat ta'mirlash xizmatlari
+                {tr("To'g'ridan-to'g'ri bog'lanish va bepul kafolat ta'mirlash xizmatlari", "Прямая связь и бесплатный гарантийный ремонт", "Direct contact and free warranty repairs")}
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {SERVICE_CENTERS.map((sc) => (
-              <div key={sc.store} className="p-4.5 rounded-2xl bg-white/90 dark:bg-slate-900/80 border border-amber-200/70 dark:border-slate-800 space-y-2 shadow-2xs">
+            {get_SERVICE_CENTERS().map((sc) => (
+              <div key={sc.store} className="p-4.5 rounded-2xl bg-white/90 dark:bg-slate-900/80 border border-[var(--line)] dark:border-slate-800 space-y-2 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-900 dark:text-white text-sm">{sc.store}</span>
                   <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400 stroke-[2.2]" />
                 </div>
                 <a
                   href={`tel:${sc.phone.replace(/\s+/g, "")}`}
-                  className="text-amber-600 dark:text-amber-400 font-mono font-black text-sm block hover:underline"
+                  className="text-amber-600 dark:text-amber-400 font-mono font-bold text-sm block hover:underline"
                 >
                   {sc.phone}
                 </a>
@@ -502,11 +495,10 @@ export default function WarrantyVaultPage() {
       {/* Add Item Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in overflow-y-auto">
-          <div className="bg-gradient-to-br from-white via-[#fcfaf5] to-[#f8f4ea] dark:from-[#111422] dark:via-[#0c0e18] dark:to-[#07090f] rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-luxury border-2 border-amber-300/80 dark:border-amber-500/25 space-y-5 animate-scale-in text-slate-900 dark:text-white my-auto max-h-[92vh] max-h-[92dvh] overflow-y-auto relative">
+          <div className="bg-white dark:bg-[#0b1224] rounded-2xl max-w-lg w-full p-6 sm:p-8 shadow-sm border border-[var(--line)] dark:border-amber-500/25 space-y-5 animate-scale-in text-slate-900 dark:text-white my-auto max-h-[92vh] max-h-[92dvh] overflow-y-auto relative">
             {/* Ambient Top Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-12 bg-amber-400/15 dark:bg-amber-400/10 blur-2xl pointer-events-none rounded-full" />
 
-            <div className="flex items-center justify-between border-b border-amber-200/80 dark:border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-[var(--line)] dark:border-slate-800 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl icon-medallion icon-box-gold flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-5 h-5 text-amber-500 stroke-[2.2]" />
@@ -522,7 +514,7 @@ export default function WarrantyVaultPage() {
               </div>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="w-8 h-8 rounded-xl bg-white/80 dark:bg-slate-800 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white border border-amber-200/70 dark:border-slate-700 flex items-center justify-center transition cursor-pointer shadow-2xs active:scale-95"
+                className="w-8 h-8 rounded-xl bg-white/80 dark:bg-slate-800 hover:bg-amber-100/60 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white border border-[var(--line)] dark:border-slate-700 flex items-center justify-center transition cursor-pointer shadow-2xs"
               >
                 <X className="w-4 h-4 stroke-[2.2]" />
               </button>
@@ -545,7 +537,7 @@ export default function WarrantyVaultPage() {
                   }
                   value={form.productName}
                   onChange={(e) => setForm({ ...form, productName: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
+                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
                 />
               </div>
 
@@ -557,7 +549,7 @@ export default function WarrantyVaultPage() {
                   <select
                     value={form.store}
                     onChange={(e) => setForm({ ...form, store: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
+                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
                   >
                     <option value="Texnomart">Texnomart</option>
                     <option value="MediaPark">MediaPark</option>
@@ -577,7 +569,7 @@ export default function WarrantyVaultPage() {
                   <select
                     value={form.warrantyMonths}
                     onChange={(e) => setForm({ ...form, warrantyMonths: Number(e.target.value) })}
-                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
+                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
                   >
                     <option value={6}>6 {language === "uz" ? "oy" : language === "ru" ? "мес" : "months"}</option>
                     <option value={12}>12 {language === "uz" ? "oy (1 yil)" : language === "ru" ? "мес (1 год)" : "months (1 yr)"}</option>
@@ -596,7 +588,7 @@ export default function WarrantyVaultPage() {
                     type="date"
                     value={form.purchaseDate}
                     onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
+                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
                   />
                 </div>
 
@@ -609,7 +601,7 @@ export default function WarrantyVaultPage() {
                     placeholder="Masalan: TXN-4920"
                     value={form.receiptNumber}
                     onChange={(e) => setForm({ ...form, receiptNumber: e.target.value })}
-                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
+                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
                   />
                 </div>
               </div>
@@ -624,7 +616,7 @@ export default function WarrantyVaultPage() {
                     placeholder="3200000"
                     value={form.price}
                     onChange={(e) => setForm({ ...form, price: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
+                    className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
                   />
                 </div>
 
@@ -635,7 +627,7 @@ export default function WarrantyVaultPage() {
                   <select
                     value={form.warrantyType}
                     onChange={(e) => setForm({ ...form, warrantyType: e.target.value as any })}
-                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
+                    className="w-full px-3 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
                   >
                     <option value="official">
                       {language === "uz" ? "Rasmiy Dilerlik (100% Asl)" : language === "ru" ? "Официальная гарантия (100% оригинал)" : "Official Dealer (100% Authentic)"}
@@ -662,11 +654,11 @@ export default function WarrantyVaultPage() {
                   }
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-amber-200/80 dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
+                  className="w-full px-4 py-2.5 bg-white/90 dark:bg-slate-900/90 border border-[var(--line)] dark:border-slate-800 rounded-2xl text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-amber-500/50 shadow-2xs"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-amber-200/80 dark:border-slate-800">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[var(--line)] dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
@@ -676,7 +668,7 @@ export default function WarrantyVaultPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-slate-950 font-black rounded-2xl text-xs transition shadow-md shadow-amber-500/25 cursor-pointer active:scale-95 flex items-center gap-1.5"
+                  className="px-6 py-2.5 text-white font-bold rounded-2xl text-xs transition shadow-md cursor-pointer flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400"
                 >
                   <Check className="w-4 h-4 stroke-[2.2]" />
                   <span>{language === "uz" ? "Kartani Saqlash" : language === "ru" ? "Сохранить Карту" : "Save Card"}</span>
