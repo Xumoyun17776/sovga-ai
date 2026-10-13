@@ -1798,7 +1798,7 @@ export function registerRoutes(app: Express) {
       });
 
       // page mode (admin table): ?page=1&pageSize=50 → { items, total }; otherwise the plain list (optionally ?limit=)
-      const page = Math.max(1, parseInt(String(req.query.page || "0")) || 0);
+      const page = Math.max(0, parseInt(String(req.query.page || "0")) || 0); // 0 = no paging (lookup box wants a plain list)
       const pageSize = Math.min(200, Math.max(1, parseInt(String(req.query.pageSize || "50")) || 50));
       const total = users.length;
       if (page) users = users.slice((page - 1) * pageSize, page * pageSize);

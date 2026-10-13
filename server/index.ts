@@ -91,7 +91,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: "auto",
       httpOnly: true,
       sameSite: "lax",
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
@@ -139,14 +139,16 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-app.listen(Number(PORT), HOST, () => {
+const isPassenger = typeof (globalThis as any).PhusionPassenger !== "undefined" || typeof (global as any).PhusionPassenger !== "undefined";
+const portToListen = isPassenger ? "passenger" : (process.env.PORT || 3000);
+
+app.listen(portToListen as any, () => {
   startPriceTrackerWorker();
   warmLivePriceBoard();
   startLiveCatalog();
 
   console.log(`\n======================================================`);
-  console.log(`🎁 Sovg'a AI Server is listening on ${HOST}:${PORT}`);
-  console.log(`  ➜ Local:   http://localhost:${PORT}`);
+  console.log(`🎁 Sovg'a AI Server is listening on: ${portToListen}`);
   console.log(`======================================================\n`);
 });
 

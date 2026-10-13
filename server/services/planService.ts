@@ -90,9 +90,9 @@ export function activatePlan(
 function clientIp(req: Request): string {
   const cf = req.headers["cf-connecting-ip"];
   if (typeof cf === "string" && cf) return cf;
-  const xff = req.headers["x-forwarded-for"];
-  if (typeof xff === "string" && xff) return xff.split(",")[0].trim();
-  return req.ip || "unknown";
+  // Behind the Cloudflare tunnel Cloudflare sets CF-Connecting-IP itself. X-Forwarded-For is not trusted:
+  // a visitor can put anything in it and get a fresh free-search allowance every request.
+  return req.socket?.remoteAddress || req.ip || "unknown";
 }
 
 function usageKey(req: Request): string {

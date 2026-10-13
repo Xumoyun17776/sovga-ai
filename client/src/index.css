@@ -129,7 +129,7 @@
 /* ── Buttons (one shape, two variants) ──────────────────────────────── */
 .btn-luxury-gold, .btn-luxury-primary, .btn-hyper, .btn-gold, .btn-indigo-primary, .btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  background: var(--anor); color: var(--white);
+  background: var(--anor); color: #fff;
   border: 1px solid var(--anor); border-radius: 12px;
   font-family: var(--font-body); font-weight: 600; letter-spacing: 0;
   transition: background-color .15s, border-color .15s;

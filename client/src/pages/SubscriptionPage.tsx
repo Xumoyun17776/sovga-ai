@@ -1,34 +1,33 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import confetti from "canvas-confetti";
 import {
   CreditCard,
   CheckCircle2,
   ShieldCheck,
-  Zap,
   Copy,
   Check,
   UploadCloud,
   AlertCircle,
   Loader2,
-  Crown,
-  Sparkles,
   ArrowRight,
   X,
   History,
-  FileCheck2,
   Download,
   ExternalLink,
-  ChevronRight,
   Receipt,
-  ScanLine,
+  Clock,
+  Info,
+  Send,
 } from "../lib/icons";
 import { useTranslation } from "../lib/i18n";
 import { useToast } from "../components/Toast";
 import { auth, subscription, formatPrice } from "../lib/api";
-import { PLANS, PAID_PLANS, normalizePlanId, type PlanId } from "@shared/plans";
+import { PLANS, PAID_PLANS, PLAN_DAYS, normalizePlanId, type PlanId } from "@shared/plans";
 import { cyberSound } from "../lib/cyberSound";
 import { copyText } from "../lib/clipboard";
+import { PayStep, StatusPill, UsageBar } from "../components/subscription/parts";
 
 type PlanType = Exclude<PlanId, "free">;
 
@@ -58,6 +57,7 @@ export default function SubscriptionPage() {
   const [verificationResult, setVerificationResult] = useState<any | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisPhase, setAnalysisPhase] = useState(0);
+  const [dragOver, setDragOver] = useState(false);
 
   // Invoices & receipt modal state
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
@@ -65,7 +65,7 @@ export default function SubscriptionPage() {
 
   // User session
   const { data: user } = useQuery({ queryKey: ["me"], queryFn: auth.me });
-  const { data: planInfo } = useQuery({ queryKey: ["plans"], queryFn: subscription.plans, staleTime: 10 * 60 * 1000 });
+  const { data: planInfo, isLoading: planInfoLoading } = useQuery({ queryKey: ["plans"], queryFn: subscription.plans, staleTime: 10 * 60 * 1000 });
   const { data: status } = useQuery({ queryKey: ["plan-status"], queryFn: subscription.status });
   const currentPlanId: PlanId = (status?.plan as PlanId) || "free";
 
@@ -83,23 +83,19 @@ export default function SubscriptionPage() {
     clean: c.number,
     name: planInfo?.payment?.holder || "SOVG'A",
     bank: c.type,
-    gradient:
-      c.type === "Humo"
-        ? "from-[#022c22] via-[#064e3b] to-[#022c22] bg-[#022c22]"
-        : c.type === "Visa"
-        ? "bg-gradient-to-br from-[#0b1a4a] via-[#14286e] to-[#0b1a4a] bg-[#14286e]"
-        : "from-[#0f172a] via-[#1e293b] to-[#0f172a] bg-[#0f172a]",
-    accent: c.type === "Humo" ? "text-emerald-400" : "text-amber-400",
   }));
   const L = (uz: string, ru: string, en: string) => (language === "uz" ? uz : language === "ru" ? ru : en);
+  const lang = (language === "ru" || language === "en" ? language : "uz") as "uz" | "ru" | "en";
+  const locale = language === "ru" ? "ru-RU" : language === "uz" ? "uz-UZ" : "en-GB";
   const planName = (id: PlanId) => PLANS[id].name[language as "uz" | "ru" | "en"] || PLANS[id].name.en;
   const planLabel = (raw: string) => {
     const id = normalizePlanId(raw);
     return id ? `${planName(id)} · ${formatPrice(PLANS[id].price)}` : raw;
   };
+  /** Card transfers are always in so'm, whatever display currency the visitor picked. */
+  const fmtUzs = (n: number) => `${n.toLocaleString("ru-RU")} ${L("so'm", "сум", "UZS")}`;
   const currentPrice = PLANS[selectedPlan].price;
   const currentCard: any = cards.find((c: any) => c.type === activeCardTab) || cards[0];
-  const activeType = currentCard?.type;
 
   // Cycling scanning progress text
   useEffect(() => {
@@ -126,8 +122,15 @@ export default function SubscriptionPage() {
     setTimeout(() => setCopiedCard(null), 2500);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const copyAmount = () => {
+    copyText(String(currentPrice));
+    setCopiedCard("amount");
+    cyberSound.playClick();
+    toast.success(L("Summa nusxalandi", "Сумма скопирована", "Amount copied"), fmtUzs(currentPrice));
+    setTimeout(() => setCopiedCard(null), 2500);
+  };
+
+  const handleFile = (file: File | undefined) => {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
@@ -158,13 +161,19 @@ export default function SubscriptionPage() {
     reader.readAsDataURL(file);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFile(e.target.files?.[0]);
+    // let the same file be picked again after "remove"
+    e.target.value = "";
+  };
+
   const triggerConfetti = () => {
     try {
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ["#d9431f", "#10b981", "#d9431f", "#ec4899", "#818cf8"],
+        colors: ["#1F4CA8", "#1F7A4D", "#4A7BE6", "#EAF0FB"],
       });
       setTimeout(() => {
         confetti({
@@ -172,14 +181,14 @@ export default function SubscriptionPage() {
           angle: 60,
           spread: 55,
           origin: { x: 0 },
-          colors: ["#d9431f", "#10b981"],
+          colors: ["#1F4CA8", "#1F7A4D"],
         });
         confetti({
           particleCount: 50,
           angle: 120,
           spread: 55,
           origin: { x: 1 },
-          colors: ["#d9431f", "#ec4899"],
+          colors: ["#1F4CA8", "#4A7BE6"],
         });
       }, 250);
     } catch {
@@ -236,677 +245,789 @@ export default function SubscriptionPage() {
     verifyReceiptMutation.mutate({ receiptImage, plan: selectedPlan });
   };
 
-
   const pastReceiptsList = Array.isArray(receiptHistory) ? receiptHistory : [];
 
+  // ── derived view values ──────────────────────────────────────────────
+  const fmtLimit = (n: number) => (n === -1 ? L("Cheksiz", "Без лимита", "Unlimited") : String(n));
+  const daysLeft = status?.expiresAt ? Math.max(0, Math.ceil((new Date(status.expiresAt).getTime() - Date.now()) / 86_400_000)) : null;
+  const expiresText = status?.expiresAt
+    ? new Date(status.expiresAt).toLocaleDateString(locale, { day: "numeric", month: "long" })
+    : null;
+  const isVerified = !!verificationResult?.verified;
+  const isPending = !!verificationResult && !verificationResult.verified && !!verificationResult.pending;
+  const isRejected = !!verificationResult && !verificationResult.verified && !verificationResult.pending;
+  const statusLabel = (s: string) =>
+    s === "verified"
+      ? language === "uz" ? "Tasdiqlangan" : language === "ru" ? "Одобрено" : "Approved"
+      : s === "rejected"
+      ? language === "uz" ? "Rad etilgan" : language === "ru" ? "Отклонено" : "Rejected"
+      : language === "uz" ? "Ko'rib chiqilmoqda" : language === "ru" ? "В обработке" : "Under review";
+  const phaseText =
+    analysisPhase === 1
+      ? L("1/3: Fiskal rekvizitlar aniqlanmoqda…", "1/3: Считываем реквизиты чека…", "1/3: Reading the receipt details…")
+      : analysisPhase === 2
+      ? L("2/3: Bank tranzaksiyasi tekshirilmoqda…", "2/3: Проверяем банковскую транзакцию…", "2/3: Checking the bank transaction…")
+      : L("3/3: Gemini Vision to'lovni tasdiqlamoqda…", "3/3: Gemini Vision подтверждает платёж…", "3/3: Gemini Vision is confirming the payment…");
+
+  const openPayment = (id: PlanType) => {
+    cyberSound.playClick();
+    setSelectedPlan(id);
+    if (!user) {
+      window.location.href = `/auth?redirect=${encodeURIComponent(`/subscription?plan=${id}`)}`;
+      return;
+    }
+    setShowPaymentModal(true);
+  };
+
+  const copyBtn = (active: boolean, onClick: () => void, label: string) => (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="btn-ghost h-9 w-9 sm:w-auto px-0 sm:px-3 text-[13px] flex-shrink-0"
+    >
+      {active ? <Check className="w-3.5 h-3.5 text-[var(--ok)]" /> : <Copy className="w-3.5 h-3.5" />}
+      <span className="hidden sm:inline">{active ? L("Nusxalandi", "Скопировано", "Copied") : L("Nusxalash", "Копировать", "Copy")}</span>
+    </button>
+  );
+
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 text-slate-900 dark:text-slate-100 transition-colors relative overflow-hidden">
-      {/* Ambient luxury vignette glow */}
+    <div className="min-h-screen bg-[var(--paper)] text-[var(--ink)]">
+      <div className="wrap py-10 sm:py-14 space-y-10 sm:space-y-14">
+        {/* ── Header + current plan ─────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 items-start">
+          <div className="lg:col-span-7">
+            <p className="text-[14px] font-semibold text-[var(--anor)]">{L("Tariflar", "Тарифы", "Plans")}</p>
+            <h1 className="mt-2 font-lux text-[2.25rem] sm:text-[3rem] leading-[1.06] tracking-[-0.03em] text-[var(--ink)]">
+              {L("Bepul boshlang, kerak bo'lsa — kengaytiring", "Начните бесплатно, расширьте, когда нужно", "Start free, upgrade when you need more")}
+            </h1>
+            <p className="mt-4 max-w-[38rem] text-[17px] leading-relaxed text-[var(--ink-2)]">
+              {L(
+                `Bepul tarifda kuniga ${PLANS.free.searchesPerDay} ta qidiruv va ${PLANS.free.trackers} ta narx kuzatuvi bor. Pullik tariflar oylik — karta orqali to'laysiz, hech qachon avtomatik yechib olinmaydi.`,
+                `Бесплатно — ${PLANS.free.searchesPerDay} поисков в день и ${PLANS.free.trackers} отслеживания цены. Платные тарифы помесячные: оплата переводом на карту, без автосписаний.`,
+                `Free gives you ${PLANS.free.searchesPerDay} searches a day and ${PLANS.free.trackers} price alerts. Paid plans are monthly — you pay by card transfer and are never charged automatically.`
+              )}
+            </p>
+          </div>
 
-      {/* Inline HUD Laser styles */}
-      <style>{`
-        @keyframes laserSweep {
-          0% { top: 0%; opacity: 0.9; }
-          50% { top: 96%; opacity: 1; }
-          100% { top: 0%; opacity: 0.9; }
-        }
-        .laser-beam-anim {
-          animation: laserSweep 1.8s ease-in-out infinite;
-        }
-      `}</style>
+          {status && (
+            <section className="lg:col-span-5 rounded-2xl bg-[var(--white)] border border-[var(--rule-soft)] p-5 sm:p-6" aria-label={L("Joriy tarif", "Текущий тариф", "Current plan")}>
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-[13px] font-semibold text-[var(--ink-2)]">{L("Joriy tarif", "Текущий тариф", "Current plan")}</p>
+                  <p className="mt-1 font-lux text-[1.75rem] leading-tight text-[var(--ink)]">{planName(currentPlanId)}</p>
+                </div>
+                {daysLeft !== null ? (
+                  <div className="text-right flex-shrink-0">
+                    <p className="price text-[1.75rem] leading-none text-[var(--ink)]">{daysLeft}</p>
+                    <p className="mt-1 text-[13px] text-[var(--ink-2)] whitespace-nowrap">
+                      {L("kun qoldi", "дн. осталось", daysLeft === 1 ? "day left" : "days left")}
+                    </p>
+                  </div>
+                ) : (
+                  <span className="h-7 px-3 rounded-full bg-[var(--paper-2)] text-[13px] font-semibold text-[var(--ink-2)] inline-flex items-center flex-shrink-0">
+                    {L("Muddatsiz", "Бессрочно", "No end date")}
+                  </span>
+                )}
+              </div>
+              {expiresText && (
+                <p className="mt-1 text-[14px] text-[var(--ink-2)]">
+                  {L("Tugash sanasi:", "Действует до", "Active until")} {expiresText}
+                </p>
+              )}
+              <div className="mt-5 space-y-4">
+                <UsageBar label={L("AI qidiruv bugun", "AI-поиск сегодня", "AI searches today")} used={status.searchesToday} limit={status.searchLimit} unlimitedLabel="∞" />
+                <UsageBar label={L("Narx kuzatuvi", "Отслеживание цен", "Price alerts")} used={status.trackers} limit={status.trackerLimit} unlimitedLabel="∞" />
+              </div>
+              {!user && (
+                <a href={`/auth?redirect=${encodeURIComponent("/subscription")}`} className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-semibold text-[var(--anor)] hover:text-[var(--anor-deep)]">
+                  {L("Tarif sotib olish uchun kiring", "Войдите, чтобы купить тариф", "Sign in to buy a plan")} <ArrowRight className="w-4 h-4" />
+                </a>
+              )}
+            </section>
+          )}
+        </div>
 
-      <div className="max-w-6xl mx-auto space-y-12">
-        {/* Header */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 pb-10 border-b border-[var(--ink)]">
-          <h1 className="lg:col-span-7 lux-title text-[3rem] sm:text-[4.5rem] text-[var(--ink)] leading-[0.95]">
-            <span className="thin">{L("Oylik", "Месячные", "Monthly")}</span> {L("tariflar", "тарифы", "plans")}
-          </h1>
-          <p className="lg:col-span-5 lg:pt-6 text-[17px] text-[var(--ink-2)] leading-relaxed">
-            {L("Qancha ko'p qidirsangiz — shuncha ko'p imkoniyat. Karta orqali to'lang, chekni yuklang — tarif 30 kunga yoqiladi.", "Чем больше вы ищете — тем больше возможностей. Оплатите картой, загрузите чек — тариф включится на 30 дней.", "Pick how much you need. Pay by card, upload the receipt, and the plan is on for 30 days.")}
+        {/* ── Plans ─────────────────────────────────────────────────── */}
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-5 items-stretch">
+            {(["free", ...PAID_PLANS] as PlanId[]).map((id) => {
+              const p = PLANS[id];
+              const isPaid = id !== "free";
+              const isSelected = isPaid && selectedPlan === id;
+              const isCurrent = currentPlanId === id;
+              const featured = id === "plus";
+              const features: { ok: boolean; text: string }[] = [
+                { ok: true, text: L(`${fmtLimit(p.searchesPerDay)} ta AI qidiruv / kun`, `${fmtLimit(p.searchesPerDay)} AI-поисков в день`, `${fmtLimit(p.searchesPerDay)} AI searches / day`) },
+                { ok: true, text: L(`${fmtLimit(p.trackers)} ta narx kuzatuvi`, `${fmtLimit(p.trackers)} отслеживаний цены`, `${fmtLimit(p.trackers)} price alerts`) },
+                { ok: true, text: L("Katalog va jonli narxlar", "Каталог и живые цены", "Catalog & live prices") },
+                { ok: p.registry, text: L("To'y ro'yxati yaratish", "Свадебный список", "Wedding registry") },
+                { ok: p.prioritySupport, text: L("Ustuvor yordam", "Приоритетная поддержка", "Priority support") },
+              ];
+              return (
+                <div
+                  key={id}
+                  onClick={() => isPaid && setSelectedPlan(id as PlanType)}
+                  className={`relative flex flex-col rounded-3xl p-6 sm:p-7 transition ${isPaid ? "cursor-pointer" : ""} ${
+                    featured
+                      ? "bg-[var(--anor)] text-[#fff] shadow-[0_24px_60px_-28px_rgba(31,76,168,.6)]"
+                      : `bg-[var(--white)] border ${isSelected ? "border-[var(--anor)]" : "border-[var(--rule-soft)] hover:border-[var(--line-hover)]"}`
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3 min-h-[28px]">
+                    <h3 className={`font-lux text-[1.35rem] ${featured ? "" : "text-[var(--ink)]"}`}>{planName(id)}</h3>
+                    {featured && (
+                      <span className="h-7 px-3 rounded-full bg-white/15 text-[12px] font-semibold inline-flex items-center whitespace-nowrap">
+                        {L("Ko'p tanlanadi", "Популярный", "Most popular")}
+                      </span>
+                    )}
+                  </div>
+                  <p className={`mt-2 text-[14px] leading-snug min-h-[2.5rem] ${featured ? "text-white/75" : "text-[var(--ink-2)]"}`}>{p.tagline[lang] || p.tagline.en}</p>
+                  <p className="mt-5 flex items-baseline gap-2">
+                    <span className={`price text-[2.25rem] leading-none ${featured ? "" : "text-[var(--ink)]"}`}>{p.price.toLocaleString("ru-RU")}</span>
+                    <span className={`text-[14px] ${featured ? "text-white/75" : "text-[var(--ink-2)]"}`}>{L("so'm / oy", "сум / мес", "UZS / mo")}</span>
+                  </p>
+
+                  <div className="mt-6">
+                    {isCurrent ? (
+                      <span
+                        className={`w-full h-12 rounded-xl text-[15px] font-semibold inline-flex items-center justify-center gap-2 ${
+                          featured ? "bg-white/15 text-[#fff]" : "bg-[var(--ok-soft)] text-[var(--ok-ink)]"
+                        }`}
+                      >
+                        <CheckCircle2 className="w-4 h-4" /> {L("Joriy tarif", "Текущий тариф", "Current plan")}
+                      </span>
+                    ) : isPaid ? (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openPayment(id as PlanType);
+                        }}
+                        className={`w-full h-12 rounded-xl text-[15px] font-semibold inline-flex items-center justify-center gap-2 transition cursor-pointer ${
+                          featured
+                            ? "bg-[#fff] text-[#1F4CA8] hover:bg-[#EAF0FB]"
+                            : "bg-[var(--paper-2)] text-[var(--ink)] hover:bg-[var(--accent-soft)]"
+                        }`}
+                      >
+                        {L(`${planName(id)} tarifini tanlash`, `Выбрать «${planName(id)}»`, `Choose ${planName(id)}`)}
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <span className="w-full h-12 rounded-xl text-[15px] inline-flex items-center justify-center text-[var(--ink-2)] border border-dashed border-[var(--rule-soft)]">
+                        {L("Hammaga ochiq", "Доступен всем", "Available to everyone")}
+                      </span>
+                    )}
+                  </div>
+
+                  <ul className={`mt-6 pt-5 space-y-3 text-[14.5px] flex-1 border-t ${featured ? "border-white/20" : "border-[var(--rule-soft)]"}`}>
+                    {features.map((f) => (
+                      <li
+                        key={f.text}
+                        className={`flex items-start gap-3 ${
+                          f.ok ? (featured ? "text-[#fff]" : "text-[var(--ink)]") : featured ? "text-white/55" : "text-[var(--muted)]"
+                        }`}
+                      >
+                        <span
+                          className={`mt-0.5 w-5 h-5 rounded-full inline-flex items-center justify-center flex-shrink-0 ${
+                            f.ok
+                              ? featured
+                                ? "bg-[#fff] text-[#1F4CA8]"
+                                : "bg-[var(--accent-soft)] text-[var(--anor)]"
+                              : featured
+                              ? "bg-white/10"
+                              : "bg-[var(--paper-2)]"
+                          }`}
+                        >
+                          {f.ok ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                        </span>
+                        <span>{f.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="mt-5 text-[14px] text-[var(--ink-2)] flex items-start gap-2">
+            <ShieldCheck className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--ok)]" />
+            <span>
+              {L(
+                "Click, Payme, Uzum Bank va barcha Humo / Uzcard kartalari orqali to'lash mumkin. Tarif 30 kun amal qiladi, avtomatik yechib olinmaydi.",
+                "Оплата через Click, Payme, Uzum Bank и любые карты Humo / Uzcard. Тариф действует 30 дней, без автосписаний.",
+                "Pay with Click, Payme, Uzum Bank or any Humo / Uzcard card. Each plan lasts 30 days — nothing is charged automatically."
+              )}
+            </span>
           </p>
         </div>
 
-        {/* Current plan & today's usage */}
-        {status && (
-          <div className="plan-status surface-card rounded-2xl p-5 sm:p-6 grid sm:grid-cols-[1fr_auto] gap-4 items-center">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{L("Joriy tarif", "Текущий тариф", "Current plan")}</p>
-              <p className="mt-1 font-lux text-3xl text-slate-900 dark:text-white">
-                {planName(currentPlanId)}
-                {status.expiresAt && (
-                  <span className="ml-3 align-middle text-xs font-sans text-slate-500 dark:text-slate-400">
-                    {L("tugash sanasi", "до", "until")} {new Date(status.expiresAt).toLocaleDateString(language === "ru" ? "ru-RU" : language === "uz" ? "uz-UZ" : "en-GB", { day: "numeric", month: "long" })}
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:w-[22rem]">
-              {[
-                { label: L("AI qidiruv bugun", "AI-поиск сегодня", "AI searches today"), used: status.searchesToday, limit: status.searchLimit },
-                { label: L("Narx kuzatuvi", "Отслеживание цен", "Price alerts"), used: status.trackers, limit: status.trackerLimit },
-              ].map((m) => {
-                const pct = m.limit === -1 ? 0 : Math.min(100, Math.round((m.used / Math.max(1, m.limit)) * 100));
-                return (
-                  <div key={m.label} className="rounded-xl border border-[var(--line)] px-3 py-2.5">
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">{m.label}</p>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums">
-                      {m.used} / {m.limit === -1 ? "∞" : m.limit}
-                    </p>
-                    <div className="mt-1.5 h-1.5 rounded-full bg-slate-200/70 dark:bg-white/[0.06] overflow-hidden">
-                      <div className={`h-full rounded-full ${pct >= 90 ? "bg-rose-500" : "bg-[var(--accent)]"}`} style={{ width: m.limit === -1 ? "100%" : `${pct}%`, opacity: m.limit === -1 ? 0.35 : 1 }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* ── How paying works ──────────────────────────────────────── */}
+        <section className="rounded-3xl bg-[var(--paper-2)] p-6 sm:p-8 lg:p-10">
+          <h2 className="font-lux text-[1.5rem] sm:text-[1.75rem] leading-tight text-[var(--ink)]">
+            {L("To'lov qanday ishlaydi", "Как проходит оплата", "How paying works")}
+          </h2>
+          <ol className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-6">
+            {[
+              {
+                t: L("Tarifni tanlang", "Выберите тариф", "Choose a plan"),
+                d: L("Start, Plus yoki Premium — 30 kunga.", "Старт, Плюс или Премиум — на 30 дней.", "Start, Plus or Premium — for 30 days."),
+              },
+              {
+                t: L("Kartaga o'tkazing", "Переведите на карту", "Transfer the amount"),
+                d: L("Aynan ko'rsatilgan summani Click, Payme, Uzum yoki bank ilovasidan yuboring.", "Отправьте ровно указанную сумму через Click, Payme, Uzum или банк.", "Send the exact amount from Click, Payme, Uzum or your bank app."),
+              },
+              {
+                t: L("Chekni yuklang", "Загрузите чек", "Upload the receipt"),
+                d: L("To'lov chekining skrinshotini yuklang — AI summa va sanani tekshiradi.", "Загрузите скриншот чека — AI проверит сумму и дату.", "Add a screenshot of the receipt — AI checks the amount and date."),
+              },
+              {
+                t: L("Tarif yoqiladi", "Тариф включается", "Your plan switches on"),
+                d: L("Chek tasdiqlansa — darhol. Aniq bo'lmasa, admin qo'lda tekshiradi.", "Если чек подтверждён — сразу. Если неясно, проверит администратор.", "Right away if the receipt checks out. If unclear, an admin reviews it."),
+              },
+            ].map((s, i) => (
+              <li key={s.t} className="flex items-start gap-3.5">
+                <span className="w-8 h-8 rounded-full bg-[var(--white)] border border-[var(--rule-soft)] text-[var(--anor)] text-[14px] font-semibold inline-flex items-center justify-center flex-shrink-0">
+                  {i + 1}
+                </span>
+                <div className="min-w-0 pt-0.5">
+                  <p className="font-semibold text-[15px] text-[var(--ink)]">{s.t}</p>
+                  <p className="mt-1 text-[14px] leading-relaxed text-[var(--ink-2)]">{s.d}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
 
-        {/* Plans */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {(["free", ...PAID_PLANS] as PlanId[]).map((id) => {
-            const p = PLANS[id];
-            const isPaid = id !== "free";
-            const isSelected = isPaid && selectedPlan === id;
-            const isCurrent = currentPlanId === id;
-            const featured = id === "plus";
-            const fmtLimit = (n: number) => (n === -1 ? L("Cheksiz", "Без лимита", "Unlimited") : String(n));
-            const features: { ok: boolean; text: string }[] = [
-              { ok: true, text: L(`${fmtLimit(p.searchesPerDay)} ta AI qidiruv / kun`, `${fmtLimit(p.searchesPerDay)} AI-поисков в день`, `${fmtLimit(p.searchesPerDay)} AI searches / day`) },
-              { ok: true, text: L(`${fmtLimit(p.trackers)} ta narx kuzatuvi`, `${fmtLimit(p.trackers)} отслеживаний цены`, `${fmtLimit(p.trackers)} price alerts`) },
-              { ok: true, text: L("Katalog va jonli narxlar", "Каталог и живые цены", "Catalog & live prices") },
-              { ok: p.registry, text: L("To'y ro'yxati yaratish", "Свадебный список", "Wedding registry") },
-              { ok: p.prioritySupport, text: L("Ustuvor yordam", "Приоритетная поддержка", "Priority support") },
-            ];
-            return (
-              <div
-                key={id}
-                onClick={() => isPaid && setSelectedPlan(id as PlanType)}
-                className={`plan-card ${featured ? "is-featured" : ""} ${isSelected ? "is-selected" : ""} relative rounded-2xl p-6 flex flex-col ${isPaid ? "cursor-pointer" : ""}`}
-              >
-                {featured && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.16em] text-white plan-ribbon">
-                    {L("Ommabop", "Популярный", "Most popular")}
-                  </span>
-                )}
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-lux text-[1.9rem] leading-none text-slate-900 dark:text-white">{planName(id)}</h3>
-                    <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 min-h-[2rem]">{p.tagline[language as "uz" | "ru" | "en"] || p.tagline.en}</p>
-                  </div>
-                  {isPaid && (
-                    <span className={`mt-1 w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 ${isSelected ? "border-[var(--accent)] bg-[var(--accent)] text-white" : "border-slate-300 dark:border-slate-600"}`}>
-                      {isSelected && <Check className="w-3 h-3" />}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-5 flex items-baseline gap-1.5">
-                  <span className="font-display font-bold text-[2rem] leading-none tracking-tight text-slate-900 dark:text-white tabular-nums">
-                    {p.price === 0 ? "0" : p.price.toLocaleString("en-US")}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">{L("so'm / oy", "сум / мес", "UZS / mo")}</span>
-                </div>
-                <ul className="mt-5 space-y-2.5 text-sm flex-1">
-                  {features.map((f) => (
-                    <li key={f.text} className={`flex items-start gap-2.5 ${f.ok ? "text-slate-700 dark:text-slate-200" : "text-slate-400 dark:text-slate-500 line-through decoration-slate-300 dark:decoration-slate-600"}`}>
-                      <span className={`bullet-check mt-0.5 ${f.ok ? (featured ? "is-gold" : "") : "opacity-30"}`}>
-                        {f.ok ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-                      </span>
-                      <span>{f.text}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-6">
-                  {isCurrent ? (
-                    <span className="w-full h-11 rounded-xl text-sm font-semibold inline-flex items-center justify-center gap-2 border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                      <CheckCircle2 className="w-4 h-4" /> {L("Joriy tarif", "Текущий тариф", "Current plan")}
-                    </span>
-                  ) : isPaid ? (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        cyberSound.playClick();
-                        setSelectedPlan(id as PlanType);
-                        if (!user) {
-                          window.location.href = `/auth?redirect=${encodeURIComponent(`/subscription?plan=${id}`)}`;
-                          return;
-                        }
-                        setShowPaymentModal(true);
-                      }}
-                      className={`w-full h-11 rounded-xl text-sm inline-flex items-center justify-center gap-2 cursor-pointer ${featured ? "btn-luxury-gold" : "btn-ghost justify-center"}`}
-                    >
-                      {L(`${planName(id)} tarifini tanlash`, `Выбрать «${planName(id)}»`, `Choose ${planName(id)}`)}
-                      <ArrowRight className="w-4 h-4" />
-                    </button>
-                  ) : (
-                    <span className="w-full h-11 rounded-xl text-sm inline-flex items-center justify-center text-slate-500 dark:text-slate-400 border border-dashed border-[var(--line)]">
-                      {L("Hammaga ochiq", "Доступен всем", "Available to everyone")}
-                    </span>
-                  )}
+        {/* ── Payment history ───────────────────────────────────────── */}
+        {user && (
+          <section className="rounded-2xl bg-[var(--white)] border border-[var(--rule-soft)]">
+            <div className="flex items-center justify-between gap-4 p-5 sm:p-6">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="tile !hidden sm:!inline-flex"><Receipt /></span>
+                <div className="min-w-0">
+                  <h2 className="font-lux text-[1.2rem] text-[var(--ink)]">
+                    {L("To'lovlarim", "Мои платежи", "My payments")}
+                    {pastReceiptsList.length > 0 && <span className="ml-2 text-[14px] font-sans font-semibold text-[var(--ink-2)] tabular-nums">{pastReceiptsList.length}</span>}
+                  </h2>
+                  <p className="text-[14px] text-[var(--ink-2)]">
+                    {language === "uz" ? "Yuklangan barcha to'lov cheklari va ularning AI audit holati" : language === "ru" ? "Все загруженные чеки и статус AI аудита" : "All uploaded receipts and AI audit results"}
+                  </p>
                 </div>
               </div>
-            );
-          })}
-        </div>
-
-        <p className="text-center text-xs text-slate-500 dark:text-slate-400 flex items-center justify-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-emerald-500" />
-          {L(
-            "Click, Payme, Uzum Bank va barcha Humo / Uzcard kartalari orqali to'lash mumkin. Tarif 30 kun amal qiladi, avtomatik yechib olinmaydi.",
-            "Оплата через Click, Payme, Uzum Bank и любые карты Humo / Uzcard. Тариф действует 30 дней, без автосписаний.",
-            "Pay with Click, Payme, Uzum Bank or any Humo / Uzcard card. Each plan lasts 30 days — nothing is charged automatically."
-          )}
-        </p>
-
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* PAYMENT & AI RECEIPT VERIFICATION MODAL */}
-        {/* ──────────────────────────────────────────────────────────── */}
-        {showPaymentModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in overflow-y-auto">
-            {/* Ambient vignette glow */}
-            <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+              <button type="button" onClick={() => setShowHistoryDrawer(!showHistoryDrawer)} className="btn-ghost h-10 px-3.5 text-[14px] flex-shrink-0" aria-expanded={showHistoryDrawer}>
+                <History className="w-4 h-4" />
+                <span>{showHistoryDrawer ? (language === "uz" ? "Yopish" : language === "ru" ? "Закрыть" : "Close") : (language === "uz" ? "Ko'rish" : language === "ru" ? "Показать" : "View")}</span>
+              </button>
             </div>
 
-            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-sm border border-[var(--line)] dark:border-amber-500/25 space-y-6 my-8 animate-scale-up">
-              {/* Modal Header */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-500">
-                      {planLabel(selectedPlan)} / {L("oy", "мес", "mo")}
-                    </span>
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-display font-bold text-slate-900 dark:text-white mt-1">
+            {showHistoryDrawer && (
+              <div className="border-t border-[var(--rule-soft)] animate-fade-in">
+                {pastReceiptsList.length === 0 ? (
+                  <p className="px-6 py-10 text-center text-[14px] text-[var(--ink-2)]">
+                    {language === "uz" ? "Siz hali to'lov cheki yuklamagansiz." : language === "ru" ? "Вы еще не загружали чеков." : "No receipts uploaded yet."}
+                  </p>
+                ) : (
+                  <>
+                    {/* desktop table */}
+                    <table className="hidden md:table w-full text-[14px]">
+                      <thead>
+                        <tr className="text-left text-[13px] text-[var(--ink-2)]">
+                          <th className="font-semibold px-6 py-3">{L("Sana", "Дата", "Date")}</th>
+                          <th className="font-semibold px-3 py-3">{L("Tarif", "Тариф", "Plan")}</th>
+                          <th className="font-semibold px-3 py-3 text-right">{L("Summa", "Сумма", "Amount")}</th>
+                          <th className="font-semibold px-3 py-3">{L("Bank / ilova", "Банк / приложение", "Bank / app")}</th>
+                          <th className="font-semibold px-3 py-3">{L("Holat", "Статус", "Status")}</th>
+                          <th className="px-6 py-3"><span className="sr-only">{L("Kvitansiya", "Квитанция", "Receipt")}</span></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pastReceiptsList.map((rec: any) => (
+                          <tr key={rec.id} className="border-t border-[var(--rule-soft)] align-top">
+                            <td className="px-6 py-4 whitespace-nowrap text-[var(--ink)]">
+                              {new Date(rec.createdAt).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" })}
+                              <span className="block text-[12.5px] text-[var(--ink-2)] font-mono truncate max-w-[11rem]">{rec.transactionId || `TRX-${rec.id}`}</span>
+                            </td>
+                            <td className="px-3 py-4 font-semibold text-[var(--ink)]">{(normalizePlanId(rec.plan) && planName(normalizePlanId(rec.plan)!)) || rec.plan}</td>
+                            <td className="px-3 py-4 text-right tabular-nums text-[var(--ink)] whitespace-nowrap">{formatPrice(rec.amount || 49000)}</td>
+                            <td className="px-3 py-4 text-[var(--ink-2)]">{rec.bankOrApp || "Bank"}</td>
+                            <td className="px-3 py-4">
+                              <StatusPill status={rec.status} label={statusLabel(rec.status)} />
+                              {rec.status === "rejected" && rec.reason && <p className="mt-1.5 text-[13px] leading-snug text-[var(--ink-2)] max-w-[18rem]">{rec.reason}</p>}
+                            </td>
+                            <td className="px-6 py-4 text-right">
+                              <button type="button" onClick={() => setSelectedInvoice(rec)} className="btn-ghost h-9 px-3 text-[13px]">
+                                {L("Ko'rish", "Открыть", "Open")}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* phone list */}
+                    <ul className="md:hidden divide-y divide-[var(--rule-soft)]">
+                      {pastReceiptsList.map((rec: any) => (
+                        <li key={rec.id}>
+                          <button type="button" onClick={() => setSelectedInvoice(rec)} className="w-full text-left px-5 py-4 flex items-start justify-between gap-3 hover:bg-[var(--paper-2)] transition">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-[15px] text-[var(--ink)]">{planLabel(rec.plan)}</p>
+                              <p className="mt-0.5 text-[13px] text-[var(--ink-2)]">
+                                {new Date(rec.createdAt).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" })} · {rec.bankOrApp || "Bank"}
+                              </p>
+                              {rec.status === "rejected" && rec.reason && <p className="mt-1 text-[13px] text-[var(--ink-2)]">{rec.reason}</p>}
+                            </div>
+                            <StatusPill status={rec.status} label={statusLabel(rec.status)} />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            )}
+          </section>
+        )}
+      </div>
+
+      {/* ──────────────────────────────────────────────────────────── */}
+      {/* PAYMENT: numbered steps                                      */}
+      {/* ──────────────────────────────────────────────────────────── */}
+      {showPaymentModal && createPortal(
+        <div className="fixed inset-0 z-[70] overflow-y-auto bg-[rgba(6,11,24,.62)] animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="pay-title">
+          <div className="min-h-full flex items-end sm:items-center justify-center sm:p-6">
+            <div className="w-full sm:max-w-[640px] bg-[var(--white)] border border-[var(--rule-soft)] rounded-t-3xl sm:rounded-3xl shadow-[0_24px_60px_-24px_rgba(14,26,54,.45)]">
+              {/* header */}
+              <div className="flex items-start justify-between gap-4 px-5 sm:px-8 pt-6 pb-5 border-b border-[var(--rule-soft)]">
+                <div className="min-w-0">
+                  <h3 id="pay-title" className="font-lux text-[1.5rem] sm:text-[1.75rem] leading-tight text-[var(--ink)]">
                     {L("Karta orqali to'lash", "Оплата картой", "Pay by card")}
                   </h3>
+                  <p className="mt-1 text-[14px] text-[var(--ink-2)]">
+                    {planName(selectedPlan)} · {fmtUzs(currentPrice)} · {PLAN_DAYS} {L("kun", "дней", "days")}. {L("Avtomatik yechib olinmaydi.", "Без автосписаний.", "No auto-charge.")}
+                  </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowPaymentModal(false)}
-                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+                  aria-label={L("Yopish", "Закрыть", "Close")}
+                  className="w-10 h-10 -mr-2 rounded-xl inline-flex items-center justify-center text-[var(--ink-2)] hover:text-[var(--ink)] hover:bg-[var(--paper-2)] transition cursor-pointer flex-shrink-0"
                 >
-                  <X className="w-5 h-5 stroke-[2.2]" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Step 1: Realistic 3D Bank Card */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-                  <span>{language === "uz" ? "1-Qadam: Pul o'tkazish" : language === "ru" ? "Шаг 1: Перевод средств" : "Step 1: Transfer Funds"}</span>
-                  <span className="text-amber-600 dark:text-amber-400 font-bold text-sm">
-                    {formatPrice(currentPrice)}
-                  </span>
-                </div>
+              <ol className="px-5 sm:px-8 py-6 sm:py-7">
+                {/* 1 — plan */}
+                <PayStep n={1} done title={L("Tarifni tanlang", "Выберите тариф", "Choose your plan")}>
+                  <div role="radiogroup" className="grid grid-cols-3 gap-2">
+                    {(PAID_PLANS as PlanType[]).map((id) => {
+                      const on = selectedPlan === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          role="radio"
+                          aria-checked={on}
+                          disabled={isAnalyzing}
+                          onClick={() => {
+                            cyberSound.playClick();
+                            setSelectedPlan(id);
+                          }}
+                          className={`rounded-xl border px-2.5 sm:px-3.5 py-2.5 text-left transition cursor-pointer disabled:cursor-not-allowed ${
+                            on ? "border-[var(--anor)] bg-[var(--accent-soft)]" : "border-[var(--rule-soft)] bg-[var(--white)] hover:border-[var(--line-strong)]"
+                          }`}
+                        >
+                          <span className={`block text-[14px] font-semibold ${on ? "text-[var(--anor)]" : "text-[var(--ink)]"}`}>{planName(id)}</span>
+                          <span className="block text-[13px] text-[var(--ink-2)] tabular-nums whitespace-nowrap">{PLANS[id].price.toLocaleString("ru-RU")}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </PayStep>
 
-                {cards.length === 0 ? (
-                  <div className="rounded-2xl border border-amber-300/60 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-700/50 p-5 text-sm text-slate-700 dark:text-slate-200 space-y-3">
-                    <p className="font-semibold">
-                      {L("To'lov kartasi hali sozlanmagan.", "Карта для оплаты ещё не настроена.", "The payment card isn't set up yet.")}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {L(
-                        "Tarifni faollashtirish uchun Telegram orqali yozing — admin qo'lda yoqib beradi.",
-                        "Чтобы подключить тариф, напишите нам в Telegram — администратор включит его вручную.",
-                        "Message us on Telegram to activate a plan — an admin will switch it on for you."
+                {planInfoLoading ? (
+                  <li className="grid grid-cols-[32px_minmax(0,1fr)] gap-x-3 sm:gap-x-4" aria-busy="true">
+                    <span />
+                    <div className="h-40 rounded-2xl bg-[var(--paper-2)] animate-pulse" />
+                  </li>
+                ) : cards.length === 0 ? (
+                  /* no payment card configured on the server */
+                  <li className="grid grid-cols-[32px_minmax(0,1fr)] gap-x-3 sm:gap-x-4">
+                    <span />
+                    <div className="rounded-2xl bg-[var(--paper-2)] p-5 sm:p-6">
+                      <div className="flex items-start gap-3">
+                        <span className="tile !w-10 !h-10"><Info /></span>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-[15px] text-[var(--ink)]">
+                            {L("To'lov kartasi hali sozlanmagan.", "Карта для оплаты ещё не настроена.", "The payment card isn't set up yet.")}
+                          </p>
+                          <p className="mt-1 text-[14px] leading-relaxed text-[var(--ink-2)]">
+                            {L(
+                              "Tarifni faollashtirish uchun Telegram orqali yozing — admin qo'lda yoqib beradi.",
+                              "Чтобы подключить тариф, напишите нам в Telegram — администратор включит его вручную.",
+                              "Message us on Telegram to activate a plan — an admin will switch it on for you."
+                            )}
+                          </p>
+                          <a href="https://t.me/sovga_ai_bot" target="_blank" rel="noreferrer" className="btn-telegram mt-4 inline-flex items-center gap-2 h-10 px-4 text-[14px] font-semibold">
+                            <Send className="w-4 h-4" /> @sovga_ai_bot
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ) : (
+                  <>
+                    {/* 2 — transfer */}
+                    <PayStep
+                      n={2}
+                      done={!!receiptImage}
+                      title={L("Aynan shu summani kartaga o'tkazing", "Переведите ровно эту сумму на карту", "Transfer the exact amount to this card")}
+                      hint={L("Click, Payme, Uzum yoki istalgan bank ilovasidan.", "Через Click, Payme, Uzum или любое банковское приложение.", "From Click, Payme, Uzum or any bank app.")}
+                    >
+                      {cards.length > 1 && (
+                        <div className="mb-3 inline-flex gap-1 p-1 rounded-xl bg-[var(--paper-2)]" role="tablist">
+                          {cards.map((c: any) => {
+                            const on = currentCard?.type === c.type;
+                            return (
+                              <button
+                                key={c.type}
+                                type="button"
+                                role="tab"
+                                aria-selected={on}
+                                onClick={() => {
+                                  cyberSound.playClick();
+                                  setActiveCardTab(c.type);
+                                }}
+                                className={`h-8 px-3 rounded-lg text-[13px] font-semibold inline-flex items-center gap-1.5 transition cursor-pointer ${
+                                  on ? "bg-[var(--white)] text-[var(--ink)] shadow-[0_1px_2px_rgba(14,26,54,.08)]" : "text-[var(--ink-2)] hover:text-[var(--ink)]"
+                                }`}
+                              >
+                                <CreditCard className="w-3.5 h-3.5" />
+                                {c.type}
+                              </button>
+                            );
+                          })}
+                        </div>
                       )}
-                    </p>
-                    <a href="https://t.me/sovga_ai_bot" target="_blank" rel="noreferrer" className="btn-telegram inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold">
-                      @sovga_ai_bot
-                    </a>
-                  </div>
-                ) : (
-                <>
-                {/* Card Type Selector Tabs */}
-                <div className={`${cards.length > 1 ? "grid" : "hidden"} grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl`}>
-                  {cards.map((c: any) => (
-                    <button
-                      key={c.type}
-                      onClick={() => {
-                        cyberSound.playClick();
-                        setActiveCardTab(c.type);
-                      }}
-                      className={`py-1.5 text-xs font-bold rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
-                        activeCardTab === c.type
-                          ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-xs"
-                          : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-300"
-                      }`}
+
+                      <dl className="rounded-2xl border border-[var(--rule-soft)] bg-[var(--paper-2)] divide-y divide-[var(--rule-soft)]">
+                        <div className="px-4 sm:px-5 py-3.5">
+                          <dt className="text-[13px] text-[var(--ink-2)]">
+                            {L("Karta raqami", "Номер карты", "Card number")} · {currentCard.type}
+                          </dt>
+                          <dd className="mt-1 flex items-center justify-between gap-3">
+                            <span className="font-mono text-[17px] sm:text-[22px] font-medium sm:tracking-[0.02em] text-[var(--ink)] tabular-nums min-w-0 whitespace-nowrap">{currentCard.number}</span>
+                            {copyBtn(copiedCard === currentCard.type, () => copyToClipboard(currentCard.clean, currentCard.type), L("Karta raqamini nusxalash", "Скопировать номер карты", "Copy card number"))}
+                          </dd>
+                        </div>
+                        <div className="px-4 sm:px-5 py-3.5 flex items-center justify-between gap-3">
+                          <dt className="text-[13px] text-[var(--ink-2)]">{L("Karta egasi", "Владелец карты", "Card holder")}</dt>
+                          <dd className="text-[15px] font-semibold text-[var(--ink)] text-right truncate">{currentCard.name}</dd>
+                        </div>
+                        <div className="px-4 sm:px-5 py-3.5">
+                          <dt className="text-[13px] text-[var(--ink-2)]">{L("O'tkaziladigan summa", "Сумма перевода", "Amount to send")}</dt>
+                          <dd className="mt-1 flex items-center justify-between gap-3">
+                            <span className="flex items-baseline gap-1.5 min-w-0">
+                              <span className="price text-[24px] leading-none text-[var(--ink)]">{currentPrice.toLocaleString("ru-RU")}</span>
+                              <span className="text-[14px] text-[var(--ink-2)]">{L("so'm", "сум", "UZS")}</span>
+                            </span>
+                            {copyBtn(copiedCard === "amount", copyAmount, L("Summani nusxalash", "Скопировать сумму", "Copy amount"))}
+                          </dd>
+                        </div>
+                      </dl>
+
+                      <p className="mt-3 text-[13px] text-[var(--ink-2)]">{L("Ilovani ochish (karta raqami nusxalanadi):", "Открыть приложение (номер карты скопируется):", "Open an app (the card number is copied):")}</p>
+                      <div className="mt-2 grid grid-cols-3 gap-2">
+                        {[
+                          { label: "Click Up", href: "https://my.click.uz/", key: "Click" },
+                          { label: "Payme", href: "https://payme.uz/", key: "Payme" },
+                          { label: "Uzum Bank", href: "https://uzumbank.uz/", key: "Uzum" },
+                        ].map((a) => (
+                          <a
+                            key={a.key}
+                            href={a.href}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => copyToClipboard(currentCard.clean, a.key)}
+                            className="btn-ghost h-10 px-2 text-[13px] whitespace-nowrap"
+                          >
+                            {a.label}
+                            <ExternalLink className="w-3.5 h-3.5 text-[var(--ink-2)] hidden sm:block" />
+                          </a>
+                        ))}
+                      </div>
+                    </PayStep>
+
+                    {/* 3 — upload */}
+                    <PayStep
+                      n={3}
+                      done={!!verificationResult}
+                      title={L("To'lov chekini yuklang", "Загрузите чек оплаты", "Upload the payment receipt")}
+                      hint={L("Ilovadagi chek skrinshoti: summa, sana va karta ko'rinsin.", "Скриншот чека из приложения: видны сумма, дата и карта.", "A screenshot from the app showing the amount, date and card.")}
                     >
-                      <CreditCard className="w-3.5 h-3.5 stroke-[2.2]" />
-                      <span>{c.type}</span>
-                    </button>
-                  ))}
-                </div>
+                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
 
-                {/* Card to pay into */}
-                <div className="rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-4 sm:p-5">
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>{L("Karta", "Карта", "Card")} · {currentCard.type}</span>
-                    <span>{currentCard.name}</span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <span className="font-mono text-xl sm:text-2xl font-semibold tracking-wide text-slate-900 tabular-nums">
-                      {currentCard.number}
-                    </span>
-                    <button
-                      onClick={() => copyToClipboard(currentCard.clean, currentCard.type)}
-                      className="btn-ghost h-9 px-3 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer flex-shrink-0"
-                    >
-                      {copiedCard === currentCard.type ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      {copiedCard === currentCard.type ? L("Nusxalandi", "Скопировано", "Copied") : L("Nusxalash", "Копировать", "Copy")}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Quick Payment App Shortcuts */}
-                <div className="grid grid-cols-3 gap-2 pt-1">
-                  <a
-                    href={`https://my.click.uz/`}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => copyToClipboard(currentCard.clean, "Click")}
-                    className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 dark:hover:border-blue-500 text-center transition group flex flex-col items-center justify-center"
-                  >
-                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 transition">Click Up</span>
-                    <span className="text-[9px] text-slate-400 mt-0.5">Ilova orqali</span>
-                  </a>
-                  <a
-                    href={`https://payme.uz/`}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => copyToClipboard(currentCard.clean, "Payme")}
-                    className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-teal-400 dark:hover:border-teal-500 text-center transition group flex flex-col items-center justify-center"
-                  >
-                    <span className="text-xs font-bold text-teal-600 dark:text-teal-400 transition">Payme</span>
-                    <span className="text-[9px] text-slate-400 mt-0.5">Ilova orqali</span>
-                  </a>
-                  <a
-                    href={`https://uzumbank.uz/`}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => copyToClipboard(currentCard.clean, "Uzum")}
-                    className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-purple-400 dark:hover:border-purple-500 text-center transition group flex flex-col items-center justify-center"
-                  >
-                    <span className="text-xs font-bold text-purple-600 dark:text-purple-400 transition">Uzum Bank</span>
-                    <span className="text-[9px] text-slate-400 mt-0.5">Ilova orqali</span>
-                  </a>
-                </div>
-                </>
-                )}
-              </div>
-
-              {/* Step 2: Upload receipt */}
-              <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-                  <span>{language === "uz" ? "2-Qadam: To'lov chekini yuklash" : language === "ru" ? "Шаг 2: Прикрепите чек оплаты" : "Step 2: Upload Payment Receipt"}</span>
-                  <span className="text-[10px] text-slate-400">PNG, JPG, WebP</span>
-                </div>
-
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  accept="image/*"
-                  className="hidden"
-                />
-
-                {!receiptImage ? (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="p-6 border border-dashed border-[var(--line)] dark:border-slate-700 hover:border-[var(--line-strong)] rounded-2xl bg-amber-50/30 dark:bg-slate-800/30 text-center space-y-2 cursor-pointer transition group"
-                  >
-                    <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto transition">
-                      <UploadCloud className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                        {language === "uz" ? "Chek skrinshotini bu yerga bosing yoki tashlang" : language === "ru" ? "Нажмите для загрузки чека" : "Click to select or drop receipt screenshot"}
-                      </p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        {language === "uz" ? "Payme, Click yoki Uzum Bank to'lov cheki skrinshoti" : language === "ru" ? "Чек из Payme, Click или Uzum Bank" : "Receipt from Payme, Click or Uzum Bank"}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="relative p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-                    {/* Futuristic HUD Scanning Overlay when analyzing */}
-                    {isAnalyzing && (
-                      <div className="absolute inset-0 z-20 bg-slate-950/70 backdrop-blur-xs flex flex-col items-center justify-center p-4">
-                        {/* Neon Laser Beam */}
-                        <div className="absolute left-0 right-0 h-1 laser-beam-anim" />
-
-                        {/* Cyber HUD Brackets */}
-                        <div className="w-full h-full border border-emerald-500/40 rounded-xl relative pointer-events-none p-3 flex flex-col justify-between">
-                          <div className="flex justify-between text-[9px] font-mono text-emerald-400 font-bold">
-                            <span>[AI_SCAN_OCR]</span>
-                            <span>STATUS: LIVE</span>
+                      {!receiptImage ? (
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setDragOver(true);
+                          }}
+                          onDragLeave={() => setDragOver(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setDragOver(false);
+                            handleFile(e.dataTransfer.files?.[0]);
+                          }}
+                          className={`w-full rounded-2xl border-2 border-dashed px-5 py-7 text-center transition cursor-pointer ${
+                            dragOver ? "border-[var(--anor)] bg-[var(--accent-soft)]" : "border-[var(--rule-soft)] bg-[var(--paper-2)] hover:border-[var(--line-strong)]"
+                          }`}
+                        >
+                          <span className="tile mx-auto"><UploadCloud /></span>
+                          <span className="mt-3 block text-[15px] font-semibold text-[var(--ink)]">
+                            {L("Rasmni shu yerga tashlang yoki tanlang", "Перетащите изображение или выберите файл", "Drop the screenshot here or choose a file")}
+                          </span>
+                          <span className="mt-1 block text-[13px] text-[var(--ink-2)]">PNG, JPG, WebP · {L("10 MB gacha", "до 10 МБ", "up to 10 MB")}</span>
+                        </button>
+                      ) : (
+                        <div className="rounded-2xl border border-[var(--rule-soft)] bg-[var(--paper-2)] overflow-hidden">
+                          <div className="relative bg-[var(--img-well)] flex items-center justify-center">
+                            <img src={receiptImage} alt={L("To'lov cheki", "Чек оплаты", "Payment receipt")} className="max-h-64 w-auto object-contain" />
+                            {isAnalyzing && (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-[var(--white)] opacity-80" />
+                                <span className="relative inline-flex items-center gap-2 h-9 px-4 rounded-full bg-[var(--white)] border border-[var(--rule-soft)] text-[13px] font-semibold text-[var(--ink)]">
+                                  <Loader2 className="w-4 h-4 animate-spin text-[var(--anor)]" />
+                                  {L("Tekshirilmoqda…", "Проверяем…", "Checking…")}
+                                </span>
+                              </div>
+                            )}
                           </div>
-                          <div className="text-center space-y-1">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400 text-emerald-300 font-mono text-xs font-bold animate-pulse">
-                              <ScanLine className="w-3.5 h-3.5 animate-spin" />
-                              <span>
-                                {analysisPhase === 1
-                                  ? "1/3: Fiskal rekvizitlar aniqlanmoqda..."
-                                  : analysisPhase === 2
-                                  ? "2/3: Bank tranzaksiyasi tekshirilmoqda..."
-                                  : "3/3: Gemini Vision to'lovni tasdiqlamoqda..."}
-                              </span>
+                          <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-[var(--rule-soft)]">
+                            <div className="min-w-0">
+                              <p className="text-[14px] font-semibold text-[var(--ink)] truncate">{receiptFileName || "to'lov_cheki.png"}</p>
+                              <p className="text-[13px] text-[var(--ok)] flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5" /> {L("Yuklandi — tekshirishga tayyor", "Загружено — готово к проверке", "Uploaded — ready to check")}
+                              </p>
                             </div>
-                            <p className="text-[10px] text-emerald-200/80 font-mono">
-                              Replay attack & tranzaksiya dublikati tekshiruvi faol
+                            {!isAnalyzing && (
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <button type="button" onClick={() => fileInputRef.current?.click()} className="btn-ghost h-9 px-3 text-[13px] hidden sm:inline-flex">
+                                  {L("Almashtirish", "Заменить", "Replace")}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setReceiptImage(null);
+                                    setReceiptFileName("");
+                                    setVerificationResult(null);
+                                  }}
+                                  aria-label={L("O'chirish", "Удалить", "Remove")}
+                                  title={L("O'chirish", "Удалить", "Remove")}
+                                  className="w-9 h-9 rounded-xl inline-flex items-center justify-center text-[var(--ink-2)] hover:text-[var(--rose)] hover:bg-[var(--rose-soft)] transition cursor-pointer"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {!isVerified && (
+                        <button type="button" onClick={handleStartAnalysis} disabled={isAnalyzing || !receiptImage} className="btn-primary mt-4 w-full h-12 text-[15px]">
+                          {isAnalyzing ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              {language === "uz" ? "AI tekshirmoqda…" : language === "ru" ? "AI проверяет…" : "AI is checking…"}
+                            </>
+                          ) : (
+                            <>
+                              <ShieldCheck className="w-4 h-4" />
+                              {L("Chekni tekshirish va tarifni yoqish", "Проверить чек и включить тариф", "Verify receipt & activate plan")}
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </PayStep>
+
+                    {/* 4 — result */}
+                    <PayStep n={4} last done={isVerified} title={L("Natija", "Результат", "Result")}>
+                      <div aria-live="polite">
+                        {isAnalyzing ? (
+                          <div className="rounded-2xl bg-[var(--accent-soft)] p-4 sm:p-5">
+                            <p className="flex items-center gap-2 text-[15px] font-semibold text-[var(--ink)]">
+                              <Loader2 className="w-4 h-4 animate-spin text-[var(--anor)]" />
+                              {phaseText}
+                            </p>
+                            <p className="mt-1.5 text-[14px] leading-relaxed text-[var(--ink-2)]">
+                              {L(
+                                "Gemini Vision to'lov summasi, bank va tranzaksiya holatini tekshirmoqda. Chek avval ishlatilmaganini ham tekshiramiz.",
+                                "Gemini Vision проверяет сумму, банк и статус платежа, а также что чек не использовался раньше.",
+                                "Gemini Vision is checking the amount, bank and transaction — and that the receipt hasn't been used before."
+                              )}
                             </p>
                           </div>
-                          <div className="flex justify-between text-[9px] font-mono text-emerald-400 font-bold">
-                            <span>TARGET: {formatPrice(currentPrice)}</span>
-                            <span>GATEWAY: SECURE</span>
+                        ) : isVerified ? (
+                          <div className="rounded-2xl bg-[var(--ok-soft)] p-4 sm:p-5">
+                            <p className="flex items-center gap-2 text-[15px] font-semibold text-[var(--ok-ink)]">
+                              <CheckCircle2 className="w-5 h-5 text-[var(--ok)]" />
+                              {L(`Chek tasdiqlandi — ${planName(selectedPlan)} faol`, `Чек подтверждён — «${planName(selectedPlan)}» активен`, `Receipt verified — ${planName(selectedPlan)} is active`)}
+                            </p>
+                            {verificationResult.message && <p className="mt-1.5 text-[14px] text-[var(--ok-ink)]">{verificationResult.message}</p>}
+                            {verificationResult.receipt && (
+                              <dl className="mt-3 pt-3 border-t border-[rgba(63,160,110,.3)] grid grid-cols-2 gap-x-4 gap-y-2 text-[13px] text-[var(--ok-ink)]">
+                                <div>
+                                  <dt className="opacity-75">{L("Summa", "Сумма", "Amount")}</dt>
+                                  <dd className="font-semibold tabular-nums">{formatPrice(verificationResult.receipt.amount || currentPrice)}</dd>
+                                </div>
+                                <div>
+                                  <dt className="opacity-75">{L("Bank / ilova", "Банк / приложение", "Bank / app")}</dt>
+                                  <dd className="font-semibold">{verificationResult.receipt.bankOrApp || "Payme/Click"}</dd>
+                                </div>
+                                <div className="col-span-2 min-w-0">
+                                  <dt className="opacity-75">{L("Tranzaksiya", "Транзакция", "Transaction")}</dt>
+                                  <dd className="font-mono truncate">{verificationResult.receipt.transactionId || "TRX-OK"}</dd>
+                                </div>
+                              </dl>
+                            )}
+                            <button type="button" onClick={() => setShowPaymentModal(false)} className="btn-primary mt-4 w-full h-12 text-[15px]">
+                              {L("Tayyor! Foydalanishni boshlash", "Готово! Начать пользоваться", "Done! Start using it")}
+                            </button>
                           </div>
-                        </div>
+                        ) : isPending ? (
+                          <div className="rounded-2xl bg-[var(--paper-2)] border border-[var(--rule-soft)] p-4 sm:p-5">
+                            <p className="flex items-center gap-2 text-[15px] font-semibold text-[var(--ink)]">
+                              <Clock className="w-4 h-4 text-[var(--warn)]" />
+                              {verificationResult.message || L("Chek tekshiruvga yuborildi", "Чек отправлен на проверку", "Receipt sent for review")}
+                            </p>
+                            {verificationResult.reason && <p className="mt-1.5 text-[14px] leading-relaxed text-[var(--ink-2)]">{verificationResult.reason}</p>}
+                            <p className="mt-2 text-[14px] leading-relaxed text-[var(--ink-2)]">
+                              {L(
+                                "Admin qo'lda tekshiradi. Holatini pastdagi «To'lovlarim» bo'limida ko'rasiz — oynani yopishingiz mumkin.",
+                                "Администратор проверит вручную. Статус появится в разделе «Мои платежи» — окно можно закрыть.",
+                                "An admin will check it by hand. You'll see the status under “My payments” — you can close this window."
+                              )}
+                            </p>
+                          </div>
+                        ) : isRejected ? (
+                          <div className="rounded-2xl bg-[var(--rose-soft)] p-4 sm:p-5">
+                            <p className="flex items-center gap-2 text-[15px] font-semibold text-[var(--rose)]">
+                              <AlertCircle className="w-4 h-4" />
+                              {verificationResult.message || L("Chek rad etildi", "Чек отклонён", "Receipt rejected")}
+                            </p>
+                            <p className="mt-1.5 text-[14px] leading-relaxed text-[var(--ink)]">
+                              {verificationResult.reason || L("To'lov summasi kam yoki chek tasdiqlanmadi.", "Сумма меньше нужной или чек не подтверждён.", "The amount is too low or the receipt couldn't be confirmed.")}
+                            </p>
+                            <p className="mt-2 text-[13px] text-[var(--ink-2)]">
+                              {L("Summani tekshiring va aniqroq skrinshot yuklang.", "Проверьте сумму и загрузите более чёткий скриншот.", "Check the amount and upload a clearer screenshot.")}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-[14px] text-[var(--ink-2)]">
+                            {L(
+                              "Chek tekshirilgach natija shu yerda chiqadi. Tasdiqlansa, tarif darhol 30 kunga yoqiladi.",
+                              "Результат появится здесь после проверки. Если чек подтверждён, тариф включится сразу на 30 дней.",
+                              "The result shows up here after the check. If the receipt is confirmed, the plan turns on right away for 30 days."
+                            )}
+                          </p>
+                        )}
                       </div>
-                    )}
-
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <img
-                          src={receiptImage}
-                          alt="Chek"
-                          className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">
-                            {receiptFileName || "to'lov_cheki.png"}
-                          </span>
-                          <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" />
-                            <span>Tayyor (Yuklandi)</span>
-                          </span>
-                        </div>
-                      </div>
-                      {!isAnalyzing && (
-                        <button
-                          onClick={() => {
-                            setReceiptImage(null);
-                            setReceiptFileName("");
-                            setVerificationResult(null);
-                          }}
-                          className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
-                          title="O'chirish"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                    </PayStep>
+                  </>
                 )}
-              </div>
-
-              {/* AI Verification Status / Results */}
-              {isAnalyzing && (
-                <div className="p-4 bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-2xl space-y-2 text-center animate-pulse">
-                  <div className="flex items-center justify-center gap-2 text-xs font-bold text-indigo-700 dark:text-indigo-300">
-                    <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
-                    <span>{language === "uz" ? "AI Chekni Tahlil Qilmoqda..." : language === "ru" ? "AI Анализирует Чек..." : "AI is Auditing Receipt..."}</span>
-                  </div>
-                  <p className="text-[11px] text-indigo-600/80 dark:text-indigo-400">
-                    {language === "uz"
-                      ? "Gemini Vision to'lov summasi, bank va tranzaksiya holatini tekshirmoqda..."
-                      : language === "ru"
-                      ? "Gemini Vision распознает сумму, банк и статус платежа..."
-                      : "Gemini Vision is auditing amount, bank, and transaction authenticity..."}
-                  </p>
-                </div>
-              )}
-
-              {/* Result on Success */}
-              {verificationResult?.verified && (
-                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-400 rounded-2xl space-y-2 animate-fade-in">
-                  <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 text-sm font-bold">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500 fill-emerald-500 text-white" />
-                    <span>{language === "uz" ? "Chek Tasdiqlandi! PRO Faol!" : language === "ru" ? "Чек Подтвержден! PRO Активирован!" : "Receipt Verified! PRO Activated!"}</span>
-                  </div>
-                  <p className="text-xs text-emerald-700 dark:text-emerald-400">
-                    {verificationResult.message}
-                  </p>
-                  {verificationResult.receipt && (
-                    <div className="grid grid-cols-2 gap-2 pt-2 text-[11px] font-mono text-emerald-900 dark:text-emerald-300 border-t border-emerald-200/50">
-                      <div>Summa: <b>{formatPrice(verificationResult.receipt.amount || currentPrice)}</b></div>
-                      <div>Bank: <b>{verificationResult.receipt.bankOrApp || "Payme/Click"}</b></div>
-                      <div className="col-span-2 text-[10px] text-slate-500 truncate">
-                        Tranzaksiya: <b>{verificationResult.receipt.transactionId || "TRX-OK"}</b>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Result on Failure */}
-              {verificationResult && !verificationResult.verified && (
-                <div className="p-4 bg-rose-50 dark:bg-rose-950/30 border border-rose-300 dark:border-rose-800 rounded-2xl space-y-1.5 animate-fade-in">
-                  <div className="flex items-center gap-2 text-rose-800 dark:text-rose-300 text-xs font-bold">
-                    <AlertCircle className="w-4 h-4 text-rose-500" />
-                    <span>{verificationResult.message || "Chek rad etildi"}</span>
-                  </div>
-                  <p className="text-[11px] text-rose-700 dark:text-rose-400 leading-relaxed">
-                    {verificationResult.reason || "To'lov summasi kam yoki chek tasdiqlanmadi."}
-                  </p>
-                </div>
-              )}
-
-              {/* Step 3: Trigger button */}
-              <div>
-                {!verificationResult?.verified ? (
-                  <button
-                    onClick={handleStartAnalysis}
-                    disabled={isAnalyzing || !receiptImage}
-                    className="w-full py-3.5 text-white font-bold rounded-2xl transition shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-xs sm:text-sm bg-amber-500 hover:bg-amber-400"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>{language === "uz" ? "AI Tekshirmoqda..." : language === "ru" ? "AI Проверяет..." : "AI Auditing..."}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 text-slate-950 stroke-[2.2]" />
-                        <span>{L("Chekni tekshirish va tarifni yoqish", "Проверить чек и включить тариф", "Verify receipt & activate plan")}</span>
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowPaymentModal(false)}
-                    className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-2xl transition shadow-sm text-xs sm:text-sm cursor-pointer"
-                  >
-                    {L("Tayyor! Foydalanishni boshlash", "Готово! Начать пользоваться", "Done! Start using it")}
-                  </button>
-                )}
-              </div>
+              </ol>
             </div>
           </div>
-        )}
+        </div>,
+        document.body
+      )}
 
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* PAYMENT HISTORY & INVOICES DRAWER */}
-        {/* ──────────────────────────────────────────────────────────── */}
-        <div className="bg-white dark:bg-[#0b1224] border border-[var(--line)] dark:border-amber-500/25 rounded-2xl p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center">
-                <FileCheck2 className="w-5 h-5 stroke-[2.2]" />
-              </div>
-              <div>
-                <h3 className="font-display font-bold text-slate-900 dark:text-white text-base">
-                  {L("To'lovlarim", "Мои платежи", "My payments")}
-                </h3>
-                <p className="text-[11px] text-slate-500">
-                  {language === "uz" ? "Yuklangan barcha to'lov cheklari va ularning AI audit holati" : language === "ru" ? "Все загруженные чеки и статус AI аудита" : "All uploaded receipts and AI audit results"}
-                </p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowHistoryDrawer(!showHistoryDrawer)}
-              className="px-3 py-1.5 rounded-xl border border-[var(--line)] dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-slate-800 transition cursor-pointer flex items-center gap-1"
-            >
-              <History className="w-3.5 h-3.5 stroke-[2.2]" />
-              <span>{showHistoryDrawer ? (language === "uz" ? "Yopish" : language === "ru" ? "Закрыть" : "Close") : (language === "uz" ? "Ko'rish" : language === "ru" ? "Показать" : "View")}</span>
-            </button>
-          </div>
-
-          {showHistoryDrawer && (
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-3 animate-fade-in">
-              {pastReceiptsList.length === 0 ? (
-                <div className="p-6 text-center text-slate-400 text-xs">
-                  {language === "uz" ? "Siz hali to'lov cheki yuklamagansiz." : language === "ru" ? "Вы еще не загружали чеков." : "No receipts uploaded yet."}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {pastReceiptsList.map((rec: any) => (
-                    <div
-                      key={rec.id}
-                      className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between gap-3 text-xs"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
-                            rec.status === "verified"
-                              ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
-                              : rec.status === "rejected"
-                              ? "bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400"
-                              : "bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400"
-                          }`}
-                        >
-                          {rec.status === "verified" ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900 dark:text-white">
-                              {planLabel(rec.plan)}
-                            </span>
-                            <span className="text-slate-400">•</span>
-                            <span className="font-mono text-slate-600 dark:text-slate-400">
-                              {formatPrice(rec.amount || 49000)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-[10px] text-slate-400 mt-0.5 font-mono">
-                            <span>ID: {rec.transactionId || `TRX-${rec.id}`}</span>
-                            <span>•</span>
-                            <span>{rec.bankOrApp || "Bank"}</span>
-                            <span>•</span>
-                            <span>{new Date(rec.createdAt).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
-                            rec.status === "verified"
-                              ? "bg-emerald-500 text-white"
-                              : rec.status === "rejected"
-                              ? "bg-rose-500 text-white"
-                              : "bg-amber-500 text-white"
-                          }`}
-                        >
-                          {rec.status === "verified"
-                            ? (language === "uz" ? "Tasdiqlangan" : language === "ru" ? "Одобрено" : "Approved")
-                            : rec.status === "rejected"
-                            ? (language === "uz" ? "Rad etilgan" : language === "ru" ? "Отклонено" : "Rejected")
-                            : (language === "uz" ? "Ko'rib chiqilmoqda" : language === "ru" ? "В обработке" : "Under review")}
-                        </span>
-
-                        <button
-                          onClick={() => setSelectedInvoice(rec)}
-                          className="p-1.5 text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
-                          title="Kvitansiya ko'rish"
-                        >
-                          <Receipt className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ──────────────────────────────────────────────────────────── */}
-        {/* FORMAL DIGITAL INVOICE / VOUCHER MODAL */}
-        {/* ──────────────────────────────────────────────────────────── */}
-        {selectedInvoice && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fade-in overflow-y-auto">
-            {/* Ambient vignette glow */}
-            <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-            </div>
-
-            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-sm border border-[var(--line)] dark:border-amber-500/25 space-y-6 animate-scale-up my-auto max-h-[92vh] max-h-[92dvh] overflow-y-auto">
-              <div className="flex items-start justify-between">
-                <div>
-                  <span className="text-[10px] font-mono font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                    RASMIY ELEKTRON KVITANSIYA
-                  </span>
-                  <h3 className="text-xl font-display font-bold text-slate-900 dark:text-white mt-0.5">
-                    Sovg'a AI VIP Obuna
+      {/* ──────────────────────────────────────────────────────────── */}
+      {/* RECEIPT DETAILS MODAL                                        */}
+      {/* ──────────────────────────────────────────────────────────── */}
+      {selectedInvoice && createPortal(
+        <div className="fixed inset-0 z-[70] overflow-y-auto bg-[rgba(6,11,24,.62)] animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="invoice-title">
+          <div className="min-h-full flex items-end sm:items-center justify-center sm:p-6">
+            <div className="w-full sm:max-w-md bg-[var(--white)] border border-[var(--rule-soft)] rounded-t-3xl sm:rounded-3xl p-5 sm:p-7 space-y-5 shadow-[0_24px_60px_-24px_rgba(14,26,54,.45)]">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h3 id="invoice-title" className="font-lux text-[1.4rem] leading-tight text-[var(--ink)]">
+                    {L("To'lov kvitansiyasi", "Квитанция об оплате", "Payment receipt")}
                   </h3>
+                  <p className="mt-0.5 text-[14px] text-[var(--ink-2)]">Sovg'a · {planLabel(selectedInvoice.plan)}</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setSelectedInvoice(null)}
-                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl transition cursor-pointer"
+                  aria-label={L("Yopish", "Закрыть", "Close")}
+                  className="w-10 h-10 -mr-2 rounded-xl inline-flex items-center justify-center text-[var(--ink-2)] hover:text-[var(--ink)] hover:bg-[var(--paper-2)] transition cursor-pointer flex-shrink-0"
                 >
-                  <X className="w-5 h-5 stroke-[2.2]" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Receipt Body */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 font-mono text-xs">
-                <div className="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
-                  <span className="text-slate-400">Tranzaksiya ID:</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{selectedInvoice.transactionId || `TRX-${selectedInvoice.id}`}</span>
+              <dl className="rounded-2xl bg-[var(--paper-2)] divide-y divide-[var(--rule-soft)] text-[14px]">
+                {[
+                  { k: L("Tranzaksiya ID", "ID транзакции", "Transaction ID"), v: selectedInvoice.transactionId || `TRX-${selectedInvoice.id}`, mono: true },
+                  { k: L("Sana va vaqt", "Дата и время", "Date & time"), v: new Date(selectedInvoice.createdAt).toLocaleString(locale) },
+                  { k: L("Tarif", "Тариф", "Plan"), v: `${planLabel(selectedInvoice.plan)} · 30 ${L("kun", "дней", "days")}` },
+                  { k: L("Bank / ilova", "Банк / приложение", "Bank / app"), v: selectedInvoice.bankOrApp || "Click / Payme" },
+                ].map((r) => (
+                  <div key={r.k} className="flex items-start justify-between gap-4 px-4 py-3">
+                    <dt className="text-[var(--ink-2)] flex-shrink-0">{r.k}</dt>
+                    <dd className={`font-semibold text-[var(--ink)] text-right min-w-0 break-all ${r.mono ? "font-mono text-[13px]" : ""}`}>{r.v}</dd>
+                  </div>
+                ))}
+                <div className="flex items-baseline justify-between gap-4 px-4 py-3.5">
+                  <dt className="text-[var(--ink-2)]">{L("To'langan summa", "Оплаченная сумма", "Amount paid")}</dt>
+                  <dd className="price text-[20px] text-[var(--ink)]">{formatPrice(selectedInvoice.amount || 49000)}</dd>
                 </div>
-                <div className="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
-                  <span className="text-slate-400">Sana & Vaqt:</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{new Date(selectedInvoice.createdAt).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
-                  <span className="text-slate-400">Tarif:</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{planLabel(selectedInvoice.plan)} · 30 {L("kun", "дней", "days")}</span>
-                </div>
-                <div className="flex justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
-                  <span className="text-slate-400">Bank / Ilova:</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{selectedInvoice.bankOrApp || "Click / Payme"}</span>
-                </div>
-                <div className="flex justify-between pt-1 text-sm font-bold">
-                  <span className="text-slate-500">To'langan Summa:</span>
-                  <span className="text-emerald-600 dark:text-emerald-400">{formatPrice(selectedInvoice.amount || 49000)}</span>
-                </div>
-              </div>
+              </dl>
 
-              {/* Official AI Verification Stamp */}
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-400 rounded-2xl flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="w-6 h-6 stroke-[2.2]" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold uppercase text-emerald-800 dark:text-emerald-300 block">
-                    AI AUDIT TASDIQLANDI
-                  </span>
-                  <p className="text-[11px] text-emerald-700 dark:text-emerald-400 leading-tight">
-                    {selectedInvoice.reason || "Fiskal to'lov cheki haqiqiyligi tasdiqlangan."}
+              <div
+                className={`rounded-2xl p-4 flex items-start gap-3 ${
+                  selectedInvoice.status === "verified"
+                    ? "bg-[var(--ok-soft)] text-[var(--ok-ink)]"
+                    : selectedInvoice.status === "rejected"
+                    ? "bg-[var(--rose-soft)] text-[var(--rose)]"
+                    : "bg-[var(--paper-2)] border border-[var(--rule-soft)] text-[var(--ink)]"
+                }`}
+              >
+                {selectedInvoice.status === "verified" ? (
+                  <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                ) : selectedInvoice.status === "rejected" ? (
+                  <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                ) : (
+                  <Clock className="w-5 h-5 mt-0.5 flex-shrink-0 text-[var(--warn)]" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-[14px] font-semibold">
+                    {selectedInvoice.status === "verified"
+                      ? L("AI tekshiruvi tasdiqladi", "Проверка AI пройдена", "Verified by AI check")
+                      : statusLabel(selectedInvoice.status)}
+                  </p>
+                  <p className="mt-0.5 text-[13px] leading-snug opacity-90">
+                    {selectedInvoice.reason ||
+                      (selectedInvoice.status === "verified"
+                        ? L("Fiskal to'lov cheki haqiqiyligi tasdiqlangan.", "Подлинность фискального чека подтверждена.", "The fiscal receipt was confirmed as genuine.")
+                        : "")}
                   </p>
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  window.print();
-                }}
-                className="w-full py-3.5 btn-luxury-gold text-slate-950 font-bold rounded-2xl text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
-              >
-                <Download className="w-4 h-4 stroke-[2.2]" />
-                <span>Kvitansiyani Chop Etish / Saqlash</span>
+              <button type="button" onClick={() => window.print()} className="btn-primary w-full h-12 text-[15px]">
+                <Download className="w-4 h-4" />
+                {L("Kvitansiyani chop etish / saqlash", "Распечатать / сохранить", "Print / save receipt")}
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

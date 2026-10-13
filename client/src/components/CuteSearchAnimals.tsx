@@ -1,60 +1,62 @@
 import { useEffect, useState } from "react";
-import { Search } from "../lib/icons";
+import { useTranslation } from "../lib/i18n";
+import { Check } from "../lib/icons";
 
-const animals = [
-  { id: 1, emoji: "🦊", name: "Tulkicha", action: "Uzum Marketni izlayapti..." },
-  { id: 2, emoji: "🐰", name: "Quyoncha", action: "Texnomartda yuguryapti..." },
-  { id: 3, emoji: "🐱", name: "Mushukcha", action: "MediaParkni tekshiryapti..." },
-  { id: 4, emoji: "🐼", name: "Panda", action: "Eng yaxshi chegirmalarni kutyapti..." },
-  { id: 5, emoji: "🐶", name: "Kuchukcha", action: "Omborlarni iskalamoqda..." },
+/** Calm store-by-store progress shown while a search runs (was an animal animation; name kept for imports). */
+const steps = [
+  { store: "Uzum Market", uz: "Uzum Market tekshirilmoqda", ru: "Проверяем Uzum Market", en: "Checking Uzum Market" },
+  { store: "Texnomart", uz: "Texnomart tekshirilmoqda", ru: "Проверяем Texnomart", en: "Checking Texnomart" },
+  { store: "MediaPark", uz: "MediaPark tekshirilmoqda", ru: "Проверяем MediaPark", en: "Checking MediaPark" },
+  { store: "Olcha", uz: "Olcha tekshirilmoqda", ru: "Проверяем Olcha", en: "Checking Olcha" },
+  { store: "Asaxiy", uz: "Chegirmalar solishtirilmoqda", ru: "Сравниваем скидки", en: "Comparing discounts" },
 ];
 
 export default function CuteSearchAnimals() {
+  const { language } = useTranslation();
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % animals.length);
+      setActiveIndex((prev) => (prev + 1) % steps.length);
     }, 1500);
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-2xl p-6 border border-[var(--line)] dark:border-amber-900/30 shadow-inner mt-6 overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-full h-1 opacity-50"></div>
-      
-      <div className="flex flex-col items-center justify-center space-y-5">
-        <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-          Sovg'a AI kichik yordamchilari ishda!
-        </h3>
-        
-        <div className="flex items-end justify-center gap-4 sm:gap-8 h-16">
-          {animals.map((animal, idx) => {
-            const isActive = idx === activeIndex;
-            return (
-              <div 
-                key={animal.id} 
-                className={`flex flex-col items-center transition-all duration-200 ${isActive ? 'scale-125 -translate-y-4' : 'scale-90 opacity-60 grayscale-[30%]'}`}
-              >
-                <div className="relative">
-                  <span className="text-3xl sm:text-4xl filter drop-shadow-md">{animal.emoji}</span>
-                  {isActive && (
-                    <div className="absolute -top-3 -right-3 bg-white dark:bg-slate-800 rounded-full p-1 shadow-md border border-slate-100 dark:border-slate-700">
-                      <Search className="w-3 h-3 text-amber-500" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+  const pick = (s: (typeof steps)[number]) => (language === "uz" ? s.uz : language === "ru" ? s.ru : s.en);
 
-        <div className="h-6 flex items-center justify-center">
-          <p className="text-sm font-semibold text-amber-600 dark:text-amber-400 animate-pulse bg-amber-50 dark:bg-amber-950/40 px-4 py-1.5 rounded-full border border-[var(--line)] dark:border-amber-900/50">
-            {animals[activeIndex].emoji} {animals[activeIndex].name} {animals[activeIndex].action}
-          </p>
-        </div>
+  return (
+    <div className="rounded-2xl border border-[var(--rule-soft)] bg-[var(--white)] p-4 sm:p-5" aria-live="polite">
+      <div className="flex items-center justify-between gap-3 text-[14px]">
+        <span className="font-semibold text-[var(--ink)]">{pick(steps[activeIndex])}…</span>
+        <span className="tabular text-[13px] text-[var(--ink-2)]">
+          {activeIndex + 1} / {steps.length}
+        </span>
       </div>
+      <div className="mt-3 grid grid-cols-5 gap-1.5" aria-hidden>
+        {steps.map((s, idx) => (
+          <span
+            key={s.store}
+            className={`h-1.5 rounded-full transition-colors duration-500 ${
+              idx < activeIndex ? "bg-[var(--anor)]" : idx === activeIndex ? "bg-[var(--anor)] animate-pulse" : "bg-[var(--paper-2)]"
+            }`}
+          />
+        ))}
+      </div>
+      <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[13px]">
+        {steps.map((s, idx) => (
+          <li
+            key={s.store}
+            className={`inline-flex items-center gap-1.5 ${idx <= activeIndex ? "text-[var(--ink)]" : "text-[var(--muted)]"}`}
+          >
+            {idx < activeIndex ? (
+              <Check className="w-3.5 h-3.5 text-[var(--ok)]" />
+            ) : (
+              <span className={`w-1.5 h-1.5 rounded-full ${idx === activeIndex ? "bg-[var(--anor)]" : "bg-[var(--rule-soft)]"}`} />
+            )}
+            {s.store}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

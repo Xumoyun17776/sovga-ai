@@ -9,9 +9,9 @@ import ResearchResults, { ResearchSkeleton } from "../components/ResearchResults
 import CuteSearchAnimals from "../components/CuteSearchAnimals";
 import {
   Sparkles,
-  ArrowLeft,
-  Filter,
   AlertCircle,
+  Search,
+  ArrowUpRight,
   RefreshCw,
   Zap,
   TrendingDown,
@@ -43,8 +43,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " Toshkentda 1 kunda yetkazib berish",
     suffixRu: " быстрая доставка в Ташкенте за 1 день",
     icon: Zap,
-    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
-    iconClass: "text-slate-400",
+    chipClass: "bg-[var(--white)] text-[var(--ink)] border-[var(--rule-soft)] hover:border-[var(--line-hover)] hover:bg-[var(--paper-2)]",
+    iconClass: "text-[var(--muted)]",
   },
   {
     labelEn: "Value & Budget Alternatives",
@@ -54,8 +54,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " arzonroq sifatli variantlar",
     suffixRu: " доступные качественные альтернативы",
     icon: TrendingDown,
-    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
-    iconClass: "text-slate-400",
+    chipClass: "bg-[var(--white)] text-[var(--ink)] border-[var(--rule-soft)] hover:border-[var(--line-hover)] hover:bg-[var(--paper-2)]",
+    iconClass: "text-[var(--muted)]",
   },
   {
     labelEn: "0% Halol Installments (Nasiya)",
@@ -65,8 +65,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " Uzum Nasiya bo'lib to'lash bilan",
     suffixRu: " в рассрочку без переплат Uzum Nasiya",
     icon: CreditCard,
-    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
-    iconClass: "text-slate-400",
+    chipClass: "bg-[var(--white)] text-[var(--ink)] border-[var(--rule-soft)] hover:border-[var(--line-hover)] hover:bg-[var(--paper-2)]",
+    iconClass: "text-[var(--muted)]",
   },
   {
     labelEn: "Ultra-Premium Tier",
@@ -76,8 +76,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " eng sifatli premium model",
     suffixRu: " премиум флагман оригинал",
     icon: Crown,
-    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
-    iconClass: "text-slate-400",
+    chipClass: "bg-[var(--white)] text-[var(--ink)] border-[var(--rule-soft)] hover:border-[var(--line-hover)] hover:bg-[var(--paper-2)]",
+    iconClass: "text-[var(--muted)]",
   },
   {
     labelEn: "Deepest Discounts & Promos",
@@ -87,8 +87,8 @@ const refinementSuggestions: RefinementItem[] = [
     suffixUz: " eng katta chegirmadagi aksiya",
     suffixRu: " с максимальной скидкой по акции",
     icon: Tag,
-    chipClass: "bg-white hover:bg-slate-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] text-slate-700 dark:text-slate-300 border-[var(--line)] hover:border-[var(--line-strong)]",
-    iconClass: "text-slate-400",
+    chipClass: "bg-[var(--white)] text-[var(--ink)] border-[var(--rule-soft)] hover:border-[var(--line-hover)] hover:bg-[var(--paper-2)]",
+    iconClass: "text-[var(--muted)]",
   },
 ];
 
@@ -169,153 +169,101 @@ export default function SearchResultsPage() {
       }
     : null;
 
+
+  const L = (uz: string, ru: string, en: string) => (language === "uz" ? uz : language === "ru" ? ru : en);
+  const selectWrap =
+    "flex items-center gap-2 h-10 pl-3 pr-1.5 rounded-xl border border-[var(--rule-soft)] bg-[var(--white)] text-[14px] hover:border-[var(--line-hover)] focus-within:border-[var(--anor)] transition min-w-0";
+  const selectCls = "flex-1 min-w-0 h-full bg-transparent font-semibold text-[var(--ink)] outline-none cursor-pointer";
+
   return (
-    <div className="min-h-screen py-8 transition-colors relative overflow-hidden">
-      {/* Ambient luxury vignette glow */}
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8 animate-fade-in relative z-10">
+    <div className="min-h-screen bg-[var(--paper)] py-6 sm:py-10 transition-colors">
+      <div className="wrap space-y-8 animate-fade-in">
         {/* Search Header Bar */}
-      <div className="max-w-3xl mx-auto">
-        <SearchBar
-          initialQuery={query}
-          onSearch={(newQ) => {
-            setQuery(newQ);
-            mutation.mutate(newQ);
-          }}
-        />
-      </div>
+        <div className="max-w-3xl">
+          <SearchBar
+            initialQuery={query}
+            onSearch={(newQ) => {
+              setQuery(newQ);
+              mutation.mutate(newQ);
+            }}
+          />
+        </div>
 
-      {/* Loading state with animated pipeline simulation */}
-      {mutation.isPending && (
-        <div className="space-y-6 max-w-3xl mx-auto">
-          <div className="card-luxury radar-sweep-indicator bg-white dark:bg-[#0d1530] rounded-2xl p-7 sm:p-10 border border-slate-200 dark:border-slate-800 shadow-sm text-center space-y-5 relative overflow-hidden">
-            <div className="w-16 h-16 bg-slate-900 dark:bg-slate-800 text-amber-400 rounded-2xl flex items-center justify-center mx-auto shadow-sm relative z-10">
-              <Sparkles className="w-8 h-8 animate-spin" style={{ animationDuration: "6s" }} />
-            </div>
-
-            <div className="space-y-1.5 relative z-10">
-              <span className="text-[11px] font-bold px-3.5 py-1 rounded-full border bg-[#f4f5f8] dark:bg-white/5 text-slate-600 dark:text-slate-300 border-[var(--line)]">
-                {language === "uz"
-                  ? "Jonli Bozor Skaneri Ishga Tushirildi"
-                  : language === "ru"
-                  ? "Сканирование Рынка Запущено"
-                  : "Live Market Scanner Activated"}
-              </span>
-              <h2 className="font-display font-semibold text-2xl sm:text-3xl text-slate-900 dark:text-white">
-                {language === "uz"
-                  ? "AI Xarid Tadqiqoti Olib Borilmoqda"
-                  : language === "ru"
-                  ? "Выполняется исследование рынка"
-                  : "Searching stores…"}
+        {/* Loading state */}
+        {mutation.isPending && (
+          <div className="space-y-6">
+            <div className="max-w-3xl rounded-2xl border border-[var(--rule-soft)] bg-[var(--white)] p-5 sm:p-7">
+              <p className="inline-flex items-center gap-2 text-[13px] font-semibold text-[var(--anor)]">
+                <span className="relative flex w-2 h-2">
+                  <span className="absolute inset-0 rounded-full bg-[var(--anor)] animate-ping opacity-50" />
+                  <span className="relative w-2 h-2 rounded-full bg-[var(--anor)]" />
+                </span>
+                {L("Jonli Bozor Skaneri Ishga Tushirildi", "Сканирование Рынка Запущено", "Live Market Scanner Activated")}
+              </p>
+              <h2 className="mt-2 font-lux text-[1.5rem] sm:text-[1.9rem] leading-tight text-[var(--ink)]">
+                {L("AI Xarid Tadqiqoti Olib Borilmoqda", "Выполняется исследование рынка", "Searching stores…")}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-lg mx-auto">
-                {language === "uz"
-                  ? `Uzum Market, Texnomart, MediaPark, Asaxiy va Toshkent omborlari tekshirilmoqda: “${query}”`
-                  : language === "ru"
-                  ? `Сканируются склады Uzum Market, Texnomart, MediaPark, Asaxiy: «${query}»`
-                  : `Scanning live stock, pricing & warranties across Uzum, Texnomart, MediaPark, Asaxiy & Tashkent hubs: “${query}”`}
+              <p className="mt-2 text-[15px] leading-relaxed text-[var(--ink-2)] max-w-2xl">
+                {L(
+                  `Uzum Market, Texnomart, MediaPark, Asaxiy va Toshkent omborlari tekshirilmoqda: “${query}”`,
+                  `Сканируются склады Uzum Market, Texnomart, MediaPark, Asaxiy: «${query}»`,
+                  `Scanning live stock, pricing & warranties across Uzum, Texnomart, MediaPark, Asaxiy & Tashkent hubs: “${query}”`
+                )}
+              </p>
+
+              <div className="mt-5">
+                <CuteSearchAnimals />
+              </div>
+
+              <p className="mt-4 text-[13px] text-[var(--ink-2)]">
+                {L(
+                  "Haqiqiy UZS narxlari, 30 kunlik dinamika va yetkazib berish muddati tahlil qilinmoqda...",
+                  "Анализ реальных цен UZS, 30-дневной динамики и сроков доставки...",
+                  "Verifying authentic UZS quotes, 30-day price trends, and express delivery SLAs..."
+                )}
               </p>
             </div>
 
-            {/* Stepper live store badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 max-w-xl mx-auto relative z-10 text-xs">
-              <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/40 border border-purple-200/80 dark:border-purple-800/60 text-purple-950 dark:text-purple-300 font-semibold flex items-center justify-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-purple-600" />
-                <span>Uzum Market</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 text-rose-950 dark:text-rose-300 font-semibold flex items-center justify-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-rose-600" />
-                <span>Texnomart</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 text-emerald-950 dark:text-emerald-300 font-semibold flex items-center justify-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-600" />
-                <span>MediaPark</span>
-              </div>
-              <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800/60 text-sky-950 dark:text-sky-300 font-semibold flex items-center justify-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-sky-600" />
-                <span>Asaxiy.uz</span>
-              </div>
-            </div>
-
-            <div className="flex justify-center items-center gap-2 pt-1 text-xs text-slate-500 dark:text-slate-400 font-medium relative z-10">
-              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>
-                {language === "uz"
-                  ? "Haqiqiy UZS narxlari, 30 kunlik dinamika va yetkazib berish muddati tahlil qilinmoqda..."
-                  : language === "ru"
-                  ? "Анализ реальных цен UZS, 30-дневной динамики и сроков доставки..."
-                  : "Verifying authentic UZS quotes, 30-day price trends, and express delivery SLAs..."}
-              </span>
-            </div>
+            <ResearchSkeleton />
           </div>
+        )}
 
-          <CuteSearchAnimals />
-          
-          <ResearchSkeleton />
-        </div>
-      )}
-
-      {/* Results Header with Category Filter Tabs & Refinement Chips */}
-      {mutation.isSuccess && filteredData && (
-        <div className="space-y-6">
-          <div className="flex flex-col gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Results header: title, count, category tabs, refinements, filters */}
+        {mutation.isSuccess && filteredData && (
+          <div className="space-y-6">
+            <div className="space-y-5 pb-6 border-b border-[var(--rule-soft)]">
               <div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                  <Link href="/" className="hover:text-amber-600 dark:hover:text-amber-400 transition">
-                    {language === "uz" ? "Asosiy" : language === "ru" ? "Главная" : "Home"}
+                <nav className="flex items-center gap-1.5 text-[13px] text-[var(--ink-2)] mb-2">
+                  <Link href="/" className="hover:text-[var(--anor)] transition">
+                    {L("Asosiy", "Главная", "Home")}
                   </Link>
-                  <span>/</span>
-                  <span>{language === "uz" ? "Qidiruv" : language === "ru" ? "Поиск" : "Search"}</span>
-                </div>
-                <h1 className="lux-title text-[2.15rem] sm:text-[2.7rem] text-slate-900 dark:text-white leading-[1.05]">
-                  {language === "uz"
-                    ? `Natijalar: “`
-                    : language === "ru"
-                    ? `Результаты: «`
-                    : `Results for “`}
-                  <span className="text-amber-600 dark:text-amber-400">{query}</span>
+                  <span className="text-[var(--muted)]">/</span>
+                  <span>{L("Qidiruv", "Поиск", "Search")}</span>
+                </nav>
+                <h1 className="font-lux text-[1.75rem] sm:text-[2.5rem] leading-[1.1] text-[var(--ink)] break-words">
+                  {L(`Natijalar: “`, `Результаты: «`, `Results for “`)}
+                  <span className="text-[var(--anor)]">{query}</span>
                   {language === "ru" ? "»" : "”"}
                 </h1>
-                <div className="flex flex-wrap items-center gap-2 mt-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                    <TrendingDown className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                    {language === "uz"
-                      ? `Eng arzonidan boshlab tartiblangan (${filteredData.products.length} ta mahsulot)`
-                      : language === "ru"
-                      ? `Отсортировано по возрастанию цены (${filteredData.products.length} товаров)`
-                      : `Sorted from lowest price (${filteredData.products.length} products)`}
-                  </span>
-                </div>
+                <p className="mt-2 inline-flex items-center gap-1.5 text-[14px] text-[var(--ink-2)]">
+                  <TrendingDown className="w-4 h-4 text-[var(--ok)]" />
+                  {L(
+                    `Eng arzonidan boshlab tartiblangan (${filteredData.products.length} ta mahsulot)`,
+                    `Отсортировано по возрастанию цены (${filteredData.products.length} товаров)`,
+                    `Sorted from lowest price (${filteredData.products.length} products)`
+                  )}
+                </p>
               </div>
 
-              {/* Category Filter Tabs */}
-              <div className="flex flex-wrap gap-1.5 bg-amber-100/70 dark:bg-slate-800/80 p-1 rounded-2xl text-xs font-bold border border-[var(--line)] dark:border-slate-700">
+              {/* Category filter pills */}
+              <div className="-mx-6 px-6 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto no-scrollbar sm:flex-wrap">
                 {[
-                  {
-                    key: "all",
-                    label: language === "uz" ? "Barchasi" : language === "ru" ? "Все" : "All Results",
-                  },
-                  {
-                    key: "best_overall",
-                    label: language === "uz" ? "Top Tanlov" : language === "ru" ? "Лучший выбор" : "Best Overall",
-                  },
-                  {
-                    key: "best_value",
-                    label: language === "uz" ? "Eng Foydali" : language === "ru" ? "Выгодный" : "Best Value",
-                  },
-                  {
-                    key: "cheapest",
-                    label: language === "uz" ? "Hamyonbop" : language === "ru" ? "Самый доступный" : "Lowest Price",
-                  },
-                  {
-                    key: "premium",
-                    label: language === "uz" ? "Premium" : language === "ru" ? "Премиум" : "Luxury Tier",
-                  },
-                  {
-                    key: "most_unique",
-                    label: language === "uz" ? "Noyob" : language === "ru" ? "Уникальный" : "Unique",
-                  },
+                  { key: "all", label: L("Barchasi", "Все", "All Results") },
+                  { key: "best_overall", label: L("Top Tanlov", "Лучший выбор", "Best Overall") },
+                  { key: "best_value", label: L("Eng Foydali", "Выгодный", "Best Value") },
+                  { key: "cheapest", label: L("Hamyonbop", "Самый доступный", "Lowest Price") },
+                  { key: "premium", label: L("Premium", "Премиум", "Luxury Tier") },
+                  { key: "most_unique", label: L("Noyob", "Уникальный", "Unique") },
                 ].map((tab) => (
                   <button
                     key={tab.key}
@@ -323,63 +271,58 @@ export default function SearchResultsPage() {
                       cyberSound.playClick();
                       setActiveFilter(tab.key);
                     }}
-                    className={`px-3 py-1.5 rounded-xl transition cursor-pointer ${
+                    className={`shrink-0 h-9 px-4 rounded-full border text-[14px] font-medium transition cursor-pointer ${
                       activeFilter === tab.key
-                        ? "text-white shadow-xs font-bold bg-amber-500"
-                        : "text-slate-700 dark:text-slate-300 hover:text-black dark:hover:text-white hover:bg-amber-200/50 dark:hover:bg-slate-700/50"
+                        ? "bg-[var(--ink)] border-[var(--ink)] text-[var(--paper)]"
+                        : "bg-[var(--white)] border-[var(--rule-soft)] text-[var(--ink-2)] hover:text-[var(--ink)] hover:border-[var(--line-hover)]"
                     }`}
                   >
                     {tab.label}
                   </button>
                 ))}
               </div>
-            </div>
 
-            {/* AI Research Refinement Chips */}
-            <div className="flex items-center gap-2 flex-wrap pt-1">
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>{language === "uz" ? "AI Aniqlashtirish:" : language === "ru" ? "AI Уточнение:" : "AI Refine:"}</span>
-              </span>
-              {refinementSuggestions.map((item, idx) => {
-                const Icon = item.icon;
-                const label = language === "uz" ? item.labelUz : language === "ru" ? item.labelRu : item.labelEn;
-                const suffix = language === "uz" ? item.suffixUz : language === "ru" ? item.suffixRu : item.suffixEn;
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      cyberSound.playClick();
-                      handleRefine(suffix);
-                    }}
-                    className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border transition shadow-xs cursor-pointer ${item.chipClass}`}
-                  >
-                    <Icon className={`w-3.5 h-3.5 ${item.iconClass}`} />
-                    <span>{label}</span>
-                  </button>
-                );
-              })}
-            </div>
+              {/* Refinement suggestions */}
+              <div className="space-y-2">
+                <p className="flex items-center gap-1.5 text-[13px] font-semibold text-[var(--ink-2)]">
+                  <Sparkles className="w-3.5 h-3.5 text-[var(--anor)]" />
+                  {L("AI Aniqlashtirish:", "AI Уточнение:", "AI Refine:")}
+                </p>
+                <div className="-mx-6 px-6 sm:mx-0 sm:px-0 flex gap-2 overflow-x-auto no-scrollbar sm:flex-wrap">
+                  {refinementSuggestions.map((item, idx) => {
+                    const Icon = item.icon;
+                    const label = language === "uz" ? item.labelUz : language === "ru" ? item.labelRu : item.labelEn;
+                    const suffix = language === "uz" ? item.suffixUz : language === "ru" ? item.suffixRu : item.suffixEn;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          cyberSound.playClick();
+                          handleRefine(suffix);
+                        }}
+                        className={`shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[13px] font-medium border transition cursor-pointer ${item.chipClass}`}
+                      >
+                        <Icon className={`w-3.5 h-3.5 ${item.iconClass}`} />
+                        <span className="whitespace-nowrap">{label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-            {/* Filter & Sort Controls Toolbar */}
-            <div className="bg-white dark:bg-[#0b1224] card-luxury p-3.5 rounded-2xl border border-[var(--line)] dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs shadow-sm">
-              <div className="flex flex-wrap items-center gap-2.5">
-                {/* Store Filter */}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-700 dark:text-slate-400 font-bold">
-                    {language === "uz" ? "Do'kon:" : language === "ru" ? "Магазин:" : "Store:"}
-                  </span>
+              {/* Filter & sort controls */}
+              <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2">
+                <label className={`${selectWrap} sm:w-auto`}>
+                  <span className="text-[var(--ink-2)] shrink-0">{L("Do'kon:", "Магазин:", "Store:")}</span>
                   <select
                     value={selectedStore}
                     onChange={(e) => {
                       cyberSound.playClick();
                       setSelectedStore(e.target.value);
                     }}
-                    className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
+                    className={selectCls}
                   >
-                    <option value="all">
-                      {language === "uz" ? "Barcha do'konlar" : language === "ru" ? "Все магазины" : "All Stores"}
-                    </option>
+                    <option value="all">{L("Barcha do'konlar", "Все магазины", "All Stores")}</option>
                     <option value="uzum">Uzum Market</option>
                     <option value="olcha">Olcha</option>
                     <option value="texnomart">Texnomart</option>
@@ -389,205 +332,170 @@ export default function SearchResultsPage() {
                     <option value="istore">iStore Tashkent</option>
                     <option value="craft bazaar">Craft Bazaar</option>
                   </select>
-                </div>
+                </label>
 
-                {/* Price Bracket Filter */}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-slate-700 dark:text-slate-400 font-bold">
-                    {language === "uz" ? "Narx:" : language === "ru" ? "Цена:" : "Price:"}
-                  </span>
+                <label className={`${selectWrap} sm:w-auto`}>
+                  <span className="text-[var(--ink-2)] shrink-0">{L("Narx:", "Цена:", "Price:")}</span>
                   <select
                     value={priceBracket}
                     onChange={(e) => {
                       cyberSound.playClick();
                       setPriceBracket(e.target.value);
                     }}
-                    className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
+                    className={selectCls}
                   >
-                    <option value="all">
-                      {language === "uz" ? "Barcha narxlar" : language === "ru" ? "Все диапазоны" : "All Price Ranges"}
-                    </option>
+                    <option value="all">{L("Barcha narxlar", "Все диапазоны", "All Price Ranges")}</option>
                     <option value="under_1m">&lt; 1,000,000 UZS</option>
                     <option value="1m_3m">1,000,000 - 3,000,000 UZS</option>
                     <option value="3m_7m">3,000,000 - 7,000,000 UZS</option>
                     <option value="7m_15m">7,000,000 - 15,000,000 UZS</option>
                     <option value="over_15m">&gt; 15,000,000 UZS</option>
                   </select>
-                </div>
-              </div>
+                </label>
 
-              {/* Sort By */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-slate-700 dark:text-slate-400 font-bold flex items-center gap-1">
-                  <ArrowUpDown className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                  <span>{language === "uz" ? "Tartib:" : language === "ru" ? "Сортировка:" : "Sort:"}</span>
-                </span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => {
-                    cyberSound.playClick();
-                    setSortBy(e.target.value);
-                  }}
-                  className="px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-[var(--line)] dark:border-slate-700 rounded-xl font-bold text-slate-800 dark:text-slate-200 outline-none focus:ring-2 focus:ring-amber-500/30 cursor-pointer"
-                >
-                  <option value="price_asc">
-                    {language === "uz"
-                      ? "Arzondan qimmatga (Eng arzon)"
-                      : language === "ru"
-                      ? "Сначала дешёвые"
-                      : "Price: Low to High (Cheapest First)"}
-                  </option>
-                  <option value="ai_relevance">
-                    {language === "uz" ? "AI Tavsiyasi" : language === "ru" ? "Рекомендация AI" : "AI Optimal Match"}
-                  </option>
-                  <option value="price_desc">
-                    {language === "uz"
-                      ? "Qimmatdan arzonga"
-                      : language === "ru"
-                      ? "Сначала дорогие"
-                      : "Price: High to Low (Premium)"}
-                  </option>
-                  <option value="discount">
-                    {language === "uz"
-                      ? "Eng katta chegirma"
-                      : language === "ru"
-                      ? "Самая большая скидка"
-                      : "Highest % Discount"}
-                  </option>
-                  <option value="rating">
-                    {language === "uz"
-                      ? "Mijozlar reytingi"
-                      : language === "ru"
-                      ? "Рейтинг покупателей"
-                      : "Customer Rating (High to Low)"}
-                  </option>
-                </select>
+                <label className={`${selectWrap} col-span-2 sm:col-span-1 sm:ml-auto`}>
+                  <ArrowUpDown className="w-3.5 h-3.5 text-[var(--muted)] shrink-0" />
+                  <span className="text-[var(--ink-2)] shrink-0">{L("Tartib:", "Сортировка:", "Sort:")}</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      cyberSound.playClick();
+                      setSortBy(e.target.value);
+                    }}
+                    className={selectCls}
+                  >
+                    <option value="price_asc">
+                      {L("Arzondan qimmatga (Eng arzon)", "Сначала дешёвые", "Price: Low to High (Cheapest First)")}
+                    </option>
+                    <option value="ai_relevance">{L("AI Tavsiyasi", "Рекомендация AI", "AI Optimal Match")}</option>
+                    <option value="price_desc">{L("Qimmatdan arzonga", "Сначала дорогие", "Price: High to Low (Premium)")}</option>
+                    <option value="discount">{L("Eng katta chegirma", "Самая большая скидка", "Highest % Discount")}</option>
+                    <option value="rating">{L("Mijozlar reytingi", "Рейтинг покупателей", "Customer Rating (High to Low)")}</option>
+                  </select>
+                </label>
               </div>
             </div>
-          </div>
 
-          {filteredData.products.length === 0 ? (
-            <div className="bg-white dark:bg-[#0b1224] rounded-2xl p-10 sm:p-12 text-center border border-[var(--line)] dark:border-amber-500/25 max-w-md mx-auto space-y-4 shadow-sm animate-fade-in">
-              <div className="w-16 h-16 bg-amber-50 dark:bg-amber-950/40 border border-[var(--line)] dark:border-amber-800 rounded-2xl flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400">
-                <ShoppingBag className="w-8 h-8 stroke-[2.2]" />
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-display font-bold text-slate-900 dark:text-white text-lg">
-                  {language === "uz"
-                    ? "Tanlangan filtrlarga mos mahsulot topilmadi"
-                    : language === "ru"
-                    ? "Товары по выбранным фильтрам не найдены"
-                    : "No products matched the current filters"}
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                  {language === "uz"
-                    ? "Do'kon yoki narx chegaralarini kengaytiring yoki barcha filtrlarni qayta tiklang."
-                    : language === "ru"
-                    ? "Попробуйте расширить диапазон цен или сбросить фильтры."
-                    : "Try expanding your price range or resetting store filters to see full market inventory."}
-                </p>
-              </div>
-              {selectedStore === "all" && priceBracket === "all" && activeFilter === "all" && (
-                <div className="space-y-2">
-                  <p className="text-xs text-slate-600 dark:text-slate-400">
-                    {tr(
-                      "Olcha va Texnomart'da bu mahsulot topilmadi. Boshqa do'konlarda qidirib ko'ring:",
-                      "В Olcha и Texnomart этого товара нет. Поищите в других магазинах:",
-                      "Olcha and Texnomart don't have this right now. Try searching other stores:"
+            {filteredData.products.length === 0 ? (
+              <div className="max-w-lg mx-auto rounded-2xl border border-[var(--rule-soft)] bg-[var(--white)] p-6 sm:p-10 text-center space-y-4 animate-fade-in">
+                <span className="tile mx-auto">
+                  <ShoppingBag />
+                </span>
+                <div className="space-y-1.5">
+                  <h3 className="font-lux text-[1.25rem] text-[var(--ink)]">
+                    {L(
+                      "Tanlangan filtrlarga mos mahsulot topilmadi",
+                      "Товары по выбранным фильтрам не найдены",
+                      "No products matched the current filters"
+                    )}
+                  </h3>
+                  <p className="text-[14px] text-[var(--ink-2)] max-w-sm mx-auto leading-relaxed">
+                    {L(
+                      "Do'kon yoki narx chegaralarini kengaytiring yoki barcha filtrlarni qayta tiklang.",
+                      "Попробуйте расширить диапазон цен или сбросить фильтры.",
+                      "Try expanding your price range or resetting store filters to see full market inventory."
                     )}
                   </p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {[
-                      ["Uzum Market", `https://uzum.uz/uz/search?query=${encodeURIComponent(qParam)}`],
-                      ["Asaxiy", `https://asaxiy.uz/product?key=${encodeURIComponent(qParam)}`],
-                      ["MediaPark", `https://mediapark.uz/search?q=${encodeURIComponent(qParam)}`],
-                      ["Olcha", `https://olcha.uz/oz/search?q=${encodeURIComponent(qParam)}`],
-                    ].map(([name, href]) => (
-                      <a key={name} href={href} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 rounded-lg border border-[var(--line)] text-xs font-semibold hover:border-[var(--line-strong)]">
-                        {name} ↗
-                      </a>
-                    ))}
-                  </div>
                 </div>
-              )}
-              <button
-                onClick={() => {
-                  cyberSound.playClick();
-                  setSelectedStore("all");
-                  setPriceBracket("all");
-                  setActiveFilter("all");
-                }}
-                className="px-6 py-2.5 btn-luxury-gold text-slate-950 font-bold rounded-xl text-xs transition shadow-md cursor-pointer"
-              >
-                {language === "uz" ? "Filtrlarni tozalash" : language === "ru" ? "Сбросить фильтры" : "Reset All Filters"}
-              </button>
+                {selectedStore === "all" && priceBracket === "all" && activeFilter === "all" && (
+                  <div className="space-y-2.5">
+                    <p className="text-[14px] text-[var(--ink-2)]">
+                      {tr(
+                        "Olcha va Texnomart'da bu mahsulot topilmadi. Boshqa do'konlarda qidirib ko'ring:",
+                        "В Olcha и Texnomart этого товара нет. Поищите в других магазинах:",
+                        "Olcha and Texnomart don't have this right now. Try searching other stores:"
+                      )}
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {[
+                        ["Uzum Market", `https://uzum.uz/uz/search?query=${encodeURIComponent(qParam)}`],
+                        ["Asaxiy", `https://asaxiy.uz/product?key=${encodeURIComponent(qParam)}`],
+                        ["MediaPark", `https://mediapark.uz/search?q=${encodeURIComponent(qParam)}`],
+                        ["Olcha", `https://olcha.uz/oz/search?q=${encodeURIComponent(qParam)}`],
+                      ].map(([name, href]) => (
+                        <a
+                          key={name}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 h-9 px-3.5 rounded-full border border-[var(--rule-soft)] bg-[var(--white)] text-[13px] font-semibold text-[var(--ink)] hover:border-[var(--line-hover)] transition"
+                        >
+                          {name} <ArrowUpRight className="w-3.5 h-3.5 text-[var(--anor)]" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    cyberSound.playClick();
+                    setSelectedStore("all");
+                    setPriceBracket("all");
+                    setActiveFilter("all");
+                  }}
+                  className="btn-primary h-11 px-6 text-[14px]"
+                >
+                  {L("Filtrlarni tozalash", "Сбросить фильтры", "Reset All Filters")}
+                </button>
+              </div>
+            ) : (
+              <ResearchResults result={filteredData} />
+            )}
+          </div>
+        )}
+
+        {/* Error State */}
+        {mutation.isError && (
+          <div className="max-w-md mx-auto rounded-2xl border border-[var(--rule-soft)] bg-[var(--white)] p-6 sm:p-8 text-center space-y-4 animate-fade-in">
+            <span className="mx-auto w-11 h-11 rounded-xl bg-[var(--rose-soft)] text-[var(--rose)] inline-flex items-center justify-center">
+              <AlertCircle className="w-5 h-5" />
+            </span>
+            <div className="space-y-1.5">
+              <h3 className="font-lux text-[1.25rem] text-[var(--ink)]">
+                {L("Tadqiqotda Kutilmagan Uzilish", "Ошибка при поиске", "Research Stream Interrupted")}
+              </h3>
+              <p className="text-[14px] text-[var(--ink-2)] leading-relaxed">
+                {(mutation.error as any)?.message ||
+                  L(
+                    "Qidiruv serveriga ulanishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring.",
+                    "Произошла ошибка при обращении к серверу поиска. Пожалуйста, попробуйте снова.",
+                    "An error occurred contacting live retail scanners. Please check connectivity and retry."
+                  )}
+              </p>
             </div>
-          ) : (
-            <ResearchResults result={filteredData} />
-          )}
-        </div>
-      )}
+            <button
+              onClick={() => {
+                cyberSound.playClick();
+                mutation.mutate(query);
+              }}
+              className="btn-primary h-11 px-6 text-[14px] mx-auto"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span>{L("Qaytadan tadqiq qilish", "Повторить поиск", "Rerun Research Query")}</span>
+            </button>
+          </div>
+        )}
 
-      {/* Error State */}
-      {mutation.isError && (
-        <div className="bg-white dark:bg-[#0b1224] max-w-md mx-auto text-center py-12 rounded-2xl border border-rose-300/80 dark:border-rose-500/30 p-8 space-y-4 shadow-sm animate-fade-in">
-          <div className="w-14 h-14 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-2xl flex items-center justify-center mx-auto border border-rose-200 dark:border-rose-800">
-            <AlertCircle className="w-7 h-7 stroke-[2.2]" />
+        {/* Empty Initial State */}
+        {!mutation.isPending && !mutation.data && !mutation.isError && (
+          <div className="max-w-md py-12 sm:py-16 space-y-4">
+            <span className="tile">
+              <Search />
+            </span>
+            <div className="space-y-1.5">
+              <h3 className="font-lux text-[1.5rem] text-[var(--ink)]">
+                {L("AI Xarid Tadqiqotini Boshlang", "Начните AI исследование покупок", "Search")}
+              </h3>
+              <p className="text-[15px] leading-relaxed text-[var(--ink-2)]">
+                {L(
+                  'Yuqoridagi qidiruv paneliga istalgan mahsulot nomini kiriting: masalan, "AirPods Pro", "Kofe mashinasi", yoki "To\'y sovg\'asi 700 ming gacha".',
+                  'Введите любой запрос в строку выше: например, "AirPods Pro", "Кофемашина" или "Свадебный подарок до 700 тыс".',
+                  'Enter any item in the search field above: e.g. "AirPods Pro", "Espresso Machine", or "Wedding gift under 700k".'
+                )}
+              </p>
+            </div>
           </div>
-          <div className="space-y-1">
-            <h3 className="font-display font-semibold text-lg text-slate-900 dark:text-white">
-              {language === "uz"
-                ? "Tadqiqotda Kutilmagan Uzilish"
-                : language === "ru"
-                ? "Ошибка при поиске"
-                : "Research Stream Interrupted"}
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              {(mutation.error as any)?.message ||
-                (language === "uz"
-                  ? "Qidiruv serveriga ulanishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring."
-                  : language === "ru"
-                  ? "Произошла ошибка при обращении к серверу поиска. Пожалуйста, попробуйте снова."
-                  : "An error occurred contacting live retail scanners. Please check connectivity and retry.")}
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              cyberSound.playClick();
-              mutation.mutate(query);
-            }}
-            className="px-6 py-2.5 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 mx-auto shadow-md cursor-pointer bg-amber-500 hover:bg-amber-400"
-          >
-            <RefreshCw className="w-3.5 h-3.5 stroke-[2.2]" />
-            <span>{language === "uz" ? "Qaytadan tadqiq qilish" : language === "ru" ? "Повторить поиск" : "Rerun Research Query"}</span>
-          </button>
-        </div>
-      )}
-
-      {/* Empty Initial State */}
-      {!mutation.isPending && !mutation.data && !mutation.isError && (
-        <div className="text-center py-20 text-slate-400 space-y-4">
-          <div className="w-16 h-16 bg-indigo-50/60 dark:bg-indigo-950/40 rounded-2xl flex items-center justify-center mx-auto border border-indigo-100 dark:border-indigo-900 text-indigo-500 dark:text-indigo-400">
-            <Sparkles className="w-8 h-8 stroke-[2.2]" />
-          </div>
-          <div className="space-y-1 max-w-md mx-auto">
-            <h3 className="font-display font-bold text-xl text-slate-700 dark:text-slate-200">
-              {language === "uz"
-                ? "AI Xarid Tadqiqotini Boshlang"
-                : language === "ru"
-                ? "Начните AI исследование покупок"
-                : "Search"}
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {language === "uz"
-                ? 'Yuqoridagi qidiruv paneliga istalgan mahsulot nomini kiriting: masalan, "AirPods Pro", "Kofe mashinasi", yoki "To\'y sovg\'asi 700 ming gacha".'
-                : language === "ru"
-                ? 'Введите любой запрос в строку выше: например, "AirPods Pro", "Кофемашина" или "Свадебный подарок до 700 тыс".'
-                : 'Enter any item in the search field above: e.g. "AirPods Pro", "Espresso Machine", or "Wedding gift under 700k".'}
-            </p>
-          </div>
-        </div>
-      )}
+        )}
       </div>
     </div>
   );

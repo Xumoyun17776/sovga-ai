@@ -5,6 +5,12 @@ export function getProductFallbackImage(name: string, category?: string): string
   const n = (name || "").toLowerCase();
   const c = (category || "").toLowerCase();
 
+  // Phones first when the name clearly is one: "Samsung Galaxy A55" must not match the TV rule (…55 inch).
+  const looksLikePhone =
+    /(galaxy|iphone|redmi|poco|pixel|honor|realme|vivo|oppo|tecno|infinix|smartfon|smartphone|telefon)/.test(n) &&
+    !/(\btv\b|televizor|watch|soat|buds|planshet|\btab\b|\bpad\b|ipad)/.test(n);
+  if (looksLikePhone) return phoneFallback(n, c) || GENERIC_PHONE;
+
   // 1. Televizorlar & Smart TV
   if (
     c.includes("televizor") ||
@@ -172,6 +178,15 @@ export function getProductFallbackImage(name: string, category?: string): string
     return "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=800&auto=format&fit=crop";
   }
 
+  const phone = phoneFallback(n, c);
+  if (phone) return phone;
+
+  return "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800&auto=format&fit=crop";
+}
+
+const GENERIC_PHONE = "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop";
+
+function phoneFallback(n: string, c: string): string | null {
   // 16. Smartfonlar & Telefonlar (Checked AFTER appliances & laptops)
   if (n.includes("iphone 16")) return "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop";
   if (n.includes("iphone 15")) return "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop";
@@ -208,5 +223,5 @@ export function getProductFallbackImage(name: string, category?: string): string
     return "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop";
   }
 
-  return "https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=800&auto=format&fit=crop";
+  return null;
 }
